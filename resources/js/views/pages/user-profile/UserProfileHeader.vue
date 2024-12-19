@@ -1,6 +1,6 @@
 <script setup>
 const profileHeaderData = ref()
-const { data, error } = await useApi('/pages/profile/header')
+const { data, error } = await useFake('/pages/profile/header')
 if (error.value) {
   console.log(error.value)
 } else {

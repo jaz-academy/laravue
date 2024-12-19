@@ -2,7 +2,7 @@
 import { VideoPlayer } from '@videojs-player/vue'
 import 'video.js/dist/video-js.css'
 
-const { data } = await useApi('/apps/academy/course-details')
+const { data } = await useFake('/apps/academy/course-details')
 const courseDetails = computed(() => data.value)
 const panelStatus = ref(0)
 </script>

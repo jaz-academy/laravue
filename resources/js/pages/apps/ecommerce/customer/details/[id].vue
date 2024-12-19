@@ -17,7 +17,7 @@ const tabs = [
   { title: 'Notifications' },
 ]
 
-const { data, error } = await useApi(`/apps/ecommerce/customers/${ route.params.id }`)
+const { data, error } = await useFake(`/apps/ecommerce/customers/${ route.params.id }`)
 if (error.value)
   console.log(error.value)
 else if (data.value)

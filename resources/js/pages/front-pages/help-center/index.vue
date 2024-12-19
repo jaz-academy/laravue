@@ -8,7 +8,7 @@ import HelpCenterLandingKnowledgeBase from '@/views/pages/help-center/HelpCenter
 // fetching data from fake-api
 definePage({ meta: { layout: 'blank' } })
 
-const { data: faqData } = await useApi('/pages/help-center')
+const { data: faqData } = await useFake('/pages/help-center')
 const apiData = faqData.value
 </script>
 
@@ -85,8 +85,7 @@ const apiData = faqData.value
 @media (max-width: 599px) {
   .help-center-page {
     .search-header {
-      padding-block-end: 2rem !important;
-      padding-block-start: 4rem !important;
+      padding-block: 4rem 2rem !important;
       padding-inline: 2rem !important;
     }
   }

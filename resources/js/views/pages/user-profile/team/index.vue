@@ -4,7 +4,7 @@ const teamData = ref([])
 
 const fetchTeamData = async () => {
   if (router.params.tab === 'teams') {
-    const data = await $api('/pages/profile', { query: { tab: router.params.tab } }).catch(err => console.log(err))
+    const data = await $fake('/pages/profile', { query: { tab: router.params.tab } }).catch(err => console.log(err))
 
     teamData.value = data
   }

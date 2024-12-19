@@ -1,6 +1,6 @@
 <script setup>
-import { VDataTableServer } from 'vuetify/labs/VDataTable'
 import { paginationMeta } from '@api-utils/paginationMeta'
+import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
 const searchQuery = ref('')
 
@@ -37,7 +37,7 @@ const headers = [
   },
 ]
 
-const { data: courseData } = await useApi(createUrl('/apps/academy/courses', {
+const { data: courseData } = await useFake(createUrl('/apps/academy/courses', {
   query: {
     q: searchQuery,
     itemsPerPage,

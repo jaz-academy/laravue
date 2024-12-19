@@ -1,12 +1,12 @@
+import { genId } from '@api-utils/genId'
+import { db } from '@db/apps/calendar/db'
 import is from '@sindresorhus/is'
 import destr from 'destr'
 import { rest } from 'msw'
-import { db } from '@db/apps/calendar/db'
-import { genId } from '@api-utils/genId'
 
 export const handlerAppsCalendar = [
   // 👉 Get Calendar Events
-  rest.get(('/api/apps/calendar'), (req, res, ctx) => {
+  rest.get(('/fake/apps/calendar'), (req, res, ctx) => {
     const queries = req.url.searchParams.getAll('calendars')
     const parsedCalendars = destr(queries)
     const calendars = is.array(parsedCalendars) ? parsedCalendars : undefined
@@ -16,7 +16,7 @@ export const handlerAppsCalendar = [
   }),
 
   // 👉 Add Calendar Event
-  rest.post(('/api/apps/calendar'), async (req, res, ctx) => {
+  rest.post(('/fake/apps/calendar'), async (req, res, ctx) => {
     const event = await req.json()
 
     db.events.push({
@@ -28,7 +28,7 @@ export const handlerAppsCalendar = [
   }),
 
   // 👉 Update Calendar Event
-  rest.put(('/api/apps/calendar/:id'), async (req, res, ctx) => {
+  rest.put(('/fake/apps/calendar/:id'), async (req, res, ctx) => {
     const updatedEvent = await req.json()
 
     updatedEvent.id = Number(updatedEvent.id)

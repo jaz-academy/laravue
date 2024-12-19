@@ -1,8 +1,8 @@
-import { rest } from 'msw'
 import { db } from '@db/auth/db'
+import { rest } from 'msw'
 
 export const handlerAuth = [
-  rest.post(('/api/auth/login'), async (req, res, ctx) => {
+  rest.post(('/fake/auth/login'), async (req, res, ctx) => {
     const { email, password } = await req.json()
     let errors = {
       email: ['Something went wrong'],

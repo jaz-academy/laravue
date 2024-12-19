@@ -1,6 +1,6 @@
 <script setup>
-import { VDataTableServer } from 'vuetify/labs/VDataTable'
 import { paginationMeta } from '@api-utils/paginationMeta'
+import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
 const selectedStatus = ref('All')
 const searchQuery = ref('')
@@ -12,7 +12,7 @@ const orderBy = ref()
 const {
   data: ReviewData,
   execute: fetchReviews,
-} = await useApi(createUrl('/apps/ecommerce/reviews', {
+} = await useFake(createUrl('/apps/ecommerce/reviews', {
   query: {
     q: searchQuery,
     status: selectedStatus,
@@ -33,7 +33,7 @@ const updateOptions = options => {
 }
 
 const deleteReview = async id => {
-  await $api(`/apps/ecommerce/reviews/${ id }`, { method: 'DELETE' })
+  await $fake(`/apps/ecommerce/reviews/${ id }`, { method: 'DELETE' })
   fetchReviews()
 }
 

@@ -1,9 +1,9 @@
+import { db } from '@db/pages/faq/db'
 import is from '@sindresorhus/is'
 import { rest } from 'msw'
-import { db } from '@db/pages/faq/db'
 
 export const handlerPagesFaq = [
-  rest.get(('/api/pages/faq'), (req, res, ctx) => {
+  rest.get(('/fake/pages/faq'), (req, res, ctx) => {
     const q = req.url.searchParams.get('q') ?? ''
     const searchQuery = is.string(q) ? q : undefined
     const queryLowered = (searchQuery ?? '').toString().toLowerCase()

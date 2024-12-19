@@ -5,7 +5,7 @@ import Navbar from '@/views/front-pages/front-page-navbar.vue'
 definePage({ meta: { layout: 'blank' } })
 
 const articleData = ref()
-const { data, error } = await useApi('/pages/help-center/article')
+const { data, error } = await useFake('/pages/help-center/article')
 if (error.value)
   console.log(error.value)
 else

@@ -1,7 +1,7 @@
 <script setup>
-import { VDataTableServer } from 'vuetify/labs/VDataTable'
 import AddNewUserDrawer from '@/views/apps/user/list/AddNewUserDrawer.vue'
 import { paginationMeta } from '@api-utils/paginationMeta'
+import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
 // 👉 Store
 const searchQuery = ref('')
@@ -53,7 +53,7 @@ const headers = [
 const {
   data: usersData,
   execute: fetchUsers,
-} = await useApi(createUrl('/apps/users', {
+} = await useFake(createUrl('/apps/users', {
   query: {
     q: searchQuery,
     status: selectedStatus,
@@ -176,7 +176,7 @@ const resolveUserStatusVariant = stat => {
 const isAddNewUserDrawerVisible = ref(false)
 
 const addNewUser = async userData => {
-  await $api('/apps/users', {
+  await $fake('/apps/users', {
     method: 'POST',
     body: userData,
   })
@@ -186,7 +186,7 @@ const addNewUser = async userData => {
 }
 
 const deleteUser = async id => {
-  await $api(`/apps/users/${ id }`, { method: 'DELETE' })
+  await $fake(`/apps/users/${ id }`, { method: 'DELETE' })
 
   // refetch User
   fetchUsers()
@@ -540,7 +540,7 @@ const widgetData = ref([
     </VCard>
     <!-- 👉 Add New User -->
     <AddNewUserDrawer
-      v-model:isDrawerOpen="isAddNewUserDrawerVisible"
+      v-model:is-drawer-open="isAddNewUserDrawerVisible"
       @user-data="addNewUser"
     />
   </section>

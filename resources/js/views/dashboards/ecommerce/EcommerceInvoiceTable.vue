@@ -1,6 +1,6 @@
 <script setup>
-import { VDataTableServer } from 'vuetify/labs/VDataTable'
 import { paginationMeta } from '@api-utils/paginationMeta'
+import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
 const searchQuery = ref('')
 const selectedStatus = ref()
@@ -50,7 +50,7 @@ const headers = [
 const {
   data: invoiceData,
   execute: fetchInvoices,
-} = await useApi(createUrl('/apps/invoice', {
+} = await useFake(createUrl('/apps/invoice', {
   query: {
     q: searchQuery,
     status: selectedStatus,

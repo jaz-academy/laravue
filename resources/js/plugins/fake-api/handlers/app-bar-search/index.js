@@ -1,10 +1,10 @@
+import { db } from '@db/app-bar-search/db'
 import is from '@sindresorhus/is'
 import { rest } from 'msw'
-import { db } from '@db/app-bar-search/db'
 
 export const handlerAppBarSearch = [
   // Get Search Items
-  rest.get('/api/app-bar/search', (req, res, ctx) => {
+  rest.get('/fake/app-bar/search', (req, res, ctx) => {
     const q = req.url.searchParams.get('q') ?? ''
     const searchQuery = is.string(q) ? q : undefined
     const queryLowered = (searchQuery ?? '').toString().toLowerCase()

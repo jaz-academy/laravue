@@ -1,10 +1,10 @@
+import { db } from '@db/apps/email/db'
 import { destr } from 'destr'
 import { rest } from 'msw'
-import { db } from '@db/apps/email/db'
 
 export const handlerAppsEmail = [
   // 👉 Get Email List
-  rest.get(('/api/apps/email'), (req, res, ctx) => {
+  rest.get(('/fake/apps/email'), (req, res, ctx) => {
     const q = req.url.searchParams.get('q') || ''
     const filter = req.url.searchParams.get('filter') || 'inbox'
     const label = req.url.searchParams.get('label') || ''
@@ -36,7 +36,7 @@ export const handlerAppsEmail = [
   }),
 
   // 👉 Update Email Meta
-  rest.post(('/api/apps/email'), async (req, res, ctx) => {
+  rest.post(('/fake/apps/email'), async (req, res, ctx) => {
     const { ids, data, label } = await req.json()
     const labelLocal = destr(label)
     if (!labelLocal) {

@@ -4,7 +4,7 @@ const connectionData = ref([])
 
 const fetchProjectData = async () => {
   if (router.params.tab === 'connections') {
-    const data = await $api('/pages/profile', { query: { tab: router.params.tab } }).catch(err => console.log(err))
+    const data = await $fake('/pages/profile', { query: { tab: router.params.tab } }).catch(err => console.log(err))
 
     connectionData.value = data
   }

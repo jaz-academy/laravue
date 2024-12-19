@@ -176,7 +176,7 @@ const categoryIconFilter = categoryName => {
   }]
 }
 
-const { data, error } = await useApi('pages/datatable')
+const { data, error } = await useFake('pages/datatable')
 if (error.value) {
   console.error(error.value)
 } else {

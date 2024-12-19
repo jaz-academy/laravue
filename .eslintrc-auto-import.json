@@ -358,6 +358,8 @@
     "useClipboardItems": true,
     "useId": true,
     "useModel": true,
-    "useTemplateRef": true
+    "useTemplateRef": true,
+    "$fake": true,
+    "useFake": true
   }
 }

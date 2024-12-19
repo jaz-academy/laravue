@@ -25,6 +25,7 @@ const logout = async () => {
 
   // Reset ability to initial ability
   ability.update([])
+  console.log('You Logged out!')
 }
 
 const userProfileList = [

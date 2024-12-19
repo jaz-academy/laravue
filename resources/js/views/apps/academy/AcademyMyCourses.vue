@@ -13,7 +13,7 @@ const orderBy = ref()
 const hideCompleted = ref(false)
 const label = ref('All Courses')
 
-const { data: coursesData } = await useApi(createUrl('/apps/academy/courses', {
+const { data: coursesData } = await useFake(createUrl('/apps/academy/courses', {
   query: {
     q: () => props.searchQuery,
     hideCompleted,

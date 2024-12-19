@@ -1,7 +1,7 @@
 <script setup>
-import { VDataTableServer } from 'vuetify/labs/VDataTable'
-import { paginationMeta } from '@api-utils/paginationMeta'
 import ECommerceAddCustomerDrawer from '@/views/apps/ecommerce/ECommerceAddCustomerDrawer.vue'
+import { paginationMeta } from '@api-utils/paginationMeta'
+import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
 const searchQuery = ref('')
 const isAddCustomerDrawerOpen = ref(false)
@@ -42,7 +42,7 @@ const updateOptions = options => {
   orderBy.value = options.sortBy[0]?.order
 }
 
-const { data: customerData } = await useApi(createUrl('/apps/ecommerce/customers', {
+const { data: customerData } = await useFake(createUrl('/apps/ecommerce/customers', {
   query: {
     q: searchQuery,
     itemsPerPage,

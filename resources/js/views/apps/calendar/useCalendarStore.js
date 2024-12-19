@@ -27,7 +27,7 @@ export const useCalendarStore = defineStore('calendar', {
   }),
   actions: {
     async fetchEvents() {
-      const { data, error } = await useApi(createUrl('/apps/calendar', {
+      const { data, error } = await useFake(createUrl('/apps/calendar', {
         query: {
           calendars: this.selectedCalendars,
         },
@@ -39,19 +39,19 @@ export const useCalendarStore = defineStore('calendar', {
       return data.value
     },
     async addEvent(event) {
-      await $api('/apps/calendar', {
+      await $fake('/apps/calendar', {
         method: 'POST',
         body: event,
       })
     },
     async updateEvent(event) {
-      return await $api(`/apps/calendar/${event.id}`, {
+      return await $fake(`/apps/calendar/${event.id}`, {
         method: 'PUT',
         body: event,
       })
     },
     async removeEvent(eventId) {
-      return await $api(`/apps/calendar/${eventId}`, {
+      return await $fake(`/apps/calendar/${eventId}`, {
         method: 'DELETE',
       })
     },
