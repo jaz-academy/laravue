@@ -2,6 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\AdminStudent;
+use App\Models\AdminTeacher;
+use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -12,11 +15,42 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // \App\Models\User::factory(10)->create();
+        $students = [
+            [
+                'nis' => '20221045',
+                'name' => 'Jhon Doe',
+                'nickname' => 'jhon',
+                'gender' => 'man',
+            ],
+            [
+                'nis' => '20221030',
+                'name' => 'Anabelle',
+                'nickname' => 'belle',
+                'gender' => 'woman',
+            ],
+        ];
 
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
+        foreach ($students as $student) {
+            AdminStudent::create($student);
+        }
+
+        $teachers = [
+            [
+                'nig' => '20326445',
+                'name' => 'Abdullah',
+                'nickname' => 'Ustadz Abdu',
+                'gender' => 'man',
+            ],
+            [
+                'nig' => '20326430',
+                'name' => 'Maemunah',
+                'nickname' => 'Ustadzah Mae',
+                'gender' => 'woman',
+            ],
+        ];
+
+        foreach ($teachers as $teacher) {
+            AdminTeacher::create($teacher);
+        }
     }
 }
