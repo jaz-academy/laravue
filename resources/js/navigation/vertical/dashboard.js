@@ -1,4 +1,5 @@
 export default [
+  { heading: useCookie('userData').value.role || 'Menu' },
   {
     title: 'Dashboards',
     icon: { icon: 'tabler-smart-home' },

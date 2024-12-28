@@ -14,11 +14,16 @@ export default [
     ],
   },
   {
+    title: 'Award',
+    icon: { icon: 'tabler-trophy' },
+    to: '',
+  },
+  {
     title: 'Course',
     icon: { icon: 'tabler-book' },
     children: [
-      { title: 'My Course', to: 'academy-course-list' },
-      { title: 'Course Details', to: 'academy-course-details' },
+      { title: 'List', to: 'academy-course-list' },
+      { title: 'Details', to: 'academy-course-details' },
       {
         title: 'Product',
         children: [
@@ -35,6 +40,10 @@ export default [
     children: [
       { title: 'List', to: 'apps-ecommerce-customer-list' },
       { title: 'Details', to: { name: 'apps-ecommerce-customer-details-id', params: { id: 478426 } } },
+      { title: 'Subject' },
+      { title: 'Competence' },
+      { title: 'Score' },
+      { title: 'Report' },
     ],
   },
 ]
