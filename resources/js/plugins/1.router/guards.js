@@ -28,6 +28,12 @@ export const setupGuards = router => {
       else
         return undefined
     }
+    
+    // Exclude routes in the front-page folder
+    if (to.path.startsWith('/front-page')) {
+      return
+    }
+
     if (!canNavigate(to)) {
       /* eslint-disable indent */
             return isLoggedIn

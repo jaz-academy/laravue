@@ -5,7 +5,7 @@ import AccountSettingsConnections from '@/views/pages/account-settings/AccountSe
 import AccountSettingsNotification from '@/views/pages/account-settings/AccountSettingsNotification.vue'
 import AccountSettingsSecurity from '@/views/pages/account-settings/AccountSettingsSecurity.vue'
 
-const route = useRoute('pages-account-settings-tab')
+const route = useRoute('profile-teacher-account-tab')
 
 const activeTab = computed({
   get: () => route.params.tab,
@@ -41,7 +41,7 @@ const tabs = [
   },
 ]
 
-definePage({ meta: { navActiveLink: 'pages-account-settings-tab' } })
+definePage({ meta: { navActiveLink: 'profile-teacher-account-tab' } })
 </script>
 
 <template>
@@ -54,7 +54,7 @@ definePage({ meta: { navActiveLink: 'pages-account-settings-tab' } })
         v-for="item in tabs"
         :key="item.icon"
         :value="item.tab"
-        :to="{ name: 'pages-account-settings-tab', params: { tab: item.tab } }"
+        :to="{ name: 'profile-teacher-account-tab', params: { tab: item.tab } }"
       >
         <VIcon
           size="20"

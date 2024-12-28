@@ -405,7 +405,7 @@ const widgetData = ref([
             <div class="d-flex flex-column">
               <h6 class="text-base">
                 <RouterLink
-                  :to="{ name: 'apps-user-view-id', params: { id: item.id } }"
+                  :to="{ name: 'profile-teacher-view-id', params: { id: item.id } }"
                   class="font-weight-medium text-link"
                 >
                   {{ item.fullName }}
@@ -472,7 +472,7 @@ const widgetData = ref([
             />
             <VMenu activator="parent">
               <VList>
-                <VListItem :to="{ name: 'apps-user-view-id', params: { id: item.id } }">
+                <VListItem :to="{ name: 'profile-teacher-view-id', params: { id: item.id } }">
                   <template #prepend>
                     <VIcon icon="tabler-eye" />
                   </template>

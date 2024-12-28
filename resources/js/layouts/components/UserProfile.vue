@@ -16,7 +16,7 @@ const logout = async () => {
   userData.value = null
 
   // Redirect to login page
-  await router.push('/login')
+  await router.push('/')
 
   // ℹ️ We had to remove abilities in then block because if we don't nav menu items mutation is visible while redirecting user to login page
 
@@ -32,19 +32,10 @@ const userProfileList = [
   { type: 'divider' },
   {
     type: 'navItem',
-    icon: 'tabler-user',
-    title: 'Profile',
-    to: {
-      name: 'apps-user-view-id',
-      params: { id: 21 },
-    },
-  },
-  {
-    type: 'navItem',
     icon: 'tabler-settings',
     title: 'Settings',
     to: {
-      name: 'pages-account-settings-tab',
+      name: 'profile-teacher-account-tab',
       params: { tab: 'account' },
     },
   },
@@ -53,7 +44,7 @@ const userProfileList = [
     icon: 'tabler-credit-card',
     title: 'Billing',
     to: {
-      name: 'pages-account-settings-tab',
+      name: 'profile-teacher-account-tab',
       params: { tab: 'billing-plans' },
     },
     badgeProps: {

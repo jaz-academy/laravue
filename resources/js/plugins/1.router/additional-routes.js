@@ -5,7 +5,7 @@ export const redirects = [
   // ℹ️ We are redirecting to different pages based on role.
   // NOTE: Role is just for UI purposes. ACL is based on abilities.
   {
-    path: '/',
+    path: '/login',
     name: 'index',
     redirect: to => {
       // TODO: Get type from backend
@@ -18,6 +18,11 @@ export const redirects = [
       
       return { name: 'login', query: to.query }
     },
+  },
+  {
+    path: "/",
+    name: 'front',
+    redirect: () => ({ name: 'front-pages-landing-page' }),
   },
   {
     path: '/pages/user-profile',

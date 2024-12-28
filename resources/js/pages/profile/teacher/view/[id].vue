@@ -6,7 +6,7 @@ import UserTabConnections from '@/views/apps/user/view/UserTabConnections.vue'
 import UserTabNotifications from '@/views/apps/user/view/UserTabNotifications.vue'
 import UserTabSecurity from '@/views/apps/user/view/UserTabSecurity.vue'
 
-const route = useRoute('apps-user-view-id')
+const route = useRoute('profile-teacher-view-id')
 const userTab = ref(null)
 
 const tabs = [

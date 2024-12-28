@@ -1,10 +1,10 @@
-import apps from './apps'
-import charts from './charts'
-import dashboard from './dashboard'
-import forms from './forms'
-import misc from './misc'
-import pages from './pages'
-import tables from './tables'
-import uiElements from './ui-elements'
+import apps from './x-apps'
+import charts from './x-charts'
+import dashboard from './x-dashboard'
+import forms from './x-forms'
+import misc from './x-misc'
+import pages from './x-pages'
+import tables from './x-tables'
+import uiElements from './x-ui-elements'
 
 export default [...dashboard, ...apps, ...pages, ...uiElements, ...forms, ...tables, ...charts, ...misc]

@@ -1,10 +1,10 @@
 <script setup>
-import { useDisplay } from 'vuetify'
-import { useWindowScroll } from '@vueuse/core'
-import navImg from '@images/front-pages/misc/nav-item-col-img.png'
 import NavbarThemeSwitcher from '@/layouts/components/NavbarThemeSwitcher.vue'
+import navImg from '@images/front-pages/misc/nav-item-col-img.png'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
+import { useWindowScroll } from '@vueuse/core'
+import { useDisplay } from 'vuetify'
 
 const props = defineProps({ activeId: String })
 
@@ -369,15 +369,14 @@ const isPageActive = computed(() => menuItems.some(item => item.navItems.some(li
         <VBtn
           variant="elevated"
           color="primary"
-          href="https://themeforest.net/item/vuexy-vuejs-html-laravel-admin-dashboard-template/23328599?irgwc=1&clickid=T9302WQDcxyNR6%3AwXJ3nw0x2UkFyW3Xmfwd-V00&iradid=275988&irpid=1244113&iradtype=ONLINE_TRACKING_LINK&irmptype=mediapartner&mp_value1=&utm_campaign=af_impact_radius_1244113&utm_medium=affiliate&utm_source=impact_radius"
-          target="_blank"
+          href="/login"
           rel="noopener noreferrer"
         >
           <VIcon
-            icon="tabler-shopping-cart"
+            icon="tabler-login"
             size="18"
           />
-          <span class="d-none d-lg-block ms-2">Purchase Now</span>
+          <span class="d-none d-lg-block ms-2">Member Area</span>
         </VBtn>
       </div>
     </VAppBar>

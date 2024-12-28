@@ -8,42 +8,37 @@
 /// <reference types="unplugin-vue-router/client" />
 
 import type {
+  NavigationGuard,
+  ParamValue,
+  RouteLocationAsPathTypedList,
+  RouteLocationAsRelativeTypedList,
+  RouteLocationAsString,
+  RouteLocationNormalizedLoadedTypedList,
+  RouteLocationNormalizedTypedList,
+  RouteLocationResolvedTypedList,
   // type safe route locations
   RouteLocationTypedList,
-  RouteLocationResolvedTypedList,
-  RouteLocationNormalizedTypedList,
-  RouteLocationNormalizedLoadedTypedList,
-  RouteLocationAsString,
-  RouteLocationAsRelativeTypedList,
-  RouteLocationAsPathTypedList,
-
   // helper types
   // route definitions
   RouteRecordInfo,
-  ParamValue,
-  ParamValueOneOrMore,
-  ParamValueZeroOrMore,
-  ParamValueZeroOrOne,
-
-  // vue-router extensions
-  _RouterTyped,
-  RouterLinkTyped,
   RouterLinkPropsTyped,
-  NavigationGuard,
+  RouterLinkTyped,
   UseLinkFnTyped,
 
   // data fetching
   _DataLoader,
   _DefineLoaderOptions,
+  // vue-router extensions
+  _RouterTyped
 } from 'unplugin-vue-router/types'
 
 declare module 'vue-router/auto/routes' {
   export interface RouteNamedMap {
     '$error': RouteRecordInfo<'$error', '/:error(.*)', { error: ParamValue<true> }, { error: ParamValue<false> }>,
     'access-control': RouteRecordInfo<'access-control', '/access-control', Record<never, never>, Record<never, never>>,
-    'apps-academy-course-details': RouteRecordInfo<'apps-academy-course-details', '/apps/academy/course-details', Record<never, never>, Record<never, never>>,
-    'apps-academy-dashboard': RouteRecordInfo<'apps-academy-dashboard', '/apps/academy/dashboard', Record<never, never>, Record<never, never>>,
-    'apps-academy-my-course': RouteRecordInfo<'apps-academy-my-course', '/apps/academy/my-course', Record<never, never>, Record<never, never>>,
+    'academy-course-list': RouteRecordInfo<'academy-course-list', '/academy/course/list', Record<never, never>, Record<never, never>>,
+    'academy-course-details': RouteRecordInfo<'academy-course-details', '/academy/course/details', Record<never, never>, Record<never, never>>,
+    'academy-dashboard': RouteRecordInfo<'academy-dashboard', '/academy/dashboard', Record<never, never>, Record<never, never>>,
     'apps-calendar': RouteRecordInfo<'apps-calendar', '/apps/calendar', Record<never, never>, Record<never, never>>,
     'apps-chat': RouteRecordInfo<'apps-chat', '/apps/chat', Record<never, never>, Record<never, never>>,
     'apps-ecommerce-customer-details-id': RouteRecordInfo<'apps-ecommerce-customer-details-id', '/apps/ecommerce/customer/details/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
@@ -65,8 +60,8 @@ declare module 'vue-router/auto/routes' {
     'apps-logistics-fleet': RouteRecordInfo<'apps-logistics-fleet', '/apps/logistics/fleet', Record<never, never>, Record<never, never>>,
     'apps-permissions': RouteRecordInfo<'apps-permissions', '/apps/permissions', Record<never, never>, Record<never, never>>,
     'apps-roles': RouteRecordInfo<'apps-roles', '/apps/roles', Record<never, never>, Record<never, never>>,
-    'apps-user-list': RouteRecordInfo<'apps-user-list', '/apps/user/list', Record<never, never>, Record<never, never>>,
-    'apps-user-view-id': RouteRecordInfo<'apps-user-view-id', '/apps/user/view/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    'profile-teacher-list': RouteRecordInfo<'profile-teacher-list', '/apps/user/list', Record<never, never>, Record<never, never>>,
+    'profile-teacher-view-id': RouteRecordInfo<'profile-teacher-view-id', '/apps/user/view/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'apps-email-filter': RouteRecordInfo<'apps-email-filter', '/apps/email/:filter', { filter: ParamValue<true> }, { filter: ParamValue<false> }>,
     'apps-email-label': RouteRecordInfo<'apps-email-label', '/apps/email/:label', { label: ParamValue<true> }, { label: ParamValue<false> }>,
     'charts-apex-chart': RouteRecordInfo<'charts-apex-chart', '/charts/apex-chart', Record<never, never>, Record<never, never>>,
@@ -232,10 +227,8 @@ declare module 'vue-router/auto' {
   ): _DataLoader<Awaited<P>, isLazy>
 
   export {
-    _definePage as definePage,
-    _HasDataLoaderMeta as HasDataLoaderMeta,
-    _setupDataFetchingGuard as setupDataFetchingGuard,
-    _stopDataFetchingScope as stopDataFetchingScope,
+    _HasDataLoaderMeta as HasDataLoaderMeta, _definePage as definePage, _setupDataFetchingGuard as setupDataFetchingGuard,
+    _stopDataFetchingScope as stopDataFetchingScope
   } from 'unplugin-vue-router/runtime'
 }
 

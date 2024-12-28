@@ -232,7 +232,7 @@ const deleteUser = async id => {
             <div class="d-flex flex-column">
               <h6 class="text-body-1 font-weight-medium">
                 <RouterLink
-                  :to="{ name: 'apps-user-view-id', params: { id: item.id } }"
+                  :to="{ name: 'profile-teacher-view-id', params: { id: item.id } }"
                   class="user-list-name"
                 >
                   {{ item.fullName }}
@@ -337,7 +337,7 @@ const deleteUser = async id => {
 
             <VMenu activator="parent">
               <VList>
-                <VListItem :to="{ name: 'apps-user-view-id', params: { id: item.id } }">
+                <VListItem :to="{ name: 'profile-teacher-view-id', params: { id: item.id } }">
                   <VListItemTitle>View</VListItemTitle>
                 </VListItem>
                 <VListItem link>

@@ -41,9 +41,9 @@ export default [
         title: 'Academy',
         icon: { icon: 'tabler-book' },
         children: [
-          { title: 'Dashboard', to: 'apps-academy-dashboard' },
-          { title: 'My Course', to: 'apps-academy-my-course' },
-          { title: 'Course Details', to: 'apps-academy-course-details' },
+          { title: 'Dashboard', to: 'academy-dashboard' },
+          { title: 'My Course', to: 'academy-course-list' },
+          { title: 'Course Details', to: 'academy-course-details' },
         ],
       },
       {
@@ -83,8 +83,8 @@ export default [
         title: 'User',
         icon: { icon: 'tabler-users' },
         children: [
-          { title: 'List', to: 'apps-user-list' },
-          { title: 'View', to: { name: 'apps-user-view-id', params: { id: 21 } } },
+          { title: 'List', to: 'profile-teacher-list' },
+          { title: 'View', to: { name: 'profile-teacher-view-id', params: { id: 21 } } },
         ],
       },
       {
