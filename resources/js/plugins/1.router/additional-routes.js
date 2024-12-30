@@ -11,9 +11,9 @@ export const redirects = [
       // TODO: Get type from backend
       const userData = useCookie('userData')
       const userRole = userData.value?.role
-      if (userRole === 'admin')
+      if (userRole > 0)
         return { name: 'dashboards-crm' }
-      if (userRole === 'client')
+      if (userRole === 0)
         return { name: 'access-control' }
       
       return { name: 'login', query: to.query }
@@ -66,7 +66,7 @@ export const routes = [
   {
     path: '/dashboards/academy',
     name: 'dashboards-academy',
-    component: () => import('@/pages/apps/academy/dashboard.vue'),
+    component: () => import('@/pages/academy/dashboard.vue'),
   },
   {
     path: '/apps/ecommerce/dashboard',

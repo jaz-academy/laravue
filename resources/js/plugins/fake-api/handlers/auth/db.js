@@ -17,31 +17,31 @@ export const db = {
   users: [
     {
       id: 1,
-      fullName: 'John Doe',
-      username: 'johndoe',
-      password: 'admin',
-      avatar: `${import.meta.env.BASE_URL.replace(/build\/$/g, '') ?? '/'}images/avatars/avatar-1.png`,
+      name: 'John Doe',
+      image: `${import.meta.env.BASE_URL.replace(/build\/$/g, '') ?? '/'}images/avatars/avatar-1.png`,
       email: 'admin@demo.com',
-      role: 'admin',
+      password: 'admin',
+      role: 1,
       abilityRules: [
         {
           action: 'manage',
           subject: 'all',
+          member: 'Teacher',
         },
       ],
     },
     {
       id: 2,
-      fullName: 'Jane Doe',
-      username: 'janedoe',
-      password: 'client',
-      avatar: `${import.meta.env.BASE_URL.replace(/build\/$/g, '') ?? '/'}images/avatars/avatar-2.png`,
+      name: 'Jane Doe',
+      image: `${import.meta.env.BASE_URL.replace(/build\/$/g, '') ?? '/'}images/avatars/avatar-2.png`,
       email: 'client@demo.com',
-      role: 'client',
+      password: 'client',
+      role: 0,
       abilityRules: [
         {
           action: 'read',
           subject: 'AclDemo',
+          member: 'Student',
         },
       ],
     },

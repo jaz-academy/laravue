@@ -6,6 +6,7 @@ const ability = useAbility()
 
 // TODO: Get type from backend
 const userData = useCookie('userData')
+const userAbilityRules = useCookie('userAbilityRules').value[0]
 
 const logout = async () => {
 
@@ -87,12 +88,12 @@ const userProfileList = [
   >
     <VAvatar
       class="cursor-pointer"
-      :color="!(userData && userData.avatar) ? 'primary' : undefined"
-      :variant="!(userData && userData.avatar) ? 'tonal' : undefined"
+      :color="!(userData && userData.image) ? 'primary' : undefined"
+      :variant="!(userData && userData.image) ? 'tonal' : undefined"
     >
       <VImg
-        v-if="userData && userData.avatar"
-        :src="userData.avatar"
+        v-if="userData && userData.image"
+        :src="userData.image"
       />
       <VIcon
         v-else
@@ -119,12 +120,12 @@ const userProfileList = [
                   bordered
                 >
                   <VAvatar
-                    :color="!(userData && userData.avatar) ? 'primary' : undefined"
-                    :variant="!(userData && userData.avatar) ? 'tonal' : undefined"
+                    :color="!(userData && userData.image) ? 'primary' : undefined"
+                    :variant="!(userData && userData.image) ? 'tonal' : undefined"
                   >
                     <VImg
-                      v-if="userData && userData.avatar"
-                      :src="userData.avatar"
+                      v-if="userData && userData.image"
+                      :src="userData.image"
                     />
                     <VIcon
                       v-else
@@ -136,9 +137,9 @@ const userProfileList = [
             </template>
 
             <VListItemTitle class="font-weight-medium">
-              {{ userData.fullName || userData.username }}
+              {{ userData.name || userData.email }}
             </VListItemTitle>
-            <VListItemSubtitle>{{ userData.role }}</VListItemSubtitle>
+            <VListItemSubtitle>{{ userAbilityRules.member }}</VListItemSubtitle>
           </VListItem>
 
           <PerfectScrollbar :options="{ wheelPropagation: false }">

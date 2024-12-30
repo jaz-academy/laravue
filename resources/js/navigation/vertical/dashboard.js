@@ -1,5 +1,5 @@
 export default [
-  { heading: useCookie('userData').value.role || 'Menu' },
+  { heading: useCookie('userAbilityRules').value[0].member || 'Menu' },
   {
     title: 'Dashboards',
     icon: { icon: 'tabler-smart-home' },

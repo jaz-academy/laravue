@@ -41,6 +41,10 @@ use Illuminate\Http\Request;
 //     return $request->user();
 // });
 
+Route::get('login', function () {
+  return response()->json(['message' => 'Welcome to the API']);
+})->name('login-api');
+
 Route::apiResource('participants', ParticipantController::class);
 Route::apiResource('bookmarks', BookmarkController::class);
 Route::apiResource('likes', LikeController::class);
@@ -58,22 +62,22 @@ Route::apiResource('tasks', TaskController::class);
 Route::group(['prefix' => 'auth'], function () {
   Route::post('login', [AuthController::class, 'login']);
   Route::post('register', [AuthController::class, 'register']);
+});
 
-  Route::group(['middleware' => 'auth:sanctum'], function () {
-    Route::get('logout', [AuthController::class, 'logout']);
-    Route::get('user', [AuthController::class, 'user']);
+Route::group(['middleware' => 'auth:sanctum'], function () {
+  Route::get('logout', [AuthController::class, 'logout']);
+  Route::get('user', [AuthController::class, 'user']);
 
-    Route::apiResource('courses', CourseController::class);
-    Route::apiResource('awards', AwardController::class);
-    Route::apiResource('subjects', SubjectController::class);
-    Route::apiResource('competences', CompetenceController::class);
-    Route::apiResource('scores', ScoreController::class);
+  Route::apiResource('courses', CourseController::class);
+  Route::apiResource('awards', AwardController::class);
+  Route::apiResource('subjects', SubjectController::class);
+  Route::apiResource('competences', CompetenceController::class);
+  Route::apiResource('scores', ScoreController::class);
 
-    Route::apiResource('accounts', AccountController::class);
-    Route::apiResource('finances', FinanceController::class);
-    Route::apiResource('billings', BillingController::class);
-    Route::apiResource('discounts', DiscountController::class);
-    Route::apiResource('payments', PaymentController::class);
-    Route::apiResource('savings', SavingController::class);
-  });
+  Route::apiResource('accounts', AccountController::class);
+  Route::apiResource('finances', FinanceController::class);
+  Route::apiResource('billings', BillingController::class);
+  Route::apiResource('discounts', DiscountController::class);
+  Route::apiResource('payments', PaymentController::class);
+  Route::apiResource('savings', SavingController::class);
 });

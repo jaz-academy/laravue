@@ -1,9 +1,9 @@
 <script setup>
-import UserProfileHeader from '@/views/pages/user-profile/UserProfileHeader.vue'
-import UserConnections from '@/views/pages/user-profile/connections/index.vue'
-import UserProfile from '@/views/pages/user-profile/profile/index.vue'
-import UserProjects from '@/views/pages/user-profile/projects/index.vue'
-import UserTeam from '@/views/pages/user-profile/team/index.vue'
+import UserProfileHeader from '@/views/profile/user/UserProfileHeader.vue'
+import UserOverview from '@/views/profile/user/overview/index.vue'
+import UserProjects from '@/views/profile/user/projects/index.vue'
+import UserRates from '@/views/profile/user/rates/index.vue'
+import UserTasks from '@/views/profile/user/tasks/index.vue'
 
 definePage({
   meta: {
@@ -22,14 +22,14 @@ const activeTab = computed({
 // tabs
 const tabs = [
   {
-    title: 'Profile',
+    title: 'Overview',
     icon: 'tabler-user-check',
-    tab: 'profile',
+    tab: 'overview',
   },
   {
-    title: 'Team',
+    title: 'Tasks',
     icon: 'tabler-users',
-    tab: 'teams',
+    tab: 'tasks',
   },
   {
     title: 'Projects',
@@ -37,9 +37,9 @@ const tabs = [
     tab: 'projects',
   },
   {
-    title: 'Connections',
+    title: 'Rates',
     icon: 'tabler-link',
-    tab: 'connections',
+    tab: 'rates',
   },
 ]
 </script>
@@ -73,13 +73,13 @@ const tabs = [
       :touch="false"
     >
       <!-- Profile -->
-      <VWindowItem value="profile">
-        <UserProfile />
+      <VWindowItem value="overview">
+        <UserOverview />
       </VWindowItem>
 
-      <!-- Teams -->
-      <VWindowItem value="teams">
-        <UserTeam />
+      <!-- tasks -->
+      <VWindowItem value="tasks">
+        <UserTasks />
       </VWindowItem>
 
       <!-- Projects -->
@@ -87,9 +87,9 @@ const tabs = [
         <UserProjects />
       </VWindowItem>
 
-      <!-- Connections -->
-      <VWindowItem value="connections">
-        <UserConnections />
+      <!-- rates -->
+      <VWindowItem value="rates">
+        <UserRates />
       </VWindowItem>
     </VWindow>
   </div>

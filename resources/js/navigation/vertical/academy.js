@@ -3,20 +3,21 @@ export default [
   {
     title: 'Calendar',
     icon: { icon: 'tabler-calendar' },
-    to: 'apps-calendar',
+
+    to: 'academy-calendar',
   },
   {
     title: 'Project',
     icon: { icon: 'tabler-forms' },
     children: [
-      { title: 'Plan' },
-      { title: 'Task' },
+      { title: 'Plans', to: 'academy-project-plans' },
+      { title: 'Tasks', to: 'academy-project-tasks' },
     ],
   },
   {
-    title: 'Award',
+    title: 'Awards',
     icon: { icon: 'tabler-trophy' },
-    to: '',
+    to: 'academy-awards',
   },
   {
     title: 'Course',
@@ -27,9 +28,9 @@ export default [
       {
         title: 'Product',
         children: [
-          { title: 'List', to: 'apps-ecommerce-product-list' },
-          { title: 'Add', to: 'apps-ecommerce-product-add' },
-          { title: 'Category', to: 'apps-ecommerce-product-category-list' },
+          { title: 'Courses', to: 'academy-product-courses' },
+          { title: 'List', to: 'academy-product-list' },
+          { title: 'Add', to: 'academy-product-add' },
         ],
       },
     ],
@@ -38,12 +39,13 @@ export default [
     title: 'Assessment',
     icon: { icon: 'tabler-chart-bar' },
     children: [
-      { title: 'List', to: 'apps-ecommerce-customer-list' },
-      { title: 'Details', to: { name: 'apps-ecommerce-customer-details-id', params: { id: 478426 } } },
-      { title: 'Subject' },
-      { title: 'Competence' },
-      { title: 'Score' },
-      { title: 'Report' },
+      { title: 'Subject', to: 'academy-assessment-subject' },
+      { title: 'Competence', to: 'academy-assessment-competence' },
+
+      // { title: 'Scores Edit', to: { name: 'academy-assessment-scores-edit-id', params: { id: '5036' } } },
+      // { title: 'Scores', to: 'academy-assessment-scores' },
+      { title: 'Details', to: { name: 'academy-assessment-details-id', params: { id: 478426 } } },
+      { title: 'Report', to: { name: 'academy-assessment-report-id', params: { id: '5036' } } },
     ],
   },
 ]

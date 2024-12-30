@@ -61,20 +61,34 @@ class AuthController extends Controller
             'remember_me' => 'boolean'
         ]);
 
-        $credentials = request(['email', 'password']);
-        if (!Auth::attempt($credentials)) {
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
             return response()->json([
-                'message' => 'Unauthorized'
+                'message' => 'Email does not exist'
+            ], 404);
+        }
+
+        if (!Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
+            return response()->json([
+                'message' => 'Incorrect password'
             ], 401);
         }
 
-        $user = $request->user();
         $tokenResult = $user->createToken('Personal Access Token');
         $token = $tokenResult->plainTextToken;
+        $abilityRules = [
+            [
+              'member' => $user->admin_student_id ? 'Student' : 'Teacher',
+              'action' => $user->role > 0 ? 'manage' : 'read',
+              'subject' => $user->role > 0 ? 'all' : 'AclDemo',
+            ],
+        ];
 
         return response()->json([
             'accessToken' => $token,
-            'token_type' => 'Bearer',
+            'userData' => $user,
+            'userAbilityRules' => $abilityRules,
         ]);
     }
 

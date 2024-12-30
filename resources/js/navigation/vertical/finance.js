@@ -3,29 +3,39 @@ export default [
   {
     title: 'Savings',
     icon: { icon: 'tabler-report-money' },
-    children: [
-      { title: 'List', to: 'apps-invoice-list' },
-      { title: 'Preview', to: { name: 'apps-invoice-preview-id', params: { id: '5036' } } },
-      { title: 'Edit', to: { name: 'apps-invoice-edit-id', params: { id: '5036' } } },
-      { title: 'Add', to: 'apps-invoice-add' },
-    ],
+    to: 'financial-savings',
   },
   {
     title: 'Payment',
     icon: { icon: 'tabler-calendar-dollar' },
     children: [
-      { title: 'Items' },
-      { title: 'Recap' },
-      { title: 'Discount' },
-      { title: 'Billing' },
+      { 
+        title: 'Items',
+        children: [
+          { title: 'List', to: 'financial-payment-list' },
+          { title: 'Add', to: 'financial-payment-add' },
+          { title: 'Edit', to: { name: 'financial-payment-edit-id', params: { id: '5036' } } },
+          { title: 'preview', to: { name: 'financial-payment-preview-id', params: { id: '5036' } } },
+        ],
+      },
+      { title: 'Recap', to: { name: 'financial-payment-recap-id', params: { id: '5036' } } },
+      { title: 'Discount', to: 'financial-payment-discount' },
+      { title: 'Billing', to: 'financial-payment-billing' },
     ],
   },
   {
     title: 'Finance',
     icon: { icon: 'tabler-building-bank' },
     children: [
-      { title: 'Items' },
-      { title: 'Account' },
+      { 
+        title: 'Items',
+        children: [
+          { title: 'List', to: 'financial-finance' },
+          { title: 'Edit', to: { name: 'financial-finance-edit-id', params: { id: '5036' } } },
+          { title: 'preview', to: { name: 'financial-finance-preview-id', params: { id: '5036' } } },
+        ],
+      },
+      { title: 'Account', to: 'financial-finance-account' },
     ],
   },
 ]

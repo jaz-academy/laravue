@@ -84,7 +84,7 @@ export default [
         icon: { icon: 'tabler-users' },
         children: [
           { title: 'List', to: 'profile-teacher-list' },
-          { title: 'View', to: { name: 'profile-teacher-view-id', params: { id: 21 } } },
+          { title: 'View', to: { name: 'apps-user-view-id', params: { id: 21 } } },
         ],
       },
       {

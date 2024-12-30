@@ -187,7 +187,7 @@ export const db = {
           title: 'User List',
         },
         {
-          url: { name: 'profile-teacher-view-id', params: { id: 21 } },
+          url: { name: 'profile-teacher-detail-tab', params: { tab: 'account' } },
           icon: 'tabler-eye',
           title: 'User View',
         },

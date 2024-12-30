@@ -1,10 +1,10 @@
 <script setup>
-import { VideoPlayer } from '@videojs-player/vue'
-import AcademyMyCourses from '@/views/apps/academy/AcademyMyCourses.vue'
+import AcademyMyCourses from '@/views/academy/AcademyMyCourses.vue'
 import boyAppAcademy from '@images/illustrations/boy-app-academy.png'
 import girlAppAcademy from '@images/illustrations/girl-app-academy.png'
 import academyCourseIllustration1 from '@images/pages/academy-course-illustration1.png'
 import academyCourseIllustration2 from '@images/pages/academy-course-illustration2.png'
+import { VideoPlayer } from '@videojs-player/vue'
 
 const searchQuery = ref('')
 </script>
