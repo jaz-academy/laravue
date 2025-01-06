@@ -1,18 +1,17 @@
 <script setup>
-const profileHeaderData = ref()
-const { data, error } = await useFake('/pages/profile/header')
-if (error.value) {
-  console.log(error.value)
-} else {
-  if (data.value)
-    profileHeaderData.value = data.value
-}
+import avatar1 from '@images/avatars/avatar-1.png'
+import UserProfileHeaderBg from '@images/pages/user-profile-header-bg.png'
+import { fetchMemberData, member } from '@/composables/fetchMemberData'
+
+onMounted(() => {
+  fetchMemberData()
+})
 </script>
 
 <template>
-  <VCard v-if="profileHeaderData">
+  <VCard v-if="member">
     <VImg
-      :src="profileHeaderData.coverImg"
+      :src="UserProfileHeaderBg"
       min-height="125"
       max-height="250"
       cover
@@ -23,14 +22,14 @@ if (error.value) {
         <VAvatar
           rounded
           size="120"
-          :image="profileHeaderData.profileImg"
+          :image="avatar1"
           class="user-profile-avatar mx-auto"
         />
       </div>
 
       <div class="user-profile-info w-100 mt-16 pt-6 pt-sm-0 mt-sm-0">
         <h5 class="text-h5 text-center text-sm-start font-weight-medium mb-3">
-          {{ profileHeaderData?.fullName }}
+          {{ member?.name }}
         </h5>
 
         <div class="d-flex align-center justify-center justify-sm-space-between flex-wrap gap-4">
@@ -42,7 +41,7 @@ if (error.value) {
                 class="me-1"
               />
               <span class="text-body-1">
-                {{ profileHeaderData?.designation }}
+                {{ member?.role }}
               </span>
             </span>
 
@@ -53,7 +52,7 @@ if (error.value) {
                 class="me-1"
               />
               <span class="text-body-1">
-                {{ profileHeaderData?.location }}
+                {{ member?.city }}
               </span>
             </span>
 
@@ -64,14 +63,10 @@ if (error.value) {
                 class="me-1"
               />
               <span class="text-body-1">
-                {{ profileHeaderData?.joiningDate }}
+                {{ member?.bird_date }}
               </span>
             </span>
           </div>
-
-          <VBtn prepend-icon="tabler-check">
-            Connected
-          </VBtn>
         </div>
       </div>
     </VCardText>

@@ -45,19 +45,14 @@ Route::get('login', function () {
   return response()->json(['message' => 'Welcome to the API']);
 })->name('login-api');
 
-Route::apiResource('participants', ParticipantController::class);
-Route::apiResource('bookmarks', BookmarkController::class);
-Route::apiResource('likes', LikeController::class);
-Route::apiResource('comments', CommentController::class);
-Route::apiResource('stories', StoryController::class);
-
-Route::apiResource('schools', SchoolController::class);
-Route::apiResource('students', StudentController::class);
-Route::apiResource('teachers', TeacherController::class);
-
-Route::apiResource('events', EventController::class);
-Route::apiResource('plans', PlanController::class);
-Route::apiResource('tasks', TaskController::class);
+Route::group(['prefix' => 'public'], function () {
+  Route::get('students', [StudentController::class, 'index']);
+  Route::get('students', [StudentController::class, 'index']);
+  Route::get('plans-with-tasks', [PlanController::class, 'planWithTasks']);
+  Route::get('task-by-student/{id}', [TaskController::class, 'getTaskByStudent']);
+  Route::get('task-by-teacher/{id}', [TaskController::class, 'getTaskByTeacher']);
+  Route::get('task-by-plan/{id}', [TaskController::class, 'getTaskByProjectPlan']);
+});
 
 Route::group(['prefix' => 'auth'], function () {
   Route::post('login', [AuthController::class, 'login']);
@@ -67,6 +62,20 @@ Route::group(['prefix' => 'auth'], function () {
 Route::group(['middleware' => 'auth:sanctum'], function () {
   Route::get('logout', [AuthController::class, 'logout']);
   Route::get('user', [AuthController::class, 'user']);
+  
+  Route::apiResource('participants', ParticipantController::class);
+  Route::apiResource('bookmarks', BookmarkController::class);
+  Route::apiResource('likes', LikeController::class);
+  Route::apiResource('comments', CommentController::class);
+  Route::apiResource('stories', StoryController::class);
+
+  Route::apiResource('schools', SchoolController::class);
+  Route::apiResource('students', StudentController::class);
+  Route::apiResource('teachers', TeacherController::class);
+
+  Route::apiResource('events', EventController::class);
+  Route::apiResource('plans', PlanController::class);
+  Route::apiResource('tasks', TaskController::class);
 
   Route::apiResource('courses', CourseController::class);
   Route::apiResource('awards', AwardController::class);

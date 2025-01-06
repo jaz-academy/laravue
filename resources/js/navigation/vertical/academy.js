@@ -42,8 +42,8 @@ export default [
       { title: 'Subject', to: 'academy-assessment-subject' },
       { title: 'Competence', to: 'academy-assessment-competence' },
 
-      // { title: 'Scores Edit', to: { name: 'academy-assessment-scores-edit-id', params: { id: '5036' } } },
-      // { title: 'Scores', to: 'academy-assessment-scores' },
+      { title: 'Scores', to: 'academy-assessment-scores' },
+      { title: 'Edit', to: { name: 'academy-assessment-scores-edit-id', params: { id: '5036' } } },
       { title: 'Details', to: { name: 'academy-assessment-details-id', params: { id: 478426 } } },
       { title: 'Report', to: { name: 'academy-assessment-report-id', params: { id: '5036' } } },
     ],

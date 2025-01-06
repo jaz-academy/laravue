@@ -27,7 +27,21 @@ class SchoolController extends Controller
     public function store(Request $request)
     {
         $fields = $request->validate([
-            'name' => 'required'
+            'name' => 'required',
+            'nickname' => 'nullable|string',
+            'npsn' => 'nullable|string',
+            'organization' => 'nullable|string',
+            'permit' => 'nullable|string',
+            'address' => 'nullable|string',
+            'map' => 'nullable|string',
+            'phone' => 'nullable|string',
+            'email' => 'nullable|email',
+            'motto' => 'nullable|string',
+            'period' => 'nullable|string',
+            'head' => 'nullable|string',
+            'contact' => 'nullable|string',
+            'note' => 'nullable|string',
+            'logo' => 'nullable|string'
         ]);
 
         $school = School::create($fields);
@@ -54,17 +68,22 @@ class SchoolController extends Controller
      */
     public function update(Request $request, School $school)
     {
-        $fields = $request->validate([
-            'name' => 'required'
-        ]);
-
-        $school->update($fields);
-
-        return response()->json([
-            'message' => 'School data updated successfully',
-            'data' => $school
-        ]);
+        try {
+            $school->update($request->all());
+    
+            return response()->json([
+                'status' => 'success',
+                'message' => 'School data updated successfully',
+                'data' => $school
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to update school data: ' . $e->getMessage()
+            ], 500);
+        }
     }
+    
 
     /**
      * Remove the specified resource from storage.

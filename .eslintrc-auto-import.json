@@ -360,6 +360,23 @@
     "useModel": true,
     "useTemplateRef": true,
     "$fake": true,
-    "useFake": true
+    "useFake": true,
+    "fetchMemberData": true,
+    "member": true,
+    "fetchTimelineData": true,
+    "activities": true,
+    "students": true,
+    "fetchStudentData": true,
+    "useStudents": true,
+    "studentsName": true,
+    "teachers": true,
+    "fetchTeacherData": true,
+    "fetchProjectData": true,
+    "project": true,
+    "fetchplansData": true,
+    "plans": true,
+    "tasks": true,
+    "fetchPlans": true,
+    "plansTasks": true
   }
 }

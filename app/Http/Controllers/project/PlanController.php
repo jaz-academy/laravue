@@ -88,4 +88,22 @@ class PlanController extends Controller
             'count' => Plan::count()
         ]);
     }
+
+    public function tasks(Plan $plan)
+    {
+        return response()->json([
+            'message' => 'Project Plan tasks founded',
+            'data' => $plan->projectTask
+        ]);
+    }
+
+    public function planWithTasks()
+    {
+        $plans = Plan::with('projectTask')->where('is_active', true)->get();
+
+        return response()->json([
+            'message' => 'Project Plan with tasks founded',
+            'data' => $plans
+        ]);
+    }
 }

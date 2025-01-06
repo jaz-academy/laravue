@@ -3,7 +3,6 @@ import UserProfileHeader from '@/views/profile/user/UserProfileHeader.vue'
 import UserOverview from '@/views/profile/user/overview/index.vue'
 import UserProjects from '@/views/profile/user/projects/index.vue'
 import UserRates from '@/views/profile/user/rates/index.vue'
-import UserTasks from '@/views/profile/user/tasks/index.vue'
 
 definePage({
   meta: {
@@ -27,19 +26,14 @@ const tabs = [
     tab: 'overview',
   },
   {
-    title: 'Tasks',
-    icon: 'tabler-users',
-    tab: 'tasks',
-  },
-  {
     title: 'Projects',
     icon: 'tabler-layout-grid',
     tab: 'projects',
   },
   {
-    title: 'Rates',
-    icon: 'tabler-link',
-    tab: 'rates',
+    title: 'Stars',
+    icon: 'tabler-star-filled',
+    tab: 'stars',
   },
 ]
 </script>
@@ -77,18 +71,13 @@ const tabs = [
         <UserOverview />
       </VWindowItem>
 
-      <!-- tasks -->
-      <VWindowItem value="tasks">
-        <UserTasks />
-      </VWindowItem>
-
       <!-- Projects -->
       <VWindowItem value="projects">
         <UserProjects />
       </VWindowItem>
 
-      <!-- rates -->
-      <VWindowItem value="rates">
+      <!-- stars -->
+      <VWindowItem value="stars">
         <UserRates />
       </VWindowItem>
     </VWindow>

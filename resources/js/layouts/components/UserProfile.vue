@@ -36,7 +36,7 @@ const userProfileList = [
     icon: 'tabler-settings',
     title: 'Settings',
     to: {
-      name: 'profile-teacher-account-tab',
+      name: 'profile-teacher-detail-tab',
       params: { tab: 'account' },
     },
   },
@@ -45,7 +45,7 @@ const userProfileList = [
     icon: 'tabler-credit-card',
     title: 'Billing',
     to: {
-      name: 'profile-teacher-account-tab',
+      name: 'profile-teacher-detail-tab',
       params: { tab: 'billing-plans' },
     },
     badgeProps: {

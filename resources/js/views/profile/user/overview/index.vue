@@ -1,9 +1,7 @@
 <script setup>
+import { member } from '@/composables/fetchMemberData'
 import About from './About.vue'
 import ActivityTimeline from './ActivityTimeline.vue'
-import Connection from './Connection.vue'
-import ProjectList from './ProjectList.vue'
-import Teams from './Teams.vue'
 
 const router = useRoute('profile-user-tab')
 const profileTabData = ref()
@@ -20,12 +18,12 @@ watch(router, fetchAboutData, { immediate: true })
 </script>
 
 <template>
-  <VRow v-if="profileTabData">
+  <VRow v-if="member">
     <VCol
       md="4"
       cols="12"
     >
-      <About :data="profileTabData" />
+      <About :data="member" />
     </VCol>
 
     <VCol
@@ -35,24 +33,6 @@ watch(router, fetchAboutData, { immediate: true })
       <VRow>
         <VCol cols="12">
           <ActivityTimeline />
-        </VCol>
-
-        <VCol
-          cols="12"
-          md="6"
-        >
-          <Connection :connections-data="profileTabData.connections" />
-        </VCol>
-
-        <VCol
-          cols="12"
-          md="6"
-        >
-          <Teams :teams-data="profileTabData.teamsTech" />
-        </VCol>
-
-        <VCol cols="12">
-          <ProjectList />
         </VCol>
       </VRow>
     </VCol>

@@ -1,22 +1,35 @@
 <script setup>
-const router = useRoute('profile-user-tab')
-const projectData = ref([])
+import { useCookie } from '@/@core/composable/useCookie'
+import { fetchProjectData, plansTasks } from '@/composables/fetchProjectData'
+import avatar1 from '@images/avatars/avatar-1.png'
+import socialLabel from '@images/icons/project-icons/social.png'
+import { onMounted } from 'vue'
 
-const fetchProjectData = async () => {
-  if (router.params.tab === 'projects') {
-    const data = await $fake('/pages/profile', { query: { tab: router.params.tab } }).catch(err => console.log(err))
+onMounted(() => {
+  fetchProjectData()
+})
 
-    projectData.value = data
-  }
+console.log(plansTasks)
+
+function getDistinctTasks(tasks) {
+  const groupedTasks = tasks.reduce((acc, task) => {
+    if (!acc.has(task.admin_student_id)) {
+      acc.set(task.admin_student_id, task)
+    }
+    
+    return acc
+  }, new Map())
+
+  
+  return Array.from(groupedTasks.values())
 }
 
-watch(router, fetchProjectData, { immediate: true })
+function hasTaskForStudent(tasks, studentId) {
+  return tasks.some(task => task.admin_student_id === studentId)
+}
+
 
 const moreList = [
-  {
-    title: 'Rename Project',
-    value: 'Rename Project',
-  },
   {
     title: 'View Details',
     value: 'View Details',
@@ -38,10 +51,10 @@ const moreList = [
 </script>
 
 <template>
-  <VRow v-if="projectData">
+  <VRow>
     <VCol
-      v-for="data in projectData"
-      :key="data.title"
+      v-for="data in plansTasks"
+      :key="data.id"
       cols="12"
       sm="6"
       lg="4"
@@ -49,13 +62,13 @@ const moreList = [
       <VCard>
         <VCardItem>
           <template #prepend>
-            <VAvatar :image="data.avatar" />
+            <VAvatar :image="socialLabel" />
           </template>
 
-          <VCardTitle>{{ data.title }}</VCardTitle>
+          <VCardTitle>{{ data.theme }}</VCardTitle>
           <p class="mb-0">
-            <span class="font-weight-medium me-1">Client:</span>
-            <span>{{ data.client }}</span>
+            <span class="font-weight-medium me-1">Subject:</span>
+            <span>{{ data.subject }}</span>
           </p>
 
           <template #append>
@@ -69,24 +82,6 @@ const moreList = [
         </VCardItem>
 
         <VCardText>
-          <div class="d-flex align-center justify-space-between flex-wrap gap-x-2 gap-y-4">
-            <div class="pa-2 bg-var-theme-background rounded">
-              <h6 class="text-base font-weight-medium">
-                {{ data.budgetSpent }} <span class="text-body-1">/ {{ data.budget }}</span>
-              </h6>
-              <span>Total Budget</span>
-            </div>
-
-            <div>
-              <h6 class="text-base font-weight-medium">
-                Start Date: <span class="text-body-1">{{ data.startDate }}</span>
-              </h6>
-              <h6 class="text-base font-weight-medium mb-1">
-                Deadline: <span class="text-body-1">{{ data.deadline }}</span>
-              </h6>
-            </div>
-          </div>
-
           <p class="mt-4 mb-0 clamp-text">
             {{ data.description }}
           </p>
@@ -97,28 +92,28 @@ const moreList = [
         <VCardText>
           <div class="d-flex align-center justify-space-between flex-wrap gap-2">
             <h6 class="text-base font-weight-medium">
-              All Hours: <span class="text-body-1">{{ data.hours }}</span>
+              Deadline: <span class="text-body-1">{{ data.end_date }}</span>
             </h6>
 
             <VChip
               label
-              :color="data.chipColor"
+              :color="hasTaskForStudent(data.project_task, useCookie('userData').value.admin_student_id) ? 'success' : 'error'"
               size="small"
             >
-              {{ data.daysLeft }} Days left
+              {{ hasTaskForStudent(data.project_task, useCookie('userData').value.admin_student_id) ? `I'm done` : `Not doing Yet` }}
             </VChip>
           </div>
 
           <div class="d-flex align-center justify-space-between flex-wrap text-sm mt-4 mb-2">
-            <span>Task: {{ data.tasks }}</span>
-            <span>{{ Math.round((data.completedTask / data.totalTask) * 100) }}% Completed</span>
+            <span>All member doing</span>
+            <span>{{ Math.round((getDistinctTasks(data.project_task).length / 20) * 100) }}%</span>
           </div>
           <VProgressLinear
             rounded
             rounded-bar
             height="8"
-            :model-value="data.completedTask"
-            :max="data.totalTask"
+            :model-value="getDistinctTasks(data.project_task).length"
+            :max="20"
             color="primary"
           />
 
@@ -126,24 +121,14 @@ const moreList = [
             <div class="d-flex align-center">
               <div class="v-avatar-group me-2">
                 <VAvatar
-                  v-for="avatar in data.avatarGroup"
-                  :key="avatar.name"
-                  :image="avatar.avatar"
+                  v-for="task in getDistinctTasks(data.project_task)"
+                  :key="task.id"
+                  :image="avatar1"
                   :size="32"
                 />
               </div>
-              <span class="text-xs">
-                {{ data.members }}
-              </span>
+              <span class="text-xs" />
             </div>
-
-            <span>
-              <VIcon
-                icon="tabler-message-dots"
-                class="me-1"
-              />
-              <span>{{ data.comments }}</span>
-            </span>
           </div>
         </VCardText>
       </VCard>

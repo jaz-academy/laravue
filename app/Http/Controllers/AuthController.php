@@ -20,28 +20,33 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
-        $request->validate([
-            'name' => 'required|max:255',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|confirmed'
-        ]);
-
         $user = new User([
+            'admin_student_id'  => $request->adminStudentId,
+            'admin_teacher_id'  => $request->adminTeacherId,
             'name'  => $request->name,
             'email' => $request->email,
             'password' => bcrypt($request->password),
+            'role' => 0,
         ]);
 
         if ($user->save()) {
             $tokenResult = $user->createToken('Personal Access Token');
             $token = $tokenResult->plainTextToken;
+            $abilityRules = [
+                [
+                  'member' => $user->admin_student_id ? 'Student' : 'Teacher',
+                  'action' => 'read',
+                  'subject' => 'AclDemo',
+                ],
+            ];
 
             return response()->json([
-                'message' => 'Successfully created user!',
                 'accessToken' => $token,
+                'userData' => $user,
+                'userAbilityRules' => $abilityRules,
             ], 201);
         } else {
-            return response()->json(['error' => 'Provide proper details']);
+            return response()->json(['error' => 'Cannot create user, Try again leter!'], 500);
         }
     }
 

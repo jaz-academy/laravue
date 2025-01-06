@@ -1,5 +1,5 @@
 <script setup>
-import AddNewUserDrawer from '@/views/profile/teacher/list/AddNewUserDrawer.vue'
+import AddNewUserDrawer from '@/views/profile/student/list/AddNewUserDrawer.vue'
 import { paginationMeta } from '@api-utils/paginationMeta'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
@@ -405,7 +405,7 @@ const widgetData = ref([
             <div class="d-flex flex-column">
               <h6 class="text-base">
                 <RouterLink
-                  :to="{ name: 'profile-teacher-detail-tab', params: { tab: 'account' } }"
+                  :to="{ name: 'profile-student-detail-tab', params: { tab: 'account' } }"
                   class="font-weight-medium text-link"
                 >
                   {{ item.fullName }}
@@ -472,7 +472,7 @@ const widgetData = ref([
             />
             <VMenu activator="parent">
               <VList>
-                <VListItem :to="{ name: 'profile-teacher-detail-tab', params: { tab: 'account' } }">
+                <VListItem :to="{ name: 'profile-student-detail-tab', params: { tab: 'account' } }">
                   <template #prepend>
                     <VIcon icon="tabler-eye" />
                   </template>

@@ -13,10 +13,10 @@ definePage({
       cols="12"
       md="6"
     >
-      <VCard title="Common">
-        <VCardText>No ability is required to view this card</VCardText>
+      <VCard title="Welcome Aboard! 🚀">
+        <VCardText>You already registered in <strong>Jazmedia.</strong> What next?</VCardText>
         <VCardText>
-          This card is visible to both 'user' and 'admin'
+          Contact your administrator to assign you the necessary permissions
         </VCardText>
       </VCard>
     </VCol>
@@ -25,7 +25,7 @@ definePage({
       cols="12"
       md="6"
     >
-      <VCard title="Analytics">
+      <VCard title="Approved User 👍">
         <VCardText>User with 'Analytics' subject's 'Read' ability can view this card</VCardText>
         <VCardText class="text-danger">
           This card is visible to 'admin' only

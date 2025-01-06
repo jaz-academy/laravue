@@ -47,7 +47,7 @@ class StudentController extends Controller
     public function show(Student $student)
     {
         return response()->json([
-            'message' => 'Teacher data founded',
+            'message' => 'Student data founded',
             'data' => $student
         ]);
     }

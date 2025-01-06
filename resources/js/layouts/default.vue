@@ -1,4 +1,5 @@
 <script setup>
+import { useSkins } from '@core/composable/useSkins'
 import { useConfigStore } from '@core/stores/config'
 import { AppContentLayoutNav } from '@layouts/enums'
 import { switchToVerticalNavOnLtOverlayNavBreakpoint } from '@layouts/utils'

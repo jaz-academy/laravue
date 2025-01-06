@@ -104,4 +104,34 @@ class TaskController extends Controller
             'count' => Task::count()
         ]);
     }
+
+    public function getTaskByProjectPlan($project_plan_id)
+    {
+        $tasks = Task::where('project_plan_id', $project_plan_id)->with('projectPlan', 'adminStudent', 'adminTeacher')->orderBy('id', 'DESC')->get();
+
+        return response()->json([
+            'count' => $tasks->count(),
+            'data' => $tasks
+        ]);
+    }
+
+    public function getTaskByStudent($admin_student_id)
+    {
+        $tasks = Task::where('admin_student_id', $admin_student_id)->with('projectPlan', 'adminStudent', 'adminTeacher')->orderBy('id', 'DESC')->get();
+
+        return response()->json([
+            'count' => $tasks->count(),
+            'data' => $tasks
+        ]);
+    }
+
+    public function getTaskByTeacher($admin_teacher_id)
+    {
+        $tasks = Task::where('admin_teacher_id', $admin_teacher_id)->with('projectPlan', 'adminStudent', 'adminTeacher')->orderBy('id', 'DESC')->get();
+
+        return response()->json([
+            'count' => $tasks->count(),
+            'data' => $tasks
+        ]);
+    }
 }

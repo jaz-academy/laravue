@@ -1,25 +1,51 @@
 <script setup>
-const router = useRoute('profile-user-tab')
-const connectionData = ref([])
+import avatar1 from '@images/avatars/avatar-1.png'
+import { fetchStudentData, students } from '@/composables/fetchStudentData'
+import { fetchProjectData, tasks } from '@/composables/fetchProjectData'
+import { member } from '@/composables/fetchMemberData'
+import { onMounted, computed } from 'vue'
 
-const fetchProjectData = async () => {
-  if (router.params.tab === 'rates') {
-    const data = await $fake('/pages/profile', { query: { tab: 'connections' } }).catch(err => console.log(err))
+onMounted(() => {
+  fetchStudentData()
+  fetchProjectData()
+})
 
-    connectionData.value = data
-  }
+function countTasksForStudent(tasks, studentId) {
+  return tasks.filter(task => task.admin_student_id === studentId).length
 }
 
-watch(router, fetchProjectData, { immediate: true })
+function calculateStars(tasks, studentId) {
+  const studentTasks = tasks.filter(task => task.admin_student_id === studentId)
+  const totalRate = studentTasks.reduce((sum, task) => sum + (task.rate || 0), 0)
+  const averageRate = studentTasks.length > 0 ? totalRate / studentTasks.length : 0
+
+  return { totalRate, averageRate }
+}
+
+// Computed property to sort students by averageRate
+const sortedStudents = computed(() => {
+  return students.value.slice().sort((a, b) => {
+    const aRate = calculateStars(tasks.value, a.id).averageRate
+    const bRate = calculateStars(tasks.value, b.id).averageRate
+    return bRate - aRate
+  })
+})
+
+function abbreviateName(name) {
+  if (name.length <= 20) return name
+  const words = name.split(" ")
+  const abbreviated = words.slice(0, 2).join(" ")
+  return abbreviated
+}
 </script>
 
 <template>
   <VRow>
     <VCol
-      v-for="data in connectionData"
-      :key="data.name"
+      v-for="student in sortedStudents"
+      :key="student.id"
       sm="6"
-      lg="4"
+      lg="3"
       cols="12"
     >
       <VCard>
@@ -39,71 +65,57 @@ watch(router, fetchProjectData, { immediate: true })
           <VCardTitle class="d-flex flex-column align-center justify-center gap-y-5">
             <VAvatar
               size="100"
-              :image="data.avatar"
+              :image="avatar1"
             />
 
             <div class="text-center">
               <h4 class="text-h4">
-                {{ data.name }}
+                {{ abbreviateName(student.name) }}
               </h4>
               <h6 class="text-h6">
-                {{ data.designation }}
+                {{ student.role || 'Content Creator' }}
               </h6>
-            </div>
-
-            <div class="d-flex align-center flex-wrap gap-2">
-              <VChip
-                v-for="chip in data.chips"
-                :key="chip.title"
-                label
-                :color="chip.color"
-                size="small"
-              >
-                {{ chip.title }}
-              </VChip>
             </div>
           </VCardTitle>
         </VCardItem>
+
+        <VCardText class="text-center">
+          <VRating
+            v-model="calculateStars(tasks, student.id).averageRate"
+            half-increments
+            hover
+          />
+        </VCardText>
 
         <VCardText>
           <div class="d-flex justify-space-around">
             <div class="text-center">
               <h4 class="text-h4">
-                {{ data.projects }}
-              </h4>
-              <span class="text-body-1">Projects</span>
-            </div>
-            <div class="text-center">
-              <h4 class="text-h4">
-                {{ data.tasks }}
+                {{ countTasksForStudent(tasks, student.id) }}
               </h4>
               <span class="text-body-1">Tasks</span>
             </div>
             <div class="text-center">
               <h4 class="text-h4">
-                {{ data.connections }}
+                {{ calculateStars(tasks, student.id).totalRate }}
               </h4>
-              <span class="text-body-1">Connections</span>
+              <span class="text-body-1">Stars</span>
+            </div>
+            <div class="text-center">
+              <h4 class="text-h4">
+                {{ calculateStars(tasks, student.id).averageRate.toFixed(2) }}
+              </h4>
+              <span class="text-body-1">Average</span>
             </div>
           </div>
 
           <div class="d-flex justify-center gap-4 mt-5">
             <VBtn
-              :prepend-icon="data.isConnected ? 'tabler-user-check' : 'tabler-user-plus'"
-              :variant="data.isConnected ? 'elevated' : 'tonal'"
+              prepend-icon="tabler-user-check"
+              :variant="member.registered == student.registered ? 'elevated' : 'tonal'"
             >
-              {{ data.isConnected ? 'connected' : 'connect' }}
+              {{ student.registered }}
             </VBtn>
-
-            <IconBtn
-              variant="tonal"
-              class="rounded"
-            >
-              <VIcon
-                icon="tabler-mail"
-                color="secondary"
-              />
-            </IconBtn>
           </div>
         </VCardText>
       </VCard>

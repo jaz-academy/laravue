@@ -15,12 +15,13 @@ export default [
           { title: 'List', to: 'financial-payment-list' },
           { title: 'Add', to: 'financial-payment-add' },
           { title: 'Edit', to: { name: 'financial-payment-edit-id', params: { id: '5036' } } },
-          { title: 'preview', to: { name: 'financial-payment-preview-id', params: { id: '5036' } } },
+          { title: 'Preview', to: { name: 'financial-payment-preview-id', params: { id: '5036' } } },
         ],
       },
       { title: 'Recap', to: { name: 'financial-payment-recap-id', params: { id: '5036' } } },
-      { title: 'Discount', to: 'financial-payment-discount' },
-      { title: 'Billing', to: 'financial-payment-billing' },
+
+      // { title: 'Discount', to: 'financial-payment-discount' },
+      // { title: 'Billing', to: 'financial-payment-billing' },
     ],
   },
   {
@@ -32,7 +33,7 @@ export default [
         children: [
           { title: 'List', to: 'financial-finance' },
           { title: 'Edit', to: { name: 'financial-finance-edit-id', params: { id: '5036' } } },
-          { title: 'preview', to: { name: 'financial-finance-preview-id', params: { id: '5036' } } },
+          { title: 'Preview', to: { name: 'financial-finance-preview-id', params: { id: '5036' } } },
         ],
       },
       { title: 'Account', to: 'financial-finance-account' },
