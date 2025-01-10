@@ -1,9 +1,9 @@
 <script setup>
-import avatar1 from '@images/avatars/avatar-1.png'
-import { fetchStudentData, students } from '@/composables/fetchStudentData'
-import { fetchProjectData, tasks } from '@/composables/fetchProjectData'
 import { member } from '@/composables/fetchMemberData'
-import { onMounted, computed } from 'vue'
+import { fetchProjectData, tasks } from '@/composables/fetchProjectData'
+import { fetchStudentData, students } from '@/composables/fetchStudentData'
+import avatar1 from '@images/avatars/avatar-1.png'
+import { computed, onMounted } from 'vue'
 
 onMounted(() => {
   fetchStudentData()
@@ -27,6 +27,7 @@ const sortedStudents = computed(() => {
   return students.value.slice().sort((a, b) => {
     const aRate = calculateStars(tasks.value, a.id).averageRate
     const bRate = calculateStars(tasks.value, b.id).averageRate
+    
     return bRate - aRate
   })
 })
@@ -34,8 +35,8 @@ const sortedStudents = computed(() => {
 function abbreviateName(name) {
   if (name.length <= 20) return name
   const words = name.split(" ")
-  const abbreviated = words.slice(0, 2).join(" ")
-  return abbreviated
+  
+  return words.slice(0, 2).join(" ")
 }
 </script>
 
@@ -45,6 +46,7 @@ function abbreviateName(name) {
       v-for="student in sortedStudents"
       :key="student.id"
       sm="6"
+      md="4"
       lg="3"
       cols="12"
     >

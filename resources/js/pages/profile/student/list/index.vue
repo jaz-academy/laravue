@@ -1,12 +1,13 @@
 <script setup>
+import { fetchStudents } from '@/composables/fetchStudentData'
 import AddNewUserDrawer from '@/views/profile/student/list/AddNewUserDrawer.vue'
 import { paginationMeta } from '@api-utils/paginationMeta'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
 // 👉 Store
 const searchQuery = ref('')
-const selectedRole = ref()
-const selectedPlan = ref()
+const selectedYear = ref()
+const selectedCity = ref()
 const selectedStatus = ref()
 
 // Data table options
@@ -14,6 +15,7 @@ const itemsPerPage = ref(10)
 const page = ref(1)
 const sortBy = ref()
 const orderBy = ref()
+const usersData = ref([])
 
 const updateOptions = options => {
   page.value = options.page
@@ -21,23 +23,51 @@ const updateOptions = options => {
   orderBy.value = options.sortBy[0]?.order
 }
 
+const fetchUsers = async () => {
+  try {
+    const result = await fetchStudents({
+      q: searchQuery,
+      status: selectedStatus,
+      city: selectedCity,
+      year: selectedYear,
+      itemsPerPage: itemsPerPage,
+      page: page,
+      sortBy: sortBy,
+      orderBy: orderBy,
+    })
+    
+    usersData.value = result
+  } catch (error) {
+    console.error('Error fetching students:', error.message)
+  }
+}
+
+onMounted(() => {
+  fetchUsers()
+})
+
+const users = computed(() => usersData.value?.users || [])
+const totalStudents = computed(() => usersData.value?.totalUsers || 0)
+
+console.log(users.value)
+
 // Headers
 const headers = [
   {
-    title: 'User',
-    key: 'user',
+    title: 'Name',
+    key: 'name',
   },
   {
-    title: 'Role',
-    key: 'role',
+    title: 'Year',
+    key: 'year',
   },
   {
-    title: 'Plan',
-    key: 'plan',
+    title: 'City',
+    key: 'city',
   },
   {
-    title: 'Billing',
-    key: 'billing',
+    title: 'Address',
+    key: 'address',
   },
   {
     title: 'Status',
@@ -50,124 +80,51 @@ const headers = [
   },
 ]
 
-const {
-  data: usersData,
-  execute: fetchUsers,
-} = await useFake(createUrl('/apps/users', {
-  query: {
-    q: searchQuery,
-    status: selectedStatus,
-    plan: selectedPlan,
-    role: selectedRole,
-    itemsPerPage,
-    page,
-    sortBy,
-    orderBy,
-  },
+// 👉 search filters
+const distinctYear = [...new Set(users.value.map(student => student.registered))]
+
+const years = distinctYear.map(year => ({
+  title: year,
 }))
 
-const users = computed(() => usersData.value.users)
-const totalUsers = computed(() => usersData.value.totalUsers)
+const distinctCities = [...new Set(users.value.map(student => student.city))]
 
-// 👉 search filters
-const roles = [
-  {
-    title: 'Admin',
-    value: 'admin',
-  },
-  {
-    title: 'Author',
-    value: 'author',
-  },
-  {
-    title: 'Editor',
-    value: 'editor',
-  },
-  {
-    title: 'Maintainer',
-    value: 'maintainer',
-  },
-  {
-    title: 'Subscriber',
-    value: 'subscriber',
-  },
-]
+const cities = distinctCities.map(city => ({
+  title: city,
+  value: city.toLowerCase(),
+}))
 
-const plans = [
-  {
-    title: 'Basic',
-    value: 'basic',
-  },
-  {
-    title: 'Company',
-    value: 'company',
-  },
-  {
-    title: 'Enterprise',
-    value: 'enterprise',
-  },
-  {
-    title: 'Team',
-    value: 'team',
-  },
-]
+const distinctStatus = [...new Set(users.value.map(student => student.graduation))]
 
-const status = [
-  {
-    title: 'Pending',
-    value: 'pending',
-  },
-  {
-    title: 'Active',
-    value: 'active',
-  },
-  {
-    title: 'Inactive',
-    value: 'inactive',
-  },
-]
+const status = []
 
-const resolveUserRoleVariant = role => {
-  const roleLowerCase = role.toLowerCase()
-  if (roleLowerCase === 'subscriber')
-    return {
-      color: 'warning',
-      icon: 'tabler-circle-check',
-    }
-  if (roleLowerCase === 'author')
-    return {
-      color: 'success',
-      icon: 'tabler-user',
-    }
-  if (roleLowerCase === 'maintainer')
-    return {
-      color: 'primary',
-      icon: 'tabler-chart-pie-2',
-    }
-  if (roleLowerCase === 'editor')
-    return {
-      color: 'info',
-      icon: 'tabler-edit',
-    }
-  if (roleLowerCase === 'admin')
-    return {
-      color: 'secondary',
-      icon: 'tabler-device-laptop',
-    }
-  
-  return {
-    color: 'primary',
-    icon: 'tabler-user',
+distinctStatus.forEach(statusItem => {
+  if (statusItem === null) {
+    status.push({
+      title: 'Active',
+      value: null,
+    })
+  } else if (statusItem === 0) {
+    status.push({
+      title: 'Suspend',
+      value: '-',
+    })
+  } else {
+    status.push({
+      title: statusItem,
+      value: statusItem,
+    })
   }
-}
+})
 
 const resolveUserStatusVariant = stat => {
+  if (!stat) return 'primary'
   const statLowerCase = stat.toLowerCase()
-  if (statLowerCase === 'pending')
+  if (statLowerCase === '-')
     return 'warning'
-  if (statLowerCase === 'active')
+  if (statLowerCase === '')
     return 'success'
-  if (statLowerCase === 'inactive')
+  if (statLowerCase > 2023)
     return 'secondary'
   
   return 'primary'
@@ -289,24 +246,24 @@ const widgetData = ref([
             sm="4"
           >
             <AppSelect
-              v-model="selectedRole"
-              label="Select Role"
-              placeholder="Select Role"
-              :items="roles"
+              v-model="selectedYear"
+              label="Select Year"
+              placeholder="Select Year"
+              :items="years"
               clearable
               clear-icon="tabler-x"
             />
           </VCol>
-          <!-- 👉 Select Plan -->
+          <!-- 👉 Select City -->
           <VCol
             cols="12"
             sm="4"
           >
             <AppSelect
-              v-model="selectedPlan"
-              label="Select Plan"
-              placeholder="Select Plan"
-              :items="plans"
+              v-model="selectedCity"
+              label="Select City"
+              placeholder="Select City"
+              :items="cities"
               clearable
               clear-icon="tabler-x"
             />
@@ -382,25 +339,25 @@ const widgetData = ref([
         v-model:items-per-page="itemsPerPage"
         v-model:page="page"
         :items="users"
-        :items-length="totalUsers"
+        :items-length="totalStudents"
         :headers="headers"
         class="text-no-wrap"
         @update:options="updateOptions"
       >
-        <!-- User -->
-        <template #item.user="{ item }">
+        <!-- Name -->
+        <template #item.name="{ item }">
           <div class="d-flex align-center">
             <VAvatar
               size="34"
               :variant="!item.avatar ? 'tonal' : undefined"
-              :color="!item.avatar ? resolveUserRoleVariant(item.role).color : undefined"
+              :color="!item.avatar ? 'primary' : undefined"
               class="me-3"
             >
               <VImg
                 v-if="item.avatar"
                 :src="item.avatar"
               />
-              <span v-else>{{ avatarText(item.fullName) }}</span>
+              <span v-else>{{ avatarText(item.name) }}</span>
             </VAvatar>
             <div class="d-flex flex-column">
               <h6 class="text-base">
@@ -408,45 +365,40 @@ const widgetData = ref([
                   :to="{ name: 'profile-student-detail-tab', params: { tab: 'account' } }"
                   class="font-weight-medium text-link"
                 >
-                  {{ item.fullName }}
+                  {{ item.name }}
                 </RouterLink>
               </h6>
-              <span class="text-sm text-medium-emphasis">{{ item.email }}</span>
+              <span class="text-sm text-medium-emphasis">{{ item.email || item.nickname }}</span>
             </div>
           </div>
         </template>
 
-        <!-- 👉 Role -->
-        <template #item.role="{ item }">
+        <!-- 👉 Year -->
+        <template #item.year="{ item }">
           <div class="d-flex align-center gap-4">
-            <VAvatar
-              :size="30"
-              :color="resolveUserRoleVariant(item.role).color"
-              variant="tonal"
-            >
-              <VIcon
-                :size="20"
-                :icon="resolveUserRoleVariant(item.role).icon"
-              />
-            </VAvatar>
-            <span class="text-capitalize">{{ item.role }}</span>
+            <span class="text-capitalize">{{ item.registered }}</span>
           </div>
         </template>
 
-        <!-- Plan -->
-        <template #item.plan="{ item }">
-          <span class="text-capitalize font-weight-medium">{{ item.currentPlan }}</span>
+        <!-- City -->
+        <template #item.city="{ item }">
+          <span class="text-capitalize font-weight-medium">{{ item.city }}</span>
+        </template>
+
+        <!-- Address -->
+        <template #item.address="{ item }">
+          <span class="text-capitalize font-weight-medium">{{ item.address }}</span>
         </template>
 
         <!-- Status -->
         <template #item.status="{ item }">
           <VChip
-            :color="resolveUserStatusVariant(item.status)"
+            :color="resolveUserStatusVariant(item.graduation)"
             size="small"
             label
             class="text-capitalize"
           >
-            {{ item.status }}
+            {{ item.graduation || 'Active' }}
           </VChip>
         </template>
 
@@ -503,13 +455,13 @@ const widgetData = ref([
           <VDivider />
           <div class="d-flex align-center justify-sm-space-between justify-center flex-wrap gap-3 pa-5 pt-3">
             <p class="text-sm text-disabled mb-0">
-              {{ paginationMeta({ page, itemsPerPage }, totalUsers) }}
+              {{ paginationMeta({ page, itemsPerPage }, totalStudents) }}
             </p>
 
             <VPagination
               v-model="page"
-              :length="Math.ceil(totalUsers / itemsPerPage)"
-              :total-visible="$vuetify.display.xs ? 1 : Math.ceil(totalUsers / itemsPerPage)"
+              :length="Math.ceil(totalStudents / itemsPerPage)"
+              :total-visible="$vuetify.display.xs ? 1 : Math.ceil(totalStudents / itemsPerPage)"
             >
               <template #prev="slotProps">
                 <VBtn

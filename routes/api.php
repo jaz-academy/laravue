@@ -47,7 +47,7 @@ Route::get('login', function () {
 
 Route::group(['prefix' => 'public'], function () {
   Route::get('students', [StudentController::class, 'index']);
-  Route::get('students', [StudentController::class, 'index']);
+  Route::get('students-show', [StudentController::class, 'showAll']);
   Route::get('plans-with-tasks', [PlanController::class, 'planWithTasks']);
   Route::get('task-by-student/{id}', [TaskController::class, 'getTaskByStudent']);
   Route::get('task-by-teacher/{id}', [TaskController::class, 'getTaskByTeacher']);
@@ -62,7 +62,7 @@ Route::group(['prefix' => 'auth'], function () {
 Route::group(['middleware' => 'auth:sanctum'], function () {
   Route::get('logout', [AuthController::class, 'logout']);
   Route::get('user', [AuthController::class, 'user']);
-  
+
   Route::apiResource('participants', ParticipantController::class);
   Route::apiResource('bookmarks', BookmarkController::class);
   Route::apiResource('likes', LikeController::class);

@@ -1,6 +1,4 @@
 <script setup>
-import appleImg from '@images/front-pages/landing-page/apple-icon.png'
-import googlePlayImg from '@images/front-pages/landing-page/google-play-icon.png'
 import footerDarkBg from '@images/front-pages/backgrounds/footer-bg-dark.png'
 import footerLightBg from '@images/front-pages/backgrounds/footer-bg-light.png'
 import facebookDark from '@images/front-pages/icons/facebook-dark.png'
@@ -11,6 +9,8 @@ import instagramDark from '@images/front-pages/icons/instagram-dark.png'
 import instagramLight from '@images/front-pages/icons/instagram-light.png'
 import twitterDark from '@images/front-pages/icons/twitter-dark.png'
 import twitterLight from '@images/front-pages/icons/twitter-light.png'
+import appleImg from '@images/front-pages/landing-page/apple-icon.png'
+import googlePlayImg from '@images/front-pages/landing-page/google-play-icon.png'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
 
@@ -71,7 +71,7 @@ const demoList = [
 <template>
   <div class="footer">
     <div
-      class="footer-top pt-15"
+      class="footer-top pt-15 d-none"
       :style="{ 'background-image': `url(${footerBg})` }"
     >
       <VContainer>
@@ -95,7 +95,7 @@ const demoList = [
                 class="mb-8"
                 :class="$vuetify.theme.current.dark ? 'text-body-1' : 'text-white-variant'"
               >
-                Most Powerful & Comprehensive 🤩 Vuejs Admin Template with Elegant Material Design & Unique Layouts.
+                Visi kami adalah Menghadirkan pemuda yang memiliki visi sebagai muslim yang siap berkarya dan berdakwah, menjadikan dunia tempat berdirinya pengetahuan dan karakter islami yang kuat.
               </div>
               <VForm class="subscribe-form d-flex align-center">
                 <AppTextField
@@ -184,6 +184,7 @@ const demoList = [
             cols="12"
             md="3"
             sm="4"
+            class="d-none"
           >
             <div>
               <div class="font-weight-medium mb-6">
@@ -243,11 +244,11 @@ const demoList = [
 
             {{ new Date().getFullYear() }}
             <a
-              href="https://pixinvent.com/"
+              href="https://abukafa.github.io/"
               target="_blank"
               rel="noopener noreferrer"
               class="font-weight-bold ms-1 text-white"
-            >Pixinvent</a>,
+            >Semangkamedia</a>,
             Made With
             <VIcon
               icon="tabler-heart-filled"
@@ -255,16 +256,16 @@ const demoList = [
               size="1.25rem"
               class="mx-1"
             />
-            for a better web.
+            <span class="d-none d-md-inline-block"> for a better apps.</span>
           </span>
 
-          <div class="d-flex gap-x-6">
+          <div class="d-none d-md-flex gap-x-6">
             <template
               v-for="(item, index) in [
-                { title: 'github', icon: github, href: 'https://github.com/pixinvent' },
-                { title: 'facebook', icon: facebook, href: 'https://www.facebook.com/pixinvents/' },
-                { title: 'twitter', icon: twitter, href: 'https://twitter.com/pixinvents' },
-                { title: 'instagram', icon: instagram, href: 'https://www.instagram.com/pixinvents/' },
+                { title: 'github', icon: github, href: 'https://github.com/abukafa' },
+                { title: 'facebook', icon: facebook, href: 'https://www.facebook.com/hikam.abukafa/' },
+                { title: 'twitter', icon: twitter, href: 'https://twitter.com/abukafa' },
+                { title: 'instagram', icon: instagram, href: 'https://www.instagram.com/hikam.abukafa/' },
               ]"
               :key="index"
             >

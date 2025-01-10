@@ -1,12 +1,13 @@
 <script setup>
-import { useMouse } from '@vueuse/core'
-import { useTheme } from 'vuetify'
 import { useGenerateImageVariant } from '@/@core/composable/useGenerateImageVariant'
-import joinArrow from '@images/front-pages/icons/Join-community-arrow.png'
+import avatar1 from '@images/avatars/avatar-1.png'
 import heroDashboardImgDark from '@images/front-pages/landing-page/hero-dashboard-dark.png'
 import heroDashboardImgLight from '@images/front-pages/landing-page/hero-dashboard-light.png'
 import heroElementsImgDark from '@images/front-pages/landing-page/hero-elements-dark.png'
 import heroElementsImgLight from '@images/front-pages/landing-page/hero-elements-light.png'
+import { useMouse } from '@vueuse/core'
+import 'video.js/dist/video-js.css'
+import { useTheme } from 'vuetify'
 
 const theme = useTheme()
 const heroElementsImg = useGenerateImageVariant(heroElementsImgLight, heroElementsImgDark)
@@ -20,6 +21,39 @@ const translateMouse = computed(() => {
     return { transform: `perspective(1200px) rotateX(${ rotateX.value < -40 ? -20 : rotateX.value }deg) rotateY(${ (window.innerWidth - 2 * x.value) / 100 }deg) scale3d(1,1,1)` }
   }
 })
+
+const featuresData = [
+  {
+    title: 'Quality Code',
+    desc: 'Code structure that all developers will easily understand and fall in love with.',
+    icon: 'custom-laptop',
+  },
+  {
+    title: 'Continuous Updates',
+    desc: 'Free updates for the next 12 months, including new demos and features.',
+    icon: 'custom-rocket',
+  },
+  {
+    title: 'Starter Kit',
+    desc: 'Start your project quickly without having to remove unnecessary features.',
+    icon: 'custom-paper',
+  },
+  {
+    title: 'API Ready',
+    desc: 'Just change the endpoint and see your own data loaded within seconds.',
+    icon: 'custom-check',
+  },
+  {
+    title: 'Excellent Support',
+    desc: 'An easy-to-follow doc with lots of references and code examples.',
+    icon: 'custom-user',
+  },
+  {
+    title: 'Well Documented',
+    desc: 'An easy-to-follow doc with lots of references and code examples.',
+    icon: 'custom-keyboard',
+  },
+]
 </script>
 
 <template>
@@ -27,34 +61,29 @@ const translateMouse = computed(() => {
     id="home"
     :style="{ background: 'rgb(var(--v-theme-surface))' }"
   >
-    <div id="landingHero">
+    <div
+      id="landingHero"
+      class="mb-6"
+    >
       <div
         class="landing-hero"
         :class="theme.current.value.dark ? 'landing-hero-dark-bg' : 'landing-hero-light-bg'"
       >
         <VContainer>
           <div class="hero-text-box text-center px-6">
-            <h1 class="text-h4 text-sm-h1 text-primary hero-title  font-weight-bold text-wrap mb-4">
-              One dashboard to manage all your business
-            </h1>
+            <p class="text-h2 text-sm-h1 text-primary hero-title  font-weight-bold text-wrap mb-4">
+              Jaz Academy <br> Project Dashboard
+            </p>
+            <h5 class="mb-2 text-h5">
+              We aren't just learning Professionality
+            </h5>
             <h5 class="mb-6 text-h5">
-              Production-ready & easy to use Admin Template
-              for Reliability and Customizability.
+              but also building a Productivity
             </h5>
             <div class="position-relative">
-              <h6 class="position-absolute hero-btn-item d-md-flex d-none text-h6">
-                Join Community
-                <VImg
-                  :src="joinArrow"
-                  class="flip-in-rtl"
-                  width="60"
-                  height="42"
-                />
-              </h6>
-
-              <RouterLink to="#pricing-plan">
-                <VBtn height="48">
-                  Get early Access
+              <RouterLink to="#content-post">
+                <VBtn height="36">
+                  Explore Our World
                 </VBtn>
               </RouterLink>
             </div>
@@ -63,42 +92,59 @@ const translateMouse = computed(() => {
       </div>
     </div>
 
-    <VContainer>
-      <div class="position-relative">
-        <div class="blank-section" />
-        <div class="hero-animation-img position-absolute">
-          <RouterLink
-            :to="{ name: 'dashboards-analytics' }"
-            target="_blank"
+    <div class="position-relative">
+      <div class="hero-animation-img position-absolute">
+        <div class="d-none justify-center">
+          <div
+            v-for="(data, index) in featuresData"
+            :key="index"
+            cols="4"
+            md="2"
+            class="mx-md-12 mx-6 my-8"
           >
-            <div
-              class="hero-dashboard-img position-relative"
-              :style="translateMouse"
-            >
-              <img
-                :src="heroDashboardImg"
-                alt="Hero Dashboard"
-                class="animation-img"
-              >
-              <img
-                :src="heroElementsImg"
-                alt="hero elements"
-                class="hero-elements-img animation-img position-absolute"
-                style="transform: translateZ(1rem);"
-              >
-            </div>
-          </RouterLink>
+            <VIcon
+              :icon="data.icon"
+              size="64"
+              color="primary"
+            />
+          </div>
         </div>
+        <div class="d-none justify-center">
+          <VAvatar
+            v-for="i in 8"
+            :key="i"
+            size="120"
+            class="mx-3"
+            :image="avatar1"
+          />
+        </div>
+        <!-- FEATURE POST -->
+        <VCard class="mt-8">
+          <VCardText>
+            <VRow class="align-items-stretch h-100">
+              <VCol cols="12">
+                <iframe
+                  width="100%"
+                  height="435"
+                  src="https://www.youtube.com/embed/7WejWscG18c"
+                  title="Podcast : Pintar Sholeh Tapi Miskin."
+                  frameborder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerpolicy="strict-origin-when-cross-origin"
+                  allowfullscreen
+                />
+              </VCol>
+            </vrow>
+          </VCardText>
+        </VCard>
       </div>
-    </VContainer>
+    </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
 .landing-hero {
-  border-radius: 0 0 50px 50px;
-  padding-block-end: 22rem;
-  padding-block-start: 9rem;
+  padding-block: 7rem 22rem;
 }
 
 .hero-animation-img{
@@ -117,96 +163,6 @@ section {
 .blank-section{
   background-color: rgba(var(--v-theme-surface));
   min-block-size: 25rem;
-}
-
-@media (min-width: 1280px) and (max-width: 1440px)
-{
-  .blank-section{
-    min-block-size: 18rem;
-  }
-
-  .landing-hero{
-    padding-block-end: 22rem;
-  }
-
-  .hero-animation-img{
-    inset-block-start: -25rem;
-  }
-}
-
-@media (min-width: 900px) and (max-width: 1279px)
-{
-  .blank-section{
-    min-block-size: 13rem;
-  }
-
-  .landing-hero{
-    padding-block-end: 14rem;
-  }
-
-  .hero-animation-img{
-    inset-block-start: -17rem;
-  }
-}
-
-@media (min-width: 768px) and (max-width: 899px)
-{
-  .blank-section{
-    min-block-size: 12rem;
-  }
-
-  .landing-hero{
-    padding-block-end: 12rem;
-  }
-
-  .hero-animation-img{
-    inset-block-start: -15rem;
-  }
-}
-
-@media (min-width: 600px) and (max-width: 767px)
-{
-  .blank-section{
-    min-block-size: 12rem;
-  }
-
-  .landing-hero{
-    padding-block-end: 8rem;
-  }
-
-  .hero-animation-img{
-    inset-block-start: -11rem;
-  }
-}
-
-@media (min-width: 425px) and (max-width: 600px)
-{
-  .blank-section{
-    min-block-size: 8rem;
-  }
-
-  .landing-hero{
-    padding-block-end: 8rem;
-  }
-
-  .hero-animation-img{
-    inset-block-start: -9rem;
-  }
-}
-
-@media (min-width: 300px) and (max-width: 424px)
-{
-  .blank-section{
-    min-block-size: 4rem;
-  }
-
-  .landing-hero{
-    padding-block-end: 6rem;
-  }
-
-  .hero-animation-img{
-    inset-block-start: -7rem;
-  }
 }
 
 .landing-hero::before{

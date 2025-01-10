@@ -14,3 +14,38 @@ export const fetchStudentData = async () => {
   }
 }
 
+export const fetchStudents = async ({
+  q = '',
+  status = '',
+  city = '',
+  year = '',
+  itemsPerPage = 10,
+  page = 1,
+  sortBy = '',
+  orderBy = 'asc',
+}) => {
+  const { data: studData, error: studError } = await useApi('/public/students-show', {
+    query: {
+      q,
+      status,
+      city,
+      year,
+      itemsPerPage,
+      page,
+      sortBy,
+      orderBy,
+    },
+  })
+  
+  if (studError.value) {
+    console.error('Error fetching students:', studError.value)
+    throw new Error(studError.value)
+  }
+
+  return {
+    users: studData.value?.data || [],
+    totalPages: studData.value?.totalPages || 0,
+    totalUsers: studData.value?.count || 0,
+    page: studData.value?.page || 1,
+  }
+}

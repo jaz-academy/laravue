@@ -377,6 +377,7 @@
     "plans": true,
     "tasks": true,
     "fetchPlans": true,
-    "plansTasks": true
+    "plansTasks": true,
+    "fetchStudents": true
   }
 }

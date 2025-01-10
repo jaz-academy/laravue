@@ -21,6 +21,28 @@ class StudentController extends Controller
         ]);
     }
 
+    public function showAll(Request $request)
+    {
+        // Ambil parameter dari request
+        $itemsPerPage = $request->get('itemsPerPage', 10); // Default 10 per halaman
+        $page = $request->get('page', 1); // Default halaman pertama
+
+        // Query students dengan pagination
+        $studentsQuery = Student::query();
+        $students = $studentsQuery->paginate($itemsPerPage, ['*'], 'page', $page);
+
+        // Hitung total halaman
+        $totalPages = $students->lastPage();
+
+        return response()->json([
+            'count' => $students->total(), // Total data keseluruhan
+            'data' => $students->items(), // Data siswa di halaman ini
+            'totalPages' => $totalPages, // Total halaman
+            'page' => $students->currentPage(), // Halaman saat ini
+        ]);
+    }
+
+
     /**
      * Store a newly created resource in storage.
      */
