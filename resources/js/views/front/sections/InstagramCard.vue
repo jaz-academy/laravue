@@ -1,4 +1,5 @@
 <script setup>
+import InstagramEmbed from '@/views/front/sections/InstagramEmbed.vue'
 import avatar1 from '@images/avatars/avatar-1.png'
 import avatar2 from '@images/avatars/avatar-2.png'
 
@@ -25,22 +26,23 @@ const comments = [
 </script>
 
 <template>
-  <VCard>
+  <VCard class="mb-4">
     <VCardText>
       <VRow>
+        <!-- CONTENT POST -->
         <VCol
           cols="12"
-          md="9"
+          md="6"
+          class="border border-red"
         >
-          <iframe
-            class="d-flex justify-center align-start bg-light-primary rounded"
-            src="https://drive.google.com/file/d/1wjoW2bISyIvkBD6IPDtLqPju3iotiJ7T/preview"
-            width="100%"
-            height="100%"
-            allow="autoplay"
-          />
+          <InstagramEmbed post-id="DEScjB8y3vN" />
         </VCol>
-        <VCol>
+
+        <!-- DESCRIPTION -->
+        <VCol
+          cols="12"
+          md="6"
+        >
           <div>
             <div class="d-flex align-center">
               <VAvatar
@@ -57,7 +59,10 @@ const comments = [
               </VAvatar>
               <div class="d-flex flex-column">
                 <h6 class="text-base">
-                  <RouterLink class="font-weight-medium text-link">
+                  <RouterLink
+                    class="font-weight-medium text-link"
+                    to="/"
+                  >
                     Hijaz Abdullah
                   </RouterLink>
                 </h6>
@@ -86,7 +91,10 @@ const comments = [
               </VAvatar>
               <div class="d-flex flex-column">
                 <h6 class="text-base">
-                  <RouterLink class="font-weight-medium text-link">
+                  <RouterLink
+                    class="font-weight-medium text-link"
+                    to="/"
+                  >
                     Abu Kafa
                   </RouterLink>
                 </h6>
@@ -115,6 +123,8 @@ const comments = [
               </div>
               <VIcon icon="tabler-bookmark" />
             </div>
+
+            <!-- COMMENT -->
             <div 
               class="flex-grow-1 overflow-auto"
               style="max-block-size: 100%;"

@@ -1,6 +1,5 @@
 <script setup>
 import { useGenerateImageVariant } from '@/@core/composable/useGenerateImageVariant'
-import avatar1 from '@images/avatars/avatar-1.png'
 import heroDashboardImgDark from '@images/front-pages/landing-page/hero-dashboard-dark.png'
 import heroDashboardImgLight from '@images/front-pages/landing-page/hero-dashboard-light.png'
 import heroElementsImgDark from '@images/front-pages/landing-page/hero-elements-dark.png'
@@ -94,32 +93,34 @@ const featuresData = [
 
     <div class="position-relative">
       <div class="hero-animation-img position-absolute">
-        <div class="d-none justify-center">
+        <!--
+          <div class="d-none justify-center">
           <div
-            v-for="(data, index) in featuresData"
-            :key="index"
-            cols="4"
-            md="2"
-            class="mx-md-12 mx-6 my-8"
+          v-for="(data, index) in featuresData"
+          :key="index"
+          cols="4"
+          md="2"
+          class="mx-md-12 mx-6 my-8"
           >
-            <VIcon
-              :icon="data.icon"
-              size="64"
-              color="primary"
-            />
-          </div>
-        </div>
-        <div class="d-none justify-center">
-          <VAvatar
-            v-for="i in 8"
-            :key="i"
-            size="120"
-            class="mx-3"
-            :image="avatar1"
+          <VIcon
+          :icon="data.icon"
+          size="64"
+          color="primary"
           />
-        </div>
+          </div>
+          </div>
+          <div class="d-none justify-center">
+          <VAvatar
+          v-for="i in 8"
+          :key="i"
+          size="120"
+          class="mx-3"
+          :image="avatar1"
+          />
+          </div> 
+        -->
         <!-- FEATURE POST -->
-        <VCard class="mt-8">
+        <VCard class="feature-post mt-8">
           <VCardText>
             <VRow class="align-items-stretch h-100">
               <VCol cols="12">
@@ -182,6 +183,37 @@ section {
 .landing-hero-light-bg{
   background-image: linear-gradient(138.18deg, #eae8fd 0%, #fce5e6 94.44%);
 }
+
+@media (min-width: 1920px) {
+  .hero-animation-img {
+    max-inline-size: calc(1440px - 32px);
+  }
+}
+
+@media (min-width: 1280px) and (max-width: 1919px) {
+  .hero-animation-img {
+    max-inline-size: calc(1200px - 32px);
+  }
+}
+
+@media (min-width: 960px) and (max-width: 1279px) {
+  .hero-animation-img {
+    max-inline-size: calc(900px - 32px);
+  }
+}
+
+@media (min-width: 600px) and (max-width: 959px) {
+  .hero-animation-img {
+    max-inline-size: calc(100% - 64px);
+  }
+}
+
+@media (max-width: 600px) {
+  .hero-animation-img {
+    max-inline-size: calc(100% - 32px);
+  }
+}
+
 
 @media (min-width: 600px)
 {

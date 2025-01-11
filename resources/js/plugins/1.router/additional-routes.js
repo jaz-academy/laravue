@@ -20,9 +20,9 @@ export const redirects = [
     },
   },
   {
-    path: "/",
+    path: '/',
     name: 'front',
-    redirect: () => ({ name: 'front-pages-landing-page' }),
+    component: () => import('@/pages/index.vue'),
   },
   {
     path: '/pages/user-profile',

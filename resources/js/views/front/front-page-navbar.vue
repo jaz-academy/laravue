@@ -151,7 +151,7 @@ const isPageActive = computed(() => menuItems.some(item => item.navItems.some(li
           class="nav-link font-weight-medium ms-2 mt-3"
           :class="[ $route.path == '/' ? 'active-link' : '']"
         >
-          Drive
+          Uploads
         </RouterLink>
 
         <RouterLink
@@ -229,33 +229,33 @@ const isPageActive = computed(() => menuItems.some(item => item.navItems.some(li
         <!-- landing page sections -->
         <div class="text-base align-center d-none d-md-flex">
           <RouterLink
-            to=""
             class="nav-link font-weight-medium px-2 px-lg-4 py-2"
-            :class="[ $route.path == '/front-pages/landing-page' ? 'active-link' : '']"
+            :to="{ name: 'front' }"
+            :class="[ $route.path == '/' ? 'active-link' : '']"
           >
             Home
           </RouterLink>
 
           <RouterLink
-            to=""
             class="nav-link font-weight-medium px-2 px-lg-4 py-2"
-            :class="[ $route.path == '/' ? 'active-link' : '']"
-          >
-            Drive
-          </RouterLink>
-
-          <RouterLink
-            to=""
-            class="nav-link font-weight-medium px-2 px-lg-4 py-2"
-            :class="[ $route.path == '/' ? 'active-link' : '']"
+            :to="{ name: 'front-instagram' }"
+            :class="[ $route.path == '/front/instagram' ? 'active-link' : '']"
           >
             Instagram
           </RouterLink>
 
           <RouterLink
-            to=""
             class="nav-link font-weight-medium px-2 px-lg-4 py-2"
-            :class="[ $route.path == '/' ? 'active-link' : '']"
+            :to="{ name: 'front-upload' }"
+            :class="[ $route.path == '/front/upload' ? 'active-link' : '']"
+          >
+            Uploads
+          </RouterLink>
+
+          <RouterLink
+            class="nav-link font-weight-medium px-2 px-lg-4 py-2"
+            :to="{ name: 'front-bookmark' }"
+            :class="[ $route.path == '/front/bookmark' ? 'active-link' : '']"
           >
             Bookmark
           </RouterLink>

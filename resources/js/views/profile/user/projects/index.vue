@@ -120,12 +120,19 @@ const moreList = [
           <div class="d-flex align-center justify-space-between flex-wrap gap-2 mt-3">
             <div class="d-flex align-center">
               <div class="v-avatar-group me-2">
-                <VAvatar
+                <VAvatar 
+                  color="info" 
                   v-for="task in getDistinctTasks(data.project_task)"
                   :key="task.id"
-                  :image="avatar1"
-                  :size="32"
-                />
+                  :size="32">
+                  <VImg :src="avatar1" />
+                  <VTooltip
+                    location="top"
+                    activator="parent"
+                  >
+                    {{ task.admin_student.name }}
+                  </VTooltip>
+                </VAvatar>
               </div>
               <span class="text-xs" />
             </div>

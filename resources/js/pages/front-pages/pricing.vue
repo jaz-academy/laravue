@@ -1,6 +1,6 @@
 <script setup>
-import Footer from '@/views/front-pages/front-page-footer.vue'
-import Navbar from '@/views/front-pages/front-page-navbar.vue'
+import Footer from '@/views/front/front-page-footer.vue'
+import Navbar from '@/views/front/front-page-navbar.vue'
 import laptopGirl from '@images/illustrations/laptop-girl.png'
 
 definePage({ meta: { layout: 'blank' } })
