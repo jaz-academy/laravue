@@ -48,7 +48,12 @@ Route::get('login', function () {
 Route::group(['prefix' => 'public'], function () {
   Route::get('students', [StudentController::class, 'index']);
   Route::get('students-show', [StudentController::class, 'showAll']);
+  Route::get('home-tasks-with-all', [TaskController::class, 'homeTasksWithAll']);
+  Route::get('upload-tasks-with-all', [TaskController::class, 'uploadTasksWithAll']);
+  Route::get('instagram-tasks-with-all', [TaskController::class, 'instagramTasksWithAll']);
   Route::get('plans-with-tasks', [PlanController::class, 'planWithTasks']);
+  Route::get('plans', [PlanController::class, 'index']);
+  Route::get('tasks', [TaskController::class, 'index']);
   Route::get('task-by-student/{id}', [TaskController::class, 'getTaskByStudent']);
   Route::get('task-by-teacher/{id}', [TaskController::class, 'getTaskByTeacher']);
   Route::get('task-by-plan/{id}', [TaskController::class, 'getTaskByProjectPlan']);

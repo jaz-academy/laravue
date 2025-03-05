@@ -378,6 +378,10 @@
     "tasks": true,
     "fetchPlans": true,
     "plansTasks": true,
-    "fetchStudents": true
+    "fetchStudents": true,
+    "homeTasks": true,
+    "abbreviateName": true,
+    "instagramTasks": true,
+    "uploadTasks": true
   }
 }

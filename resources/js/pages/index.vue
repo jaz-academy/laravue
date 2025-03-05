@@ -1,8 +1,19 @@
 <script setup>
+import { fetchProjectData, homeTasks } from '@/composables/fetchProjectData'
 import Footer from '@/views/front/front-page-footer.vue'
 import Navbar from '@/views/front/front-page-navbar.vue'
 import HeroSection from '@/views/front/sections/hero-section.vue'
 import HomeCard from '@/views/front/sections/HomeCard.vue'
+
+const taskData = ref(null) // Data reaktif
+
+onMounted(() => {
+  fetchProjectData()
+})
+
+taskData.value = homeTasks.value.data
+
+console.log(homeTasks)
 
 definePage({ meta: { layout: 'blank' } })
 
@@ -41,10 +52,24 @@ useIntersectionObserver([
       class="my-16"
     >
       <div
-        v-for="i in 5"
-        :key="i"
+        v-for="task in taskData"
+        :key="task.id"
       >
-        <HomeCard class="card-post" />
+        <HomeCard
+          class="card-post"
+          :task-name="task.name"
+          :description="task.description"
+          :subject="task.project_plan.subject"
+          :theme="task.project_plan.theme"
+          :stars="task.rate"
+          :media="task.media"
+          :post-id="task.media == 'Instagram' ? task.link?.match(/\/(?:p|reel)\/([\w-]+)/)?.[1] : task.link?.match(/\/d\/(.*?)\//)?.[1] || 'N/A'"
+          :student-name="task.admin_student.name"
+          :nickname="task.admin_student.nickname"
+          :email="task.admin_student.email"
+          :mentor="task.admin_teacher?.nickname || 'Not Accepted'"
+          :review="task?.review || null"
+        />
       </div>
     </div>
 

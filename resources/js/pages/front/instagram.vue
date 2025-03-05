@@ -1,9 +1,27 @@
 <script setup>
+import { fetchProjectData, instagramTasks } from '@/composables/fetchProjectData'
 import Footer from '@/views/front/front-page-footer.vue'
 import Navbar from '@/views/front/front-page-navbar.vue'
 import InstagramCard from '@/views/front/sections/InstagramCard.vue'
 import avatar1 from '@images/avatars/avatar-1.png'
-import avatar2 from '@images/avatars/avatar-2.png'
+import { onMounted, ref, watch } from 'vue'
+
+const taskData = ref(null) // Data reaktif
+const history = ref([])
+
+onMounted(async () => {
+  await fetchProjectData()
+  taskData.value = instagramTasks.value?.data
+
+  // Perbarui history setelah data task tersedia
+  if (taskData.value) {
+    updateHistory()
+  }
+})
+
+taskData.value = instagramTasks.value.data
+
+// console.log(instagramTasks)
 
 definePage({ meta: { layout: 'blank' } })
 
@@ -14,27 +32,30 @@ const refTeam = ref()
 const refContact = ref()
 const refFaq = ref()
 
-const comments = [
-  { type: 'subheader', title: 'This Week' },
-  {
-    prependAvatar: avatar1,
-    title: 'Brunch this weekend?',
-    subtitle: '<span class="text-primary">Ali Connors</span> &mdash; I\'ll be in your neighborhood doing errands this weekend. Do you want to hang out?',
-  },
-  {
-    type: 'divider',
-    inset: true,
-  },
-  {
-    prependAvatar: avatar2,
-    title: 'Summer BBQ',
-    subtitle: '<span class="text-primary">to Alex, Scott, Jennifer</span> &mdash; Wish I could come, but I\'m out of town this weekend.',
-  },
-  {
-    type: 'divider',
-    inset: true,
-  },
-]
+// Fungsi untuk memperbarui history
+function updateHistory() {
+  history.value = [
+    { type: 'subheader', title: 'Best of the Week' },
+    ...taskData.value
+      .filter(task => task.rate >= 4) // Filter tugas dengan rate >= 4
+      .flatMap(task => [
+        {
+          prependAvatar: avatar1, // Misalnya, gunakan avatar default
+          title: task.admin_student?.name || 'Unknown Student',
+          subtitle: task.name || 'No Task Name',
+        },
+        { type: 'divider', inset: true },
+      ]),
+  ]
+}
+
+
+
+
+// Debugging
+watch(taskData, newValue => {
+  console.log('Task data updated:', newValue)
+})
 
 useIntersectionObserver([
   refHome,
@@ -61,14 +82,45 @@ useIntersectionObserver([
           lg="3"
         >
           <VCard style="position: sticky; inset-block-start: 6rem;">
-            <VList
-              lines="three"
-              :items="comments"
-              item-props
-            >
-              <template #subtitle="{ subtitle }">
-                <!-- eslint-disable-next-line vue/no-v-html -->
-                <div v-html="subtitle" />
+            <VList lines="three">
+              <template
+                v-for="(item, index) in history"
+                :key="index"
+              >
+                <VListItem
+                  v-if="item.prependAvatar"
+                  class="custom-list-item"
+                >
+                  <template #prepend>
+                    <VAvatar
+                      size="34"
+                      variant="tonal"
+                      color="primary"
+                      class="me-3"
+                    >
+                      <VImg
+                        v-if="avatar"
+                        :src="avatar"
+                      />
+                      <span v-else>{{ avatarText(item.title) }}</span>
+                    </VAvatar>
+                  </template>
+                  <VListItemTitle>{{ item.title }}</VListItemTitle>
+                  <VListItemSubtitle>{{ item.subtitle }}</VListItemSubtitle>
+                </VListItem>
+
+                <VDivider
+                  v-else-if="item.type === 'divider'"
+                  :key="`divider-${index}`"
+                  inset
+                />
+
+                <VSubheader
+                  v-else-if="item.type === 'subheader'"
+                  class="ps-3 mb-2 font-weight-medium text-primary"
+                >
+                  {{ item.title }}
+                </VSubheader>
               </template>
             </VList>
           </VCard>
@@ -79,10 +131,23 @@ useIntersectionObserver([
         >
           <div>
             <div
-              v-for="i in 5"
-              :key="i"
+              v-for="task in taskData"
+              :key="task.id"
             >
-              <InstagramCard />
+              <InstagramCard
+                :task-name="task.name"
+                :description="task.description"
+                :subject="task.project_plan.subject"
+                :theme="task.project_plan.theme"
+                :stars="task.rate"
+                :media="task.media"
+                :post-id="task.link?.match(/\/(?:p|reel)\/([\w-]+)/)?.[1] || 'N/A'"
+                :student-name="task.admin_student.name"
+                :nickname="task.admin_student.nickname"
+                :email="task.admin_student.email"
+                :mentor="task.admin_teacher?.nickname || 'Not Accepted'"
+                :review="task?.review || null"
+              />
             </div>
           </div>
         </VCol>

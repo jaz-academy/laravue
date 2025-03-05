@@ -1,5 +1,14 @@
 import { isToday } from './helpers'
 
+// Less then 20 chars name
+export const abbreviateName = (name, maxLength, fixedLength) => {
+  if (name.length <= maxLength) return name
+  const words = name.split(" ")
+  
+  return words.slice(0, fixedLength).join(" ")
+}
+
+// Inisials from Name
 export const avatarText = value => {
   if (!value)
     return ''

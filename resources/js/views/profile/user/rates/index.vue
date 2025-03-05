@@ -1,4 +1,5 @@
 <script setup>
+import { abbreviateName } from '@/@core/utils/formatters'
 import { member } from '@/composables/fetchMemberData'
 import { fetchProjectData, tasks } from '@/composables/fetchProjectData'
 import { fetchStudentData, students } from '@/composables/fetchStudentData'
@@ -31,13 +32,6 @@ const sortedStudents = computed(() => {
     return bRate - aRate
   })
 })
-
-function abbreviateName(name) {
-  if (name.length <= 20) return name
-  const words = name.split(" ")
-  
-  return words.slice(0, 2).join(" ")
-}
 </script>
 
 <template>
@@ -72,7 +66,7 @@ function abbreviateName(name) {
 
             <div class="text-center">
               <h4 class="text-h4">
-                {{ abbreviateName(student.name) }}
+                {{ abbreviateName(props.studentName, 20, 2) }}
               </h4>
               <h6 class="text-h6">
                 {{ student.role || 'Content Creator' }}

@@ -134,4 +134,31 @@ class TaskController extends Controller
             'data' => $tasks
         ]);
     }
+
+    public function homeTasksWithAll(Request $request)
+    {
+        $perPage = 10;
+        $tasks = Task::where('rate', '>=', '4')->with('projectPlan', 'adminStudent', 'adminTeacher')->orderBy('id', 'DESC')->paginate($perPage);
+        return response()->json([
+            'data' => $tasks
+        ]);
+    }
+
+    public function uploadTasksWithAll(Request $request)
+    {
+        $perPage = 10;
+        $tasks = Task::where('media', '!=', 'Instagram')->with('projectPlan', 'adminStudent', 'adminTeacher')->orderBy('id', 'DESC')->paginate($perPage);
+        return response()->json([
+            'data' => $tasks
+        ]);
+    }
+
+    public function InstagramTasksWithAll(Request $request)
+    {
+        $perPage = 10;
+        $tasks = Task::where('media', 'Instagram')->with('projectPlan', 'adminStudent', 'adminTeacher')->orderBy('id', 'DESC')->paginate($perPage);
+        return response()->json([
+            'data' => $tasks
+        ]);
+    }
 }

@@ -1,6 +1,24 @@
 <script setup>
+import { abbreviateName, avatarText } from '@/@core/utils/formatters'
 import avatar1 from '@images/avatars/avatar-1.png'
 import avatar2 from '@images/avatars/avatar-2.png'
+import GDriveEmbed from './GDriveEmbed.vue'
+import InstagramEmbed from './InstagramEmbed.vue'
+
+const props = defineProps({
+  taskName: String,
+  description: String,
+  subject: String,
+  theme: String,
+  stars: String,
+  media: String,
+  postId: String,
+  studentName: String,
+  nickname: String,
+  email: String,
+  mentor: String,
+  review: String,
+})
 
 const comments = [
   {
@@ -33,12 +51,13 @@ const comments = [
           cols="12"
           md="9"
         >
-          <iframe
-            class="d-flex justify-center rounded"
-            src="https://drive.google.com/file/d/16a4lLIG5IHFuFv9yd170UCxavPp-UhRM/preview"
-            width="100%"
-            height="100%"
-            allow="autoplay"
+          <GDriveEmbed
+            v-if="props.media == 'Google Drive'"
+            :post-id="props.postId"
+          />
+          <InstagramEmbed
+            v-if="props.media == 'Instagram'"
+            :post-id="props.postId"
           />
         </VCol>
 
@@ -56,10 +75,10 @@ const comments = [
                 class="me-3"
               >
                 <VImg
-                  v-if="avatar1"
-                  :src="avatar1"
+                  v-if="avatar"
+                  :src="avatar"
                 />
-                <span v-else>AB</span>
+                <span v-else>{{ avatarText(props.studentName) }}</span>
               </VAvatar>
               <div class="d-flex flex-column">
                 <h6 class="text-base">
@@ -67,18 +86,19 @@ const comments = [
                     class="font-weight-medium text-link"
                     to="/"
                   >
-                    Hijaz Abdullah
+                    {{ abbreviateName(props.studentName, 25, 2) }}
                   </RouterLink>
                 </h6>
-                <span class="text-sm text-medium-emphasis">hijazabdullah@gmail.com</span>
+                <span class="text-sm text-medium-emphasis">{{ props.email || props.nickname }}</span>
               </div>
             </div>
             <hr class="my-custom-line">
             <p class="text-body-1">
-              Next Generation Frontend Architecture Using Layout Engine And Vue.
+              {{ props.subject +': '+ props.theme }}
             </p>
             <p class="text-body-2">
-              Next Generation Frontend Architecture Using Layout Engine And Vue.
+              <span class="text-primary">{{ props.taskName }}</span>
+              {{ props.description }}
             </p>
             <div class="d-flex align-center">
               <VAvatar
@@ -88,33 +108,34 @@ const comments = [
                 class="me-3"
               >
                 <VImg
-                  v-if="avatar1"
-                  :src="avatar1"
+                  v-if="avatar"
+                  :src="avatar"
                 />
-                <span v-else>KF</span>
+                <span v-else>{{ avatarText(props.mentor) }}</span>
               </VAvatar>
               <div class="d-flex flex-column">
                 <h6 class="text-base">
                   <RouterLink
-                    class="font-weight-medium text-link"
+                    class="font-weight-medium text-link ps-1"
                     to="/"
                   >
-                    Abu Kafa
+                    {{ props.mentor }}
                   </RouterLink>
                 </h6>
                 <span class="text-sm text-medium-emphasis">
                   <VRating
+                    v-if="props.stars"
                     readonly
                     half-increments
                     size="x-small"
                     density="compact" 
-                    :model-value="4"
+                    :model-value="props.stars"
                   />
                 </span>
               </div>
             </div>
             <p class="text-body-2">
-              Next Generation Frontend Architecture Using Layout Engine And Vue.
+              {{ props.review }}
             </p>
             <hr class="my-custom-line">
             <div class="d-flex justify-space-between my-4 flex-wrap action-icons">
