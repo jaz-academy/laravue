@@ -4,9 +4,11 @@ import { ref } from 'vue'
 export const plansTasks = ref([])
 export const plans = ref([])
 export const tasks = ref([])
-export const homeTasks = ref([])
 export const uploadTasks = ref([])
 export const instagramTasks = ref([])
+export const bookmarkTasks = ref([])
+export const homeTasks = ref({ data: [], current_page: 1, last_page: 1 });
+export const isLoading = ref(false)
 
 export const fetchProjectData = async () => {
   const { data: plansTasksData, error: plansTasksError } = await useApi(`/public/plans-with-tasks`)
@@ -64,3 +66,53 @@ export const fetchProjectData = async () => {
   }
 }
 
+export const useTasks = async (querystring = '') => {
+  const { data: useTasksData, error } = await useApi(`/public/tasks${querystring}`);
+  if (error.value) {
+    console.error('Fetch Tasks Error:', error.value);
+    return [];
+  } else {
+    return useTasksData.value ? useTasksData.value.data : [];
+  }
+};
+
+export const fetchMoreHomeTasks = async (page) => {
+  const { data: newTasksData, error } = await useApi(`/public/home-tasks-with-all?page=${page}`);
+  if (error.value) {
+    console.error('Fetch More Tasks Error:', error.value);
+    return;
+  } else {
+    return newTasksData.value ? newTasksData.value.data : []
+  }
+};
+
+export const fetchMoreInstagramTasks = async (page) => {
+  const { data: newInstagramTasks, error } = await useApi(`/public/instagram-tasks-with-all?page=${page}`);
+  if (error.value) {
+    console.error('Fetch More Tasks Error:', error.value);
+    return;
+  } else {
+    return newInstagramTasks.value ? newInstagramTasks.value.data : []
+  }
+};
+
+export const fetchMoreUploadTasks = async (page) => {
+  const { data: newInstagramTasks, error } = await useApi(`/public/upload-tasks-with-all?page=${page}`);
+  if (error.value) {
+    console.error('Fetch More Tasks Error:', error.value);
+    return;
+  } else {
+    return newInstagramTasks.value ? newInstagramTasks.value.data : []
+  }
+};
+
+export const useBookmarkTasks = async (id) => {
+  const { data: bookmarkTasksData, error: bookmarkTasksError } = await useApi(`/public/bookmarks-by-participant/${id}`)
+  if (bookmarkTasksError.value) {
+    console.log('Tasks Error:', bookmarkTasksError.value)
+  } else {
+    if (bookmarkTasksData.value) {
+      bookmarkTasks.value = bookmarkTasksData.value.data
+    }
+  }
+};

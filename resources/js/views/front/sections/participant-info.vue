@@ -6,12 +6,112 @@ import heroElementsImgDark from '@images/front-pages/landing-page/hero-elements-
 import heroElementsImgLight from '@images/front-pages/landing-page/hero-elements-light.png'
 import { useMouse } from '@vueuse/core'
 import 'video.js/dist/video-js.css'
+import { onMounted, ref } from 'vue'
 import { useTheme } from 'vuetify'
 
+const participant = ref(null)
 const theme = useTheme()
 const heroElementsImg = useGenerateImageVariant(heroElementsImgLight, heroElementsImgDark)
 const heroDashboardImg = useGenerateImageVariant(heroDashboardImgLight, heroDashboardImgDark)
 const { x, y } = useMouse({ touch: false })
+const showModalSignin = ref(false);
+const showModalSignup = ref(false);
+const avatar1 = ref(null)
+const username = ref('')
+const name = ref('')
+const password = ref('')
+const password_confirmation = ref('')
+const errorMessage = ref('')
+const errors = ref([])
+const emit = defineEmits(['loginStatus'])
+
+const resetFormFields = () => {
+  username.value = ''
+  name.value = ''
+  password.value = ''
+  password_confirmation.value = ''
+  errorMessage.value = ''
+  errors.value = []
+}
+
+onMounted(() => {
+  const data = localStorage.getItem('participant')
+  participant.value = data ? JSON.parse(data) : null
+})
+
+const handleAuthParticipant = () => {
+  if (participant.value) {
+    localStorage.removeItem('participant')
+    participant.value = null
+    emit('loginStatus', false)
+  } else {
+    showModalSignin.value = true
+    resetFormFields()
+  }
+}
+
+const handleSigninParticipant = async () => {
+  if (username.value && password.value) {
+    const data = { username: username.value, password: password.value }
+    try {
+      const { data: responseData, error } = await $api('/public/sign-in-participant', {
+        method: 'POST',
+        body: {
+          username: data.username,
+          password: data.password,
+        },
+        onResponseError({ response }) {
+          errors.value = response._data.errors
+          errorMessage.value = response._data.message || 'SignIn failed'
+        },
+      })
+
+      console.log(responseData);
+          
+      localStorage.setItem('participant', JSON.stringify(responseData))
+      participant.value = responseData
+      showModalSignin.value = false
+      emit('loginStatus', true)
+
+    } catch (err) {
+      console.error(err)
+    }
+  }
+}
+
+const handleSignupParticipant = async () => {
+  if (name.value && username.value && password.value && password_confirmation.value) {
+    try {
+      if (password.value === password_confirmation.value) {
+          const { data: responseData } = await $api('/public/participants', {
+            method: 'POST',
+            body: {
+              name: name.value,
+              username: username.value,
+              password: password.value,
+              password_confirmation: password_confirmation.value,
+              role: 1,
+              image: null,
+            },
+            onResponseError({ response }) {
+              errors.value = response._data.errors
+              errorMessage.value = response._data.message || 'SignUp failed'
+            },
+          })
+
+          console.log(responseData);
+          
+          localStorage.setItem('participant', JSON.stringify(responseData))
+          participant.value = responseData
+          showModalSignup.value = false
+        } else {
+          alert('Password and Confirm Password do not match')
+        }
+      } catch (error) {
+        console.error('Error during signup:', error)
+    }
+  }
+}
 
 const translateMouse = computed(() => {
   if (typeof window !== 'undefined') {
@@ -71,6 +171,7 @@ const featuresData = [
         <VContainer>
           <div class="hero-text-box text-center px-6">
             <VAvatar
+                v-if="participant"
                 size="200"
                 variant="tonal"
                 color="primary"
@@ -80,29 +181,204 @@ const featuresData = [
                   v-if="avatar1"
                   :src="avatar1"
                 />
-                <span v-else>AB</span>
-              </VAvatar>
-            <p class="text-h2 text-sm-h1 text-primary hero-title  font-weight-bold text-wrap mb-0">
-              Lubna Alqurthubiya
+                <span v-else>{{ participant.name ? avatarText(participant.name) : 'AB' }}</span>
+            </VAvatar>
+            <p v-if="participant" class="text-h2 text-sm-h1 text-primary hero-title  font-weight-bold text-wrap mb-0">
+              {{ participant.name }}
             </p>
             <h5 class="mb-4 text-h5">
-              Thank for your participation
+          <template v-if="participant">
+            Thank you for your participation!
+          </template>
+          <template v-else>
+            <p class="text-h2 text-sm-h1 text-primary hero-title  font-weight-bold text-wrap mb-4">
+              Marhaban !
+            </p>
+            Welcome to our platform
+            <div class="mb-4">
+              Click here to <a style="display: inline; cursor: pointer;" @click="showModalSignup = true">Signup as New Participant!</a>
+            </div>
+          </template>
             </h5>
             <div class="position-relative">
-              <RouterLink to="#">
-                <VBtn height="36">
-                  Logout
-                </VBtn>
-              </RouterLink>
+              <VBtn height="36" @click="handleAuthParticipant">
+                {{ participant ? 'Sign Out' : 'Sign In' }}
+              </VBtn>
             </div>
           </div>
         </VContainer>
+        <div v-if="showModalSignin" class="modal-overlay">
+          <div class="modal-content">
+            <VAlert
+              v-if="errorMessage"
+              type="error"
+              class="mb-5"
+              dismissible
+              @click="errorMessage = ''"
+            >
+              {{ errorMessage }}
+            </VAlert>
+            <VForm @submit.prevent="{}">
+              <VRow>
+                <VCol cols="12">
+                  <AppTextField
+                    v-model="username"
+                    prepend-inner-icon="tabler-user"
+                    label="Username"
+                    placeholder="Mehmed"
+                  />
+                </VCol>
+
+                <VCol cols="12">
+                  <AppTextField
+                    v-model="password"
+                    prepend-inner-icon="tabler-lock"
+                    label="Password"
+                    autocomplete="on"
+                    type="password"
+                    placeholder="············"
+                  />
+                </VCol>
+
+                <VCol cols="12">
+                  Not a Participant yet? <a style="display: inline; cursor: pointer;" @click="showModalSignin = false, showModalSignup = true">Signup first!</a>
+                </VCol>
+
+                <VCol cols="12">
+                  <VBtn
+                    type="submit"
+                    class="me-2"
+                    @click="handleSigninParticipant"
+                  >
+                    Sign In
+                  </VBtn>
+
+                  <VBtn 
+                    color="warning" 
+                    class="me-2"
+                    @click="showModalSignin = false"
+                  >
+                    Cancel
+                  </VBtn>
+                </VCol>
+              </VRow>
+            </VForm>
+          </div>
+        </div>
+        <div v-if="showModalSignup" class="modal-overlay">
+          <div class="modal-content">
+            <VAlert
+              v-if="errorMessage"
+              type="error"
+              class="mb-5"
+              dismissible
+              @click="errorMessage = ''"
+            >
+              {{ errorMessage }}
+            </VAlert>
+            <VForm @submit.prevent="{}">
+              <VRow>
+                <VCol cols="12">
+                  <AppTextField
+                    v-model="name"
+                    prepend-inner-icon="tabler-user"
+                    label="Full Name"
+                    placeholder="Muhammad"
+                  />
+                </VCol>
+
+                <VCol cols="12">
+                  <AppTextField
+                    v-model="username"
+                    prepend-inner-icon="tabler-checkbox"
+                    label="Username"
+                    placeholder="Mehmed"
+                  />
+                </VCol>
+
+                <VCol cols="12">
+                  <AppTextField
+                    v-model="password"
+                    prepend-inner-icon="tabler-lock"
+                    label="Password"
+                    autocomplete="on"
+                    type="password"
+                    placeholder="············"
+                  />
+                </VCol>
+
+                <VCol cols="12">
+                  <AppTextField
+                    v-model="password_confirmation"
+                    prepend-inner-icon="tabler-lock"
+                    label="Retype Password"
+                    autocomplete="on"
+                    type="password"
+                    placeholder="············"
+                  />
+                </VCol>
+
+                <VCol cols="12">
+                  Already being Participant? <a style="display: inline; cursor: pointer;" @click="showModalSignin = true, showModalSignup = false">Signin instead!</a>
+                </VCol>
+
+                <VCol cols="12">
+                  <VBtn
+                    type="submit"
+                    class="me-2"
+                    @click="handleSignupParticipant"
+                  >
+                    Sign Up
+                  </VBtn>
+
+                  <VBtn 
+                    color="warning" 
+                    class="me-2"
+                    @click="showModalSignup = false"
+                  >
+                    Cancel
+                  </VBtn>
+                </VCol>
+              </VRow>
+            </VForm>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
+.modal-overlay {
+  position: fixed;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 50%);
+  inset: 0;
+}
+
+.modal-content {
+  padding: 2rem;
+  border-radius: 8px;
+  margin: 1rem;
+  background: rgb(var(--v-theme-surface));
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 10%);
+
+  @media (min-width: 1280px) {
+    inline-size: 30%;
+  }
+
+  @media (min-width: 768px) and (max-width: 1279px) {
+    inline-size: 50%;
+  }
+
+  @media (max-width: 767px) {
+    inline-size: 100%;
+  }
+}
+
 .landing-hero {
   padding-block: 7rem 1rem;
 }

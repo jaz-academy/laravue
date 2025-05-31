@@ -1,5 +1,5 @@
 <script setup>
-import { fetchProjectData } from '@/composables/fetchProjectData'
+import { fetchProjectData, uploadTasks } from '@/composables/fetchProjectData'
 import Footer from '@/views/front/front-page-footer.vue'
 import Navbar from '@/views/front/front-page-navbar.vue'
 import PostingCard from '@/views/front/sections/PostingCard.vue'
@@ -8,6 +8,8 @@ import { onMounted, ref } from 'vue'
 
 const taskData = ref(null) // Data reaktif
 const history = ref([])
+const isLoading = ref(false) // Prevent multiple fetches
+const page = ref(2)
 
 onMounted(async () => {
   await fetchProjectData()
@@ -17,9 +19,24 @@ onMounted(async () => {
   if (taskData.value) {
     updateHistory()
   }
+  window.addEventListener('scroll', handleScroll)
 })
 
-taskData.value = uploadTasks.value.data
+const handleScroll = async () => {
+  const scrollPosition = window.scrollY + window.innerHeight
+  const threshold = document.documentElement.scrollHeight - 10
+
+  if (scrollPosition >= threshold && !isLoading.value) {
+    isLoading.value = true
+    const moreTasks = await fetchMoreUploadTasks(page.value++)
+    
+    if (moreTasks.data?.length) {
+      taskData.value.push(...moreTasks.data)
+      updateHistory() // Perbarui history setelah menambahkan lebih banyak tugas
+    }
+    isLoading.value = false
+  }
+}
 
 // Fungsi untuk memperbarui history
 function updateHistory() {

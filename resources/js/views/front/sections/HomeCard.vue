@@ -49,7 +49,7 @@ const comments = [
         <!-- CONTENT POST -->
         <VCol
           cols="12"
-          md="9"
+          md="7"
         >
           <GDriveEmbed
             v-if="props.media == 'Google Drive'"
@@ -64,7 +64,7 @@ const comments = [
         <!-- DESCRIPTION -->
         <VCol
           cols="12"
-          md="3"
+          md="5"
         >
           <div>
             <div class="d-flex align-center">

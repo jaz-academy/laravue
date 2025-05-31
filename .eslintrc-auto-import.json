@@ -382,6 +382,16 @@
     "homeTasks": true,
     "abbreviateName": true,
     "instagramTasks": true,
-    "uploadTasks": true
+    "uploadTasks": true,
+    "fetchMoreHomeTasks": true,
+    "isLoading": true,
+    "nextPage": true,
+    "fetchMoreInstagramTasks": true,
+    "fetchMoreUploadTasks": true,
+    "bookmarkTasks": true,
+    "useBookmarkTasks": true,
+    "useTasks": true,
+    "useApiRaw": true,
+    "buildQuery": true
   }
 }

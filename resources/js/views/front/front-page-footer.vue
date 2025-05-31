@@ -236,11 +236,11 @@ const demoList = [
     </div>
 
     <!-- 👉 Footer Line -->
-    <div class="text-white-variant footer-line w-100">
+    <div class="d-none d-md-inline-block text-white-variant footer-line w-100" style="position: fixed; z-index: 10; inset-block-end: 0; inset-inline-start: 0;">
       <VContainer>
-        <div class="d-flex justify-space-between flex-wrap gap-y-4 align-center">
-          <span class="text-wrap me-4">
-            &copy;
+      <div class="d-flex justify-space-between flex-wrap gap-y-4 align-center">
+        <span class="text-wrap me-4">
+        &copy;
 
             {{ new Date().getFullYear() }}
             <a

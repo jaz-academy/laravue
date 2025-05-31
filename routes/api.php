@@ -48,6 +48,7 @@ Route::get('login', function () {
 Route::group(['prefix' => 'public'], function () {
   Route::get('students', [StudentController::class, 'index']);
   Route::get('students-show', [StudentController::class, 'showAll']);
+  Route::get('teachers', [TeacherController::class, 'index']);
   Route::get('home-tasks-with-all', [TaskController::class, 'homeTasksWithAll']);
   Route::get('upload-tasks-with-all', [TaskController::class, 'uploadTasksWithAll']);
   Route::get('instagram-tasks-with-all', [TaskController::class, 'instagramTasksWithAll']);
@@ -57,6 +58,11 @@ Route::group(['prefix' => 'public'], function () {
   Route::get('task-by-student/{id}', [TaskController::class, 'getTaskByStudent']);
   Route::get('task-by-teacher/{id}', [TaskController::class, 'getTaskByTeacher']);
   Route::get('task-by-plan/{id}', [TaskController::class, 'getTaskByProjectPlan']);
+  Route::post('sign-in-participant', [ParticipantController::class, 'signIn']);
+  Route::get('bookmarks-by-participant/{id}', [BookmarkController::class, 'getByParticipant']);
+  Route::post('update-task-accepted/{task}', [TaskController::class, 'updateTaskAccepted']);
+  Route::apiResource('bookmarks', BookmarkController::class);
+  Route::apiResource('participants', ParticipantController::class);
 });
 
 Route::group(['prefix' => 'auth'], function () {
@@ -68,8 +74,6 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
   Route::get('logout', [AuthController::class, 'logout']);
   Route::get('user', [AuthController::class, 'user']);
 
-  Route::apiResource('participants', ParticipantController::class);
-  Route::apiResource('bookmarks', BookmarkController::class);
   Route::apiResource('likes', LikeController::class);
   Route::apiResource('comments', CommentController::class);
   Route::apiResource('stories', StoryController::class);

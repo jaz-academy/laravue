@@ -8,6 +8,10 @@ import { onMounted, ref, watch } from 'vue'
 
 const taskData = ref(null) // Data reaktif
 const history = ref([])
+const isLoading = ref(false) // Prevent multiple fetches
+const page = ref(2)
+
+console.log('instagramTasks:', instagramTasks.value);
 
 onMounted(async () => {
   await fetchProjectData()
@@ -17,11 +21,24 @@ onMounted(async () => {
   if (taskData.value) {
     updateHistory()
   }
+  window.addEventListener('scroll', handleScroll)
 })
 
-taskData.value = instagramTasks.value.data
+const handleScroll = async () => {
+  const scrollPosition = window.scrollY + window.innerHeight
+  const threshold = document.documentElement.scrollHeight - 10
 
-// console.log(instagramTasks)
+  if (scrollPosition >= threshold && !isLoading.value) {
+    isLoading.value = true
+    const moreTasks = await fetchMoreInstagramTasks(page.value++)
+    
+    if (moreTasks.data?.length) {
+      taskData.value.push(...moreTasks.data)
+      updateHistory() // Perbarui history setelah menambahkan lebih banyak tugas
+    }
+    isLoading.value = false
+  }
+}
 
 definePage({ meta: { layout: 'blank' } })
 
@@ -135,6 +152,7 @@ useIntersectionObserver([
               :key="task.id"
             >
               <InstagramCard
+                :task-id="task.id"
                 :task-name="task.name"
                 :description="task.description"
                 :subject="task.project_plan.subject"
@@ -145,7 +163,8 @@ useIntersectionObserver([
                 :student-name="task.admin_student.name"
                 :nickname="task.admin_student.nickname"
                 :email="task.admin_student.email"
-                :mentor="task.admin_teacher?.nickname || 'Not Accepted'"
+                :teacher="task.admin_teacher ? { id: task.admin_teacher.id, name: task.admin_teacher.nickname } : 'Not Accepted'"
+                :accepted="task.accepted"
                 :review="task?.review || null"
               />
             </div>

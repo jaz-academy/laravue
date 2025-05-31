@@ -139,33 +139,33 @@ const isPageActive = computed(() => menuItems.some(item => item.navItems.some(li
     <div>
       <div class="d-flex flex-column gap-y-4 pa-4">
         <RouterLink
-          to=""
           class="nav-link font-weight-medium ms-2 mt-4"
-          :class="[ $route.path == '/front-pages/landing-page' ? 'active-link' : '']"
+          :to="{ name: 'front' }"
+          :class="[ $route.path == '/' ? 'active-link' : '']"
         >
           Home
         </RouterLink>
 
         <RouterLink
-          to=""
           class="nav-link font-weight-medium ms-2 mt-3"
-          :class="[ $route.path == '/' ? 'active-link' : '']"
+          :to="{ name: 'front-upload' }"
+          :class="[ $route.path == '/front/upload' ? 'active-link' : '']"
         >
-          Uploads
+          Project
         </RouterLink>
 
         <RouterLink
-          to=""
           class="nav-link font-weight-medium ms-2 mt-3"
-          :class="[ $route.path == '/' ? 'active-link' : '']"
+          :to="{ name: 'front-instagram' }"
+          :class="[ $route.path == '/front/instagram' ? 'active-link' : '']"
         >
           Instagram
         </RouterLink>
 
         <RouterLink
-          to=""
           class="nav-link font-weight-medium ms-2 mt-3"
-          :class="[ $route.path == '/' ? 'active-link' : '']"
+          :to="{ name: 'front-bookmark' }"
+          :class="[ $route.path == '/front/bookmark' ? 'active-link' : '']"
         >
           Bookmark
         </RouterLink>
@@ -249,7 +249,7 @@ const isPageActive = computed(() => menuItems.some(item => item.navItems.some(li
             :to="{ name: 'front-upload' }"
             :class="[ $route.path == '/front/upload' ? 'active-link' : '']"
           >
-            Uploads
+            Project
           </RouterLink>
 
           <RouterLink

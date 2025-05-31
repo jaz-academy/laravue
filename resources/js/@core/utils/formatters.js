@@ -17,6 +17,15 @@ export const avatarText = value => {
   return nameArray.map(word => word.charAt(0).toUpperCase()).join('')
 }
 
+// queryString builder
+export const buildQuery = (params) => {
+  const query = Object.entries(params)
+    .filter(([_, v]) => v !== undefined && v !== '')
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+    .join('&')
+  return query ? `?${query}` : ''
+}
+
 // TODO: Try to implement this: https://twitter.com/fireship_dev/status/1565424801216311297
 export const kFormatter = num => {
   const regex = /\B(?=(\d{3})+(?!\d))/g

@@ -21,6 +21,18 @@ class BookmarkController extends Controller
         ]);
     }
 
+    public function getByParticipant($participant_id)
+    {
+        $mediaBookmarks = MediaBookmark::where('media_participant_id', $participant_id)
+            ->with(['projectTask.projectPlan', 'projectTask.adminStudent', 'projectTask.adminTeacher'])
+            ->get();
+
+        return response()->json([
+            'count' => $mediaBookmarks->count(),
+            'data' => $mediaBookmarks
+        ]);
+    }
+
     /**
      * Store a newly created resource in storage.
      */

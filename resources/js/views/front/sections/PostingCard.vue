@@ -2,6 +2,7 @@
 import avatar1 from '@images/avatars/avatar-1.png'
 import avatar2 from '@images/avatars/avatar-2.png'
 import GDriveEmbed from './GDriveEmbed.vue'
+import InstagramEmbed from './InstagramEmbed.vue'
 
 const props = defineProps({
   taskName: String,
@@ -51,6 +52,10 @@ const comments = [
         >
           <GDriveEmbed
             v-if="props.media == 'Google Drive'"
+            :post-id="props.postId"
+          />
+          <InstagramEmbed
+            v-if="props.media == 'Instagram'"
             :post-id="props.postId"
           />
         </VCol>
@@ -133,13 +138,13 @@ const comments = [
             <hr class="my-custom-line">
             <div class="d-flex justify-space-between my-4 flex-wrap action-icons">
               <div class="">
-                <VIcon icon="tabler-heart" />
+                <VIcon icon="tabler-message-2" />
                 <VIcon
-                  icon="tabler-message-2"
+                  icon="tabler-heart"
                   class="ms-2"
                 />
               </div>
-              <VIcon icon="tabler-bookmark" />
+              <VIcon icon="tabler-bookmark-filled" class="text-primary" />
             </div>
 
             <!-- COMMENT -->
@@ -183,7 +188,7 @@ const comments = [
   gap: 8px; /* Jarak antar bintang */
 }
 
-@media (min-width: 1920px) {
+/* @media (min-width: 1920px) {
   .posting-card {
     max-inline-size: calc(1440px - 32px);
   }
@@ -211,5 +216,5 @@ const comments = [
   .posting-card {
     max-inline-size: calc(100% - 32px);
   }
-}
+} */
 </style>

@@ -11,15 +11,34 @@ class TaskController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $tasks = Task::all();
-
-        return response()->json([
-            'count' => $tasks->count(),
-            'data' => $tasks
-        ]);
-    }
+        $perPage = $request->input('perPage', 10);
+        $page = $request->input('page', 1);
+        $queryInput = $request->input('search');
+    
+        $query = Task::with('projectPlan', 'adminStudent', 'adminTeacher')
+            ->orderBy('id', 'DESC');
+    
+        if ($queryInput) {
+            $query->where(function ($q) use ($queryInput) {
+                $q->where('id', $queryInput)
+                    ->orWhereHas('adminStudent', function ($q2) use ($queryInput) {
+                        $q2->where('name', 'like', '%' . $queryInput . '%');
+                    })
+                    ->orWhereHas('adminTeacher', function ($q2) use ($queryInput) {
+                        $q2->where('nickname', 'like', '%' . $queryInput . '%');
+                    })
+                    ->orWhereHas('projectPlan', function ($q2) use ($queryInput) {
+                        $q2->where('theme', 'like', '%' . $queryInput . '%');
+                    });
+            });
+        } else {
+            $query->where('rate', '>', 4);
+        }
+    
+        return $query->paginate($perPage, ['*'], 'page', $page);
+    }    
 
     /**
      * Store a newly created resource in storage.
@@ -137,28 +156,72 @@ class TaskController extends Controller
 
     public function homeTasksWithAll(Request $request)
     {
-        $perPage = 10;
-        $tasks = Task::where('rate', '>=', '4')->with('projectPlan', 'adminStudent', 'adminTeacher')->orderBy('id', 'DESC')->paginate($perPage);
+        $perPage = 15; // Number of items per page
+        $page = $request->input('page', 1); // Default to page 1 if not provided
+
+        $tasks = Task::with('projectPlan', 'adminStudent', 'adminTeacher')
+            ->orderBy('id', 'DESC')
+            ->paginate($perPage, ['*'], 'page', $page); // Explicitly set the page
+
         return response()->json([
-            'data' => $tasks
+            'data' => $tasks, // Paginated items
+            'current_page' => $tasks->currentPage(),
+            'last_page' => $tasks->lastPage(),
+            'total' => $tasks->total(),
         ]);
     }
 
     public function uploadTasksWithAll(Request $request)
     {
-        $perPage = 10;
-        $tasks = Task::where('media', '!=', 'Instagram')->with('projectPlan', 'adminStudent', 'adminTeacher')->orderBy('id', 'DESC')->paginate($perPage);
+        $perPage = 5;
+        $page = $request->input('page', 1); // Default to page 1 if not provided
+
+        $tasks = Task::where('media', '!=', 'Instagram')
+        ->with('projectPlan', 'adminStudent', 'adminTeacher')
+        ->orderBy('id', 'DESC')
+        ->paginate($perPage);
+
         return response()->json([
-            'data' => $tasks
+            'data' => $tasks, // Paginated items
+            'current_page' => $tasks->currentPage(),
+            'last_page' => $tasks->lastPage(),
+            'total' => $tasks->total(),
         ]);
     }
 
     public function InstagramTasksWithAll(Request $request)
     {
-        $perPage = 10;
-        $tasks = Task::where('media', 'Instagram')->with('projectPlan', 'adminStudent', 'adminTeacher')->orderBy('id', 'DESC')->paginate($perPage);
+        $perPage = 5;
+        $page = $request->input('page', 1); // Default to page 1 if not provided
+
+        $tasks = Task::where('media', 'Instagram')
+        ->with('projectPlan', 'adminStudent', 'adminTeacher')
+        ->orderBy('id', 'DESC')
+        ->paginate($perPage, ['*'], 'page', $page); // Explicitly set the page
+
         return response()->json([
-            'data' => $tasks
+            'data' => $tasks, // Paginated items
+            'current_page' => $tasks->currentPage(),
+            'last_page' => $tasks->lastPage(),
+            'total' => $tasks->total(),
         ]);
     }
+
+    public function updateTaskAccepted(Request $request, Task $task)
+    {
+        $fields = $request->validate([
+            'admin_teacher_id' => 'required|exists:admin_teachers,id',
+            'accepted' => 'required|boolean',
+            'rate' => 'nullable|numeric|min:0|max:5',
+            'review' => 'nullable|string',
+        ]);
+    
+        $task->update($fields);
+        $task->refresh();
+
+        return response()->json([
+            'message' => 'Task accepted status updated successfully',
+            'data' => $task
+        ]);
+    }    
 }

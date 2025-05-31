@@ -6,7 +6,24 @@ import heroElementsImgDark from '@images/front-pages/landing-page/hero-elements-
 import heroElementsImgLight from '@images/front-pages/landing-page/hero-elements-light.png'
 import { useMouse } from '@vueuse/core'
 import 'video.js/dist/video-js.css'
+import { ref } from 'vue'
 import { useTheme } from 'vuetify'
+
+const videos = [
+  {
+    src: "https://www.youtube.com/embed/7dng663ogik",
+    title: "Welcome To Jaz Academy! 🌟 Komunitas Belajar yang mengintegrasikan pembelajaran Al-Qur'an, IT, dan entrepreneurship."
+  },
+  {
+    src: "https://www.youtube.com/embed/WkS-n5enYqg",
+    title: "Mabar di Jaz Academy : Main Game Itu Boleh, Asal Gak Toxic dan Tau Waktu!"
+  },
+  {
+    src: "https://www.youtube.com/embed/Hp8bYnD7-No",
+    title: "Swimming : Renang adalah Skill Basic Survive Seorang Muslim"
+  }
+];
+const randomVideo = ref(videos[Math.floor(Math.random() * videos.length)])
 
 const theme = useTheme()
 const heroElementsImg = useGenerateImageVariant(heroElementsImgLight, heroElementsImgDark)
@@ -80,9 +97,9 @@ const featuresData = [
               but also building a Productivity
             </h5>
             <div class="position-relative">
-              <RouterLink to="#content-post">
+              <RouterLink to="?search=">
                 <VBtn height="36">
-                  Explore Our World
+                  Search Project
                 </VBtn>
               </RouterLink>
             </div>
@@ -127,8 +144,8 @@ const featuresData = [
                 <iframe
                   width="100%"
                   height="435"
-                  src="https://www.youtube.com/embed/7WejWscG18c"
-                  title="Podcast : Pintar Sholeh Tapi Miskin."
+                  :src="randomVideo.src"
+                  :title="randomVideo.title"
                   frameborder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   referrerpolicy="strict-origin-when-cross-origin"

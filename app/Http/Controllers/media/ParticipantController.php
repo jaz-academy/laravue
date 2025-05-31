@@ -8,6 +8,26 @@ use Illuminate\Http\Request;
 
 class ParticipantController extends Controller
 {
+    public function signIn(Request $request)
+    {
+        $fields = $request->validate([
+            'username' => 'required|string|max:255',
+            'password' => 'required|string',
+        ]);
+
+        $participant = Participant::where('username', $fields['username'])->first();
+
+        if (!$participant || !password_verify($fields['password'], $participant->password)) {
+            return response()->json([
+                'message' => 'Invalid credentials'
+            ], 401);
+        }
+
+        return response()->json([
+            'message' => 'Participant signed in successfully',
+            'data' => $participant
+        ]);
+    }
     /**
      * Display a listing of the resource.
      */
@@ -29,11 +49,12 @@ class ParticipantController extends Controller
         $fields = $request->validate([
             'name' => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:media_participants,username',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => 'required|string|min:4|confirmed',
             'role' => 'nullable|integer|min:1',
             'image' => 'nullable|string|max:255',
         ]);
-    
+
+        $fields['password'] = bcrypt($request->password);
         $participant = Participant::create($fields);
     
         return response()->json([
