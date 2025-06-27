@@ -1,20 +1,14 @@
 /**
  * This is an advanced example for creating icon bundles for Iconify SVG Framework.
- *
- * It creates a bundle from:
- * - All SVG files in a directory.
- * - Custom JSON files.
- * - Iconify icon sets.
- * - SVG framework.
- *
- * This example uses Iconify Tools to import and clean up icons.
- * For Iconify Tools documentation visit https://docs.iconify.design/tools/tools2/
  */
-import { promises as fs } from 'node:fs';
-import { dirname, join } from 'node:path';
-// Installation: npm install --save-dev @iconify/tools @iconify/utils @iconify/json @iconify/iconify
-import { cleanupSVG, importDirectory, isEmptyColor, parseColors, runSVGO } from '@iconify/tools';
-import { getIcons, getIconsCSS, stringToIcon } from '@iconify/utils';
+
+const fs = require('fs').promises;
+const path = require('path');
+const faIcons = require('@iconify-json/fa/icons.json');
+const tablerIcons = require('@iconify-json/tabler/icons.json');
+const { cleanupSVG, importDirectory, isEmptyColor, parseColors, runSVGO } = require('@iconify/tools');
+const { getIcons, getIconsCSS, stringToIcon } = require('@iconify/utils');
+
 const sources = {
     svg: [
         {
@@ -22,27 +16,15 @@ const sources = {
             monotone: false,
             prefix: 'custom',
         },
-        // {
-        //   dir: 'emojis',
-        //   monotone: false,
-        //   prefix: 'emoji',
-        // },
     ],
     icons: [
-    // 'mdi:home',
-    // 'mdi:account',
-    // 'mdi:login',
-    // 'mdi:logout',
-    // 'octicon:book-24',
-    // 'octicon:code-square-24',
+        // 'mdi:home',
+        // 'mdi:account',
     ],
     json: [
-        // Custom JSON file
-        // 'json/gg.json',
-        // Iconify JSON file (@iconify/json is a package name, /json/ is directory where files are, then filename)
-        require.resolve('@iconify-json/tabler/icons.json'),
+        tablerIcons,
         {
-            filename: require.resolve('@iconify-json/fa/icons.json'),
+            content: faIcons,
             icons: [
                 'facebook',
                 'google',
@@ -50,30 +32,20 @@ const sources = {
                 'circle',
             ],
         },
-        // Custom file with only few icons
-        // {
-        //   filename: require.resolve('@iconify-json/line-md/icons.json'),
-        //   icons: [
-        //     'home-twotone-alt',
-        //     'github',
-        //     'document-list',
-        //     'document-code',
-        //     'image-twotone',
-        //   ],
-        // },
     ],
 };
+
 // File to save bundle to
-const target = join(__dirname, 'icons.css');
+const target = path.join(__dirname, 'icons.css');
+
 (async function () {
     // Create directory for output if missing
-    const dir = dirname(target);
+    const dir = path.dirname(target);
     try {
         await fs.mkdir(dir, {
             recursive: true,
         });
-    }
-    catch (err) {
+    } catch (err) {
         //
     }
     const allIcons = [];
@@ -85,9 +57,9 @@ const target = join(__dirname, 'icons.css');
         // Sort icons by prefix
         const organizedList = organizeIconsList(sources.icons);
         for (const prefix in organizedList) {
-            const filename = require.resolve(`@iconify/json/json/${prefix}.json`);
+            const iconJson = require(`@iconify/json/json/${prefix}.json`);
             sourcesJSON.push({
-                filename,
+                content: iconJson,
                 icons: organizedList[prefix],
             });
         }
@@ -98,25 +70,19 @@ const target = join(__dirname, 'icons.css');
     if (sources.json) {
         for (let i = 0; i < sources.json.length; i++) {
             const item = sources.json[i];
-            // Load icon set
-            const filename = typeof item === 'string' ? item : item.filename;
-            const content = JSON.parse(await fs.readFile(filename, 'utf8'));
-            for (const key in content) {
-                if (key === 'prefix' && content.prefix === 'tabler') {
-                    for (const k in content.icons)
-                        content.icons[k].body = content.icons[k].body.replace(/stroke-width="2"/g, 'stroke-width="1.5"');
-                }
+            const content = item.content || item;
+            // Tabler fix
+            if (content.prefix === 'tabler') {
+                for (const k in content.icons)
+                    content.icons[k].body = content.icons[k].body.replace(/stroke-width="2"/g, 'stroke-width="1.5"');
             }
             // Filter icons
-            if (typeof item !== 'string' && item.icons?.length) {
+            if (item.icons?.length) {
                 const filteredContent = getIcons(content, item.icons);
                 if (!filteredContent)
-                    throw new Error(`Cannot find required icons in ${filename}`);
-                // Collect filtered icons
+                    throw new Error(`Cannot find required icons in JSON`);
                 allIcons.push(filteredContent);
-            }
-            else {
-                // Collect all icons from the JSON file
+            } else {
                 allIcons.push(content);
             }
         }
@@ -147,8 +113,6 @@ const target = join(__dirname, 'icons.css');
                     // Clean up icon code
                     await cleanupSVG(svg);
                     if (source.monotone) {
-                        // Replace color with currentColor, add if missing
-                        // If icon is not monotone, remove this code
                         await parseColors(svg, {
                             defaultColor: 'currentColor',
                             callback: (attr, colorStr, color) => {
@@ -156,28 +120,23 @@ const target = join(__dirname, 'icons.css');
                             },
                         });
                     }
-                    // Optimise
                     await runSVGO(svg);
-                }
-                catch (err) {
-                    // Invalid icon
+                } catch (err) {
                     console.error(`Error parsing ${name} from ${source.dir}:`, err);
                     iconSet.remove(name);
                     return;
                 }
-                // Update icon from SVG instance
                 iconSet.fromSVG(name, svg);
             });
-            // Collect the SVG icon
             allIcons.push(iconSet.export());
         }
     }
     // Generate CSS from collected icons
     const cssContent = allIcons
         .map(iconSet => getIconsCSS(iconSet, Object.keys(iconSet.icons), {
-        iconSelector: '.{prefix}-{name}',
-        mode: 'mask',
-    }))
+            iconSelector: '.{prefix}-{name}',
+            mode: 'mask',
+        }))
         .join('\n');
     // Save the CSS to a file
     await fs.writeFile(target, cssContent, 'utf8');
@@ -185,6 +144,7 @@ const target = join(__dirname, 'icons.css');
 })().catch(err => {
     console.error(err);
 });
+
 /**
  * Sort icon names by prefix
  */
