@@ -1,6 +1,6 @@
 <script setup>
 import { activities } from '@/composables/fetchMemberData'
-import avatar2 from '@images/avatars/avatar-2.png'
+import avatar from '@images/avatars/no-profile.png'
 
 console.log(activities)
 </script>
@@ -57,7 +57,7 @@ console.log(activities)
             <VAvatar
               size="38"
               class="me-3"
-              :image="avatar2"
+              :image="avatar"
             />
             <div>
               <h6 class="text-sm font-weight-medium mb-1">

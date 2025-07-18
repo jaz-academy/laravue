@@ -5,6 +5,7 @@ namespace App\Http\Controllers\admin;
 use App\Http\Controllers\Controller;
 use App\Models\AdminStudent as Student;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\Paginator;
 
 class StudentController extends Controller
 {
@@ -23,54 +24,114 @@ class StudentController extends Controller
 
     public function showAll(Request $request)
     {
-        // Ambil parameter dari request
-        $itemsPerPage = $request->get('itemsPerPage', 10); // Default 10 per halaman
-        $page = $request->get('page', 1); // Default halaman pertama
+        $itemsPerPage = (int) $request->get('itemsPerPage', 10);
+        $page = (int) ($request->get('page', 1));
+        $sortBy = $request->get('sortBy', 'name'); // default sort field
+        $orderBy = $request->get('orderBy', 'asc'); // default order
+        $search = $request->get('q', '');
+        $registered = $request->get('year');
+        $city = $request->get('city');
+        $status = $request->get('status');
 
-        // Query students dengan pagination
-        $studentsQuery = Student::query();
-        $students = $studentsQuery->paginate($itemsPerPage, ['*'], 'page', $page);
+        // 💥 Override page resolver
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page > 0 ? $page : 1;
+        });
 
-        // Hitung total halaman
-        $totalPages = $students->lastPage();
+        $query = Student::query();
+
+        // Search
+        if ($search) {
+            $query->where('name', 'like', "%{$search}%")
+                ->orWhere('nickname', 'like', "%{$search}%");
+        }
+
+        // Filter by year
+        if ($registered) {
+            $query->where('registered', $registered);
+        }
+
+        // Filter by city
+        if ($city) {
+            $query->where('city', $city);
+        }
+
+        // Filter by status
+        if ($status == 'active') {
+            $query->whereNull('graduation');
+        } elseif ($status == 'graduated') {
+            $query->whereRaw("LEFT(graduation, 1) = '2'");
+        } elseif ($status == 'inactive') {
+            $query->where('graduation', '0');
+        }
+
+        // Sorting
+        if ($sortBy) {
+            $query->orderBy($sortBy, $orderBy);
+        } else {
+            $query->orderBy('id', 'desc'); // default sorting
+        }
+
+        $students = $query->paginate($itemsPerPage);
 
         return response()->json([
-            'count' => $students->total(), // Total data keseluruhan
-            'data' => $students->items(), // Data siswa di halaman ini
-            'totalPages' => $totalPages, // Total halaman
-            'page' => $students->currentPage(), // Halaman saat ini
+            'count' => $students->total(),
+            'data' => $students->items(),
+            'totalPages' => $students->lastPage(),
+            'page' => $students->currentPage(),
         ]);
     }
-
 
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        $fields = $request->validate([
-            'nis' => 'required|unique:admin_students,nis',
-            'name' => 'required',
-            'nickname' => 'required|unique:admin_students,nickname',
-            'gender' => 'required'
-        ]);
+        try {
+            $fields = $request->validate([
+                'nis' => 'required|unique:admin_students,nis',
+                'name' => 'required',
+                'nickname' => 'required|unique:admin_students,nickname',
+                'gender' => 'required',
+                'birth_place' => 'nullable|string',
+                'birth_date' => 'nullable',
+                'rumble' => 'nullable',
+                'registered' => 'nullable',
+                'payment_category' => 'nullable|string',
+            ]);
 
-        $student = Student::create($fields);
+            $student = Student::create($fields);
 
-        return response()->json([
-            'message' => 'Student data created successfully',
-            'data' => $student
-        ]);
+            return response()->json([
+                'message' => 'Student data created successfully',
+                'data' => $student
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        }
     }
+
+
 
     /**
      * Display the specified resource.
      */
-    public function show(Student $student)
+    public function show($id)
     {
+        $student = Student::find($id);
+
+        if (!$student) {
+            return response()->json([
+                'message' => 'Student not found',
+            ], 404);
+        }
+
         return response()->json([
-            'message' => 'Student data founded',
-            'data' => $student
+            'message' => 'Student data found',
+            'data' => $student,
         ]);
     }
 
@@ -79,13 +140,7 @@ class StudentController extends Controller
      */
     public function update(Request $request, Student $student)
     {
-        $fields = $request->validate([
-            'name' => 'required',
-            'nickname' => 'required|unique:admin_students,nickname',
-            'gender' => 'required'
-        ]);
-
-        $student->update($fields);
+        $student->update($request->all());
 
         return response()->json([
             'message' => 'Student data updated successfully',

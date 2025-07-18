@@ -392,6 +392,10 @@
     "useBookmarkTasks": true,
     "useTasks": true,
     "useApiRaw": true,
-    "buildQuery": true
+    "buildQuery": true,
+    "allTasks": true,
+    "fetchStudentById": true,
+    "useCurrentUser": true,
+    "fetchUserData": true
   }
 }

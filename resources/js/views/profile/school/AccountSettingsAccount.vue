@@ -1,5 +1,6 @@
 <script setup>
 import { useApi } from '@/composables/useApi'
+import noPhoto from '@images/avatars/no-photo.png'
 import { reactive, ref } from 'vue'
 
 const accountData = reactive({})
@@ -226,7 +227,7 @@ const editSchoolProfile = async () => {
       <VCard title="Logo">
         <VCardText class="d-flex">
           <VAvatar
-            :image="accountData.logo"
+            :image="accountData.logo || noPhoto"
             rounded
             size="100"
             class="me-6"

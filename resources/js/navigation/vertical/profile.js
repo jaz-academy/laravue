@@ -16,7 +16,7 @@ export default [
         title: 'Student',
         children: [
           { title: 'List', to: 'profile-student-list' },
-          { title: 'Detail', to: { name: 'profile-student-detail-tab', params: { tab: 'account' } } },
+          { title: 'Detail', to: { name: 'profile-student-id-tab', params: { id: 1, tab: 'account' } } },
         ],
       },
 

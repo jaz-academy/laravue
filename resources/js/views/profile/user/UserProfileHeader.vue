@@ -1,7 +1,7 @@
 <script setup>
-import avatar1 from '@images/avatars/avatar-1.png'
-import UserProfileHeaderBg from '@images/pages/user-profile-header-bg.png'
 import { fetchMemberData, member } from '@/composables/fetchMemberData'
+import avatar from '@images/avatars/no-profile.png'
+import UserProfileHeaderBg from '@images/pages/user-profile-header-bg.png'
 
 onMounted(() => {
   fetchMemberData()
@@ -22,7 +22,7 @@ onMounted(() => {
         <VAvatar
           rounded
           size="120"
-          :image="avatar1"
+          :image="avatar"
           class="user-profile-avatar mx-auto"
         />
       </div>

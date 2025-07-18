@@ -27,17 +27,17 @@ export const handlerAppsUsers = [
     const pageLocal = is.number(parsedPage) ? parsedPage : 1
 
     // filter users
-    let filteredUsers = db.users.filter(user => ((user.fullName.toLowerCase().includes(queryLower) || user.email.toLowerCase().includes(queryLower)) && user.role === (role || user.role) && user.currentPlan === (plan || user.currentPlan) && user.status === (status || user.status))).reverse()
+    let filteredUsers = db.users.filter(user => ((user.name.toLowerCase().includes(queryLower) || user.email.toLowerCase().includes(queryLower)) && user.role === (role || user.role) && user.currentPlan === (plan || user.currentPlan) && user.status === (status || user.status))).reverse()
 
     // sort users
     if (sortByLocal) {
       console.log(sortByLocal)
-      if (sortByLocal === 'user') {
+      if (sortByLocal === 'name') {
         filteredUsers = filteredUsers.sort((a, b) => {
           if (orderByLocal === 'asc')
-            return a.fullName.localeCompare(b.fullName)
+            return a.name.localeCompare(b.name)
           else
-            return b.fullName.localeCompare(a.fullName)
+            return b.name.localeCompare(a.name)
         })
       }
       if (sortByLocal === 'email') {

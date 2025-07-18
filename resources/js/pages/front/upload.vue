@@ -28,6 +28,7 @@ const handleScroll = async () => {
 
   if (scrollPosition >= threshold && !isLoading.value) {
     isLoading.value = true
+
     const moreTasks = await fetchMoreUploadTasks(page.value++)
     
     if (moreTasks.data?.length) {
@@ -140,6 +141,7 @@ useIntersectionObserver([
             :key="task.id"
           >
             <PostingCard
+              :task-id="task.id"
               :task-name="task.name"
               :description="task.description"
               :subject="task.project_plan.subject"
@@ -150,7 +152,8 @@ useIntersectionObserver([
               :student-name="task.admin_student.name"
               :nickname="task.admin_student.nickname"
               :email="task.admin_student.email"
-              :mentor="task.admin_teacher?.nickname || 'Not Accepted'"
+              :teacher="task.admin_teacher ? { id: task.admin_teacher.id, name: task.admin_teacher.nickname } : 'Not Accepted'"
+              :accepted="task.accepted"
               :review="task?.review || null"
             />
           </div>

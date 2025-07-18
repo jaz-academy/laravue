@@ -24,8 +24,8 @@ const updateOptions = options => {
 // Headers
 const headers = [
   {
-    title: 'User',
-    key: 'user',
+    title: 'Name',
+    key: 'name',
   },
   {
     title: 'Role',
@@ -387,8 +387,8 @@ const widgetData = ref([
         class="text-no-wrap"
         @update:options="updateOptions"
       >
-        <!-- User -->
-        <template #item.user="{ item }">
+        <!-- Name -->
+        <template #item.name="{ item }">
           <div class="d-flex align-center">
             <VAvatar
               size="34"
@@ -400,15 +400,15 @@ const widgetData = ref([
                 v-if="item.avatar"
                 :src="item.avatar"
               />
-              <span v-else>{{ avatarText(item.fullName) }}</span>
+              <span v-else>{{ avatarText(item.name) }}</span>
             </VAvatar>
             <div class="d-flex flex-column">
               <h6 class="text-base">
                 <RouterLink
-                  :to="{ name: 'profile-student-detail-tab', params: { tab: 'account' } }"
+                  :to="{ name: 'profile-teacher-detail-tab', params: { tab: 'account' } }"
                   class="font-weight-medium text-link"
                 >
-                  {{ item.fullName }}
+                  {{ item.name }}
                 </RouterLink>
               </h6>
               <span class="text-sm text-medium-emphasis">{{ item.email }}</span>
@@ -472,7 +472,7 @@ const widgetData = ref([
             />
             <VMenu activator="parent">
               <VList>
-                <VListItem :to="{ name: 'profile-student-detail-tab', params: { tab: 'account' } }">
+                <VListItem :to="{ name: 'profile-teacher-detail-tab', params: { tab: 'account' } }">
                   <template #prepend>
                     <VIcon icon="tabler-eye" />
                   </template>

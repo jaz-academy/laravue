@@ -1,15 +1,17 @@
 <script setup>
 import { abbreviateName } from '@/@core/utils/formatters'
 import { member } from '@/composables/fetchMemberData'
-import { fetchProjectData, tasks } from '@/composables/fetchProjectData'
+import { allTasks, fetchProjectData } from '@/composables/fetchProjectData'
 import { fetchStudentData, students } from '@/composables/fetchStudentData'
-import avatar1 from '@images/avatars/avatar-1.png'
+import avatar from '@images/avatars/no-profile.png'
 import { computed, onMounted } from 'vue'
 
 onMounted(() => {
   fetchStudentData()
   fetchProjectData()
 })
+
+const tasks = allTasks
 
 function countTasksForStudent(tasks, studentId) {
   return tasks.filter(task => task.admin_student_id === studentId).length
@@ -61,15 +63,15 @@ const sortedStudents = computed(() => {
           <VCardTitle class="d-flex flex-column align-center justify-center gap-y-5">
             <VAvatar
               size="100"
-              :image="avatar1"
+              :image="avatar"
             />
 
             <div class="text-center">
               <h4 class="text-h4">
-                {{ abbreviateName(props.studentName, 20, 2) }}
+                {{ abbreviateName(student.name, 15, 2) }}
               </h4>
               <h6 class="text-h6">
-                {{ student.role || 'Content Creator' }}
+                {{ student.role ? abbreviateName(student.role, 20, 2) : 'Content Creator' }}
               </h6>
             </div>
           </VCardTitle>

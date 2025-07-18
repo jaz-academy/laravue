@@ -9,33 +9,34 @@ import 'video.js/dist/video-js.css'
 import { onMounted, ref } from 'vue'
 import { useTheme } from 'vuetify'
 
+const emit = defineEmits(['loginStatus'])
 const participant = ref(null)
 const theme = useTheme()
 const heroElementsImg = useGenerateImageVariant(heroElementsImgLight, heroElementsImgDark)
 const heroDashboardImg = useGenerateImageVariant(heroDashboardImgLight, heroDashboardImgDark)
 const { x, y } = useMouse({ touch: false })
-const showModalSignin = ref(false);
-const showModalSignup = ref(false);
+const showModalSignin = ref(false)
+const showModalSignup = ref(false)
 const avatar1 = ref(null)
 const username = ref('')
 const name = ref('')
 const password = ref('')
-const password_confirmation = ref('')
+const passwordConfirmation = ref('')
 const errorMessage = ref('')
 const errors = ref([])
-const emit = defineEmits(['loginStatus'])
 
 const resetFormFields = () => {
   username.value = ''
   name.value = ''
   password.value = ''
-  password_confirmation.value = ''
+  passwordConfirmation.value = ''
   errorMessage.value = ''
   errors.value = []
 }
 
 onMounted(() => {
   const data = localStorage.getItem('participant')
+
   participant.value = data ? JSON.parse(data) : null
 })
 
@@ -66,7 +67,7 @@ const handleSigninParticipant = async () => {
         },
       })
 
-      console.log(responseData);
+      console.log(responseData)
           
       localStorage.setItem('participant', JSON.stringify(responseData))
       participant.value = responseData
@@ -80,46 +81,46 @@ const handleSigninParticipant = async () => {
 }
 
 const handleSignupParticipant = async () => {
-  if (name.value && username.value && password.value && password_confirmation.value) {
+  if (name.value && username.value && password.value && passwordConfirmation.value) {
     try {
-      if (password.value === password_confirmation.value) {
-          const { data: responseData } = await $api('/public/participants', {
-            method: 'POST',
-            body: {
-              name: name.value,
-              username: username.value,
-              password: password.value,
-              password_confirmation: password_confirmation.value,
-              role: 1,
-              image: null,
-            },
-            onResponseError({ response }) {
-              errors.value = response._data.errors
-              errorMessage.value = response._data.message || 'SignUp failed'
-            },
-          })
+      if (password.value === passwordConfirmation.value) {
+        const { data: responseData } = await $api('/public/participants', {
+          method: 'POST',
+          body: {
+            name: name.value,
+            username: username.value,
+            password: password.value,
+            passwordConfirmation: passwordConfirmation.value,
+            role: 1,
+            image: null,
+          },
+          onResponseError({ response }) {
+            errors.value = response._data.errors
+            errorMessage.value = response._data.message || 'SignUp failed'
+          },
+        })
 
-          console.log(responseData);
+        console.log(responseData)
           
-          localStorage.setItem('participant', JSON.stringify(responseData))
-          participant.value = responseData
-          showModalSignup.value = false
-        } else {
-          alert('Password and Confirm Password do not match')
-        }
-      } catch (error) {
-        console.error('Error during signup:', error)
+        localStorage.setItem('participant', JSON.stringify(responseData))
+        participant.value = responseData
+        showModalSignup.value = false
+      } else {
+        alert('Password and Confirm Password do not match')
+      }
+    } catch (error) {
+      console.error('Error during signup:', error)
     }
   }
 }
 
-const translateMouse = computed(() => {
-  if (typeof window !== 'undefined') {
-    const rotateX = ref((window.innerHeight - 2 * y.value) / 100)
+// const translateMouse = computed(() => {
+//   if (typeof window !== 'undefined') {
+//     const rotateX = ref((window.innerHeight - 2 * y.value) / 100)
     
-    return { transform: `perspective(1200px) rotateX(${ rotateX.value < -40 ? -20 : rotateX.value }deg) rotateY(${ (window.innerWidth - 2 * x.value) / 100 }deg) scale3d(1,1,1)` }
-  }
-})
+//     return { transform: `perspective(1200px) rotateX(${ rotateX.value < -40 ? -20 : rotateX.value }deg) rotateY(${ (window.innerWidth - 2 * x.value) / 100 }deg) scale3d(1,1,1)` }
+//   }
+// })
 
 const featuresData = [
   {
@@ -171,43 +172,55 @@ const featuresData = [
         <VContainer>
           <div class="hero-text-box text-center px-6">
             <VAvatar
-                v-if="participant"
-                size="200"
-                variant="tonal"
-                color="primary"
-                class="mb-4"
-              >
-                <VImg
-                  v-if="avatar1"
-                  :src="avatar1"
-                />
-                <span v-else>{{ participant.name ? avatarText(participant.name) : 'AB' }}</span>
+              v-if="participant"
+              size="200"
+              variant="tonal"
+              color="primary"
+              class="mb-4"
+            >
+              <VImg
+                v-if="avatar1"
+                :src="avatar1"
+              />
+              <span v-else>{{ participant.name ? avatarText(participant.name) : 'AB' }}</span>
             </VAvatar>
-            <p v-if="participant" class="text-h2 text-sm-h1 text-primary hero-title  font-weight-bold text-wrap mb-0">
+            <p
+              v-if="participant"
+              class="text-h2 text-sm-h1 text-primary hero-title  font-weight-bold text-wrap mb-0"
+            >
               {{ participant.name }}
             </p>
             <h5 class="mb-4 text-h5">
-          <template v-if="participant">
-            Thank you for your participation!
-          </template>
-          <template v-else>
-            <p class="text-h2 text-sm-h1 text-primary hero-title  font-weight-bold text-wrap mb-4">
-              Marhaban !
-            </p>
-            Welcome to our platform
-            <div class="mb-4">
-              Click here to <a style="display: inline; cursor: pointer;" @click="showModalSignup = true">Signup as New Participant!</a>
-            </div>
-          </template>
+              <template v-if="participant">
+                Thank you for your participation!
+              </template>
+              <template v-else>
+                <p class="text-h2 text-sm-h1 text-primary hero-title  font-weight-bold text-wrap mb-4">
+                  Marhaban !
+                </p>
+                Welcome to our platform
+                <div class="mb-4">
+                  Click here to <a
+                    style="display: inline; cursor: pointer;"
+                    @click="showModalSignup = true"
+                  >Signup as New Participant!</a>
+                </div>
+              </template>
             </h5>
             <div class="position-relative">
-              <VBtn height="36" @click="handleAuthParticipant">
+              <VBtn
+                height="36"
+                @click="handleAuthParticipant"
+              >
                 {{ participant ? 'Sign Out' : 'Sign In' }}
               </VBtn>
             </div>
           </div>
         </VContainer>
-        <div v-if="showModalSignin" class="modal-overlay">
+        <div
+          v-if="showModalSignin"
+          class="modal-overlay"
+        >
           <div class="modal-content">
             <VAlert
               v-if="errorMessage"
@@ -241,7 +254,10 @@ const featuresData = [
                 </VCol>
 
                 <VCol cols="12">
-                  Not a Participant yet? <a style="display: inline; cursor: pointer;" @click="showModalSignin = false, showModalSignup = true">Signup first!</a>
+                  Not a Participant yet? <a
+                    style="display: inline; cursor: pointer;"
+                    @click="showModalSignin = false, showModalSignup = true"
+                  >Signup first!</a>
                 </VCol>
 
                 <VCol cols="12">
@@ -265,7 +281,10 @@ const featuresData = [
             </VForm>
           </div>
         </div>
-        <div v-if="showModalSignup" class="modal-overlay">
+        <div
+          v-if="showModalSignup"
+          class="modal-overlay"
+        >
           <div class="modal-content">
             <VAlert
               v-if="errorMessage"
@@ -309,7 +328,7 @@ const featuresData = [
 
                 <VCol cols="12">
                   <AppTextField
-                    v-model="password_confirmation"
+                    v-model="passwordConfirmation"
                     prepend-inner-icon="tabler-lock"
                     label="Retype Password"
                     autocomplete="on"
@@ -319,7 +338,10 @@ const featuresData = [
                 </VCol>
 
                 <VCol cols="12">
-                  Already being Participant? <a style="display: inline; cursor: pointer;" @click="showModalSignin = true, showModalSignup = false">Signin instead!</a>
+                  Already joined Participant? <a
+                    style="display: inline; cursor: pointer;"
+                    @click="showModalSignin = true, showModalSignup = false"
+                  >Signin instead!</a>
                 </VCol>
 
                 <VCol cols="12">

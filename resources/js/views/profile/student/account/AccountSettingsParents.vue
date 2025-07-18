@@ -1,17 +1,39 @@
 <script setup>
 import BillingHistoryTable from './BillingHistoryTable.vue'
 
-const countryList = [
-  'United States',
-  'Canada',
-  'United Kingdom',
-  'Australia',
-  'New Zealand',
-  'India',
-  'Russia',
-  'China',
-  'Japan',
-]
+const { student } = defineProps({
+  student: Object,
+})
+
+const emit = defineEmits(['userData'])
+const accountDataLocal = ref({})
+const refForm = ref()
+
+watch(
+  () => student,
+  newStudent => {
+    if (newStudent) {
+      accountDataLocal.value = JSON.parse(JSON.stringify(newStudent))
+    }
+  },
+  { immediate: true },
+)
+
+const refInputEl = ref()
+const isConfirmDialogOpen = ref(false)
+
+const resetForm = () => {
+  accountDataLocal.value = JSON.parse(JSON.stringify(student))
+}
+
+const onSubmit = () => {
+  refForm.value?.validate().then(({ valid }) => {
+    if (valid) {
+      console.log('SUBMIT PAYLOAD', accountDataLocal.value)
+      emit('userData', { ...accountDataLocal.value })
+    }
+  })
+}
 </script>
 
 <template>
@@ -20,113 +42,126 @@ const countryList = [
     <VCol cols="12">
       <VCard title="Parents Data">
         <VCardText>
-          <VForm @submit.prevent="() => {}">
+          <VForm 
+            ref="refForm"
+            @submit.prevent="onSubmit"
+          >
             <VRow>
-              <!-- 👉 Company name -->
+              <!-- 👉 Father Name -->
               <VCol
+                md="4"
                 cols="12"
-                md="6"
               >
                 <AppTextField
-                  label="Company Name"
-                  placeholder="Pixinvent"
+                  v-model="accountDataLocal.father"
+                  placeholder="John Doe"
+                  label="Father Name"
                 />
               </VCol>
 
-              <!-- 👉 Billing Email -->
+              <!-- 👉 Father Birth -->
               <VCol
+                md="4"
                 cols="12"
-                md="6"
               >
                 <AppTextField
-                  label="Billing Email"
-                  placeholder="pixinvent@email.com"
+                  v-model="accountDataLocal.father_birth"
+                  placeholder="01/01/1980"
+                  label="Birth Date"
                 />
               </VCol>
 
-              <!-- 👉 Tax ID -->
+              <!-- 👉 father_note -->
               <VCol
                 cols="12"
-                md="6"
-              >
-                <AppTextField
-                  label="Tax ID"
-                  placeholder="123 123 1233"
-                />
-              </VCol>
-
-              <!-- 👉 Vat Number -->
-              <VCol
-                cols="12"
-                md="6"
-              >
-                <AppTextField
-                  label="VAT Number"
-                  placeholder="121212"
-                />
-              </VCol>
-
-              <!-- 👉 Mobile -->
-              <VCol
-                cols="12"
-                md="6"
-              >
-                <AppTextField
-                  dirty
-                  label="Phone Number"
-                  type="number"
-                  prefix="US (+1)"
-                  placeholder="+1 123 456 7890"
-                />
-              </VCol>
-
-              <!-- 👉 Country -->
-              <VCol
-                cols="12"
-                md="6"
+                md="4"
               >
                 <AppSelect
-                  label="Country"
-                  :items="countryList"
-                  placeholder="Select Country"
+                  v-model="accountDataLocal.father_note"
+                  label="Note"
+                  :items="['Masih ada', 'Meninggal', 'Cerai', 'Lainnya']"
+                  placeholder="Select Note"
                 />
               </VCol>
-
-              <!-- 👉 Parents -->
-              <VCol cols="12">
-                <AppTextField
-                  label="Parents"
-                  placeholder="1234 Main St"
-                />
-              </VCol>
-
-              <!-- 👉 State -->
+              
+              <!-- 👉 Mother Name -->
               <VCol
+                md="4"
                 cols="12"
-                md="6"
               >
                 <AppTextField
-                  label="State"
-                  placeholder="New York"
+                  v-model="accountDataLocal.mother"
+                  placeholder="Maemunah"
+                  label="Mother Name"
                 />
               </VCol>
 
-              <!-- 👉 Zip Code -->
+              <!-- 👉 mother Birth -->
               <VCol
+                md="4"
                 cols="12"
-                md="6"
               >
                 <AppTextField
-                  label="Zip Code"
-                  type="number"
-                  placeholder="100006"
+                  v-model="accountDataLocal.mother_birth"
+                  placeholder="01/01/1980"
+                  label="Birth Date"
+                />
+              </VCol>
+
+              <!-- 👉 mother_note -->
+              <VCol
+                cols="12"
+                md="4"
+              >
+                <AppSelect
+                  v-model="accountDataLocal.mother_note"
+                  label="Note"
+                  :items="['Masih ada', 'Meninggal', 'Cerai', 'Lainnya']"
+                  placeholder="Select Note"
+                />
+              </VCol>
+
+              <!-- 👉 Phone -->
+              <VCol
+                md="4"
+                cols="12"
+              >
+                <AppTextField
+                  v-model="accountDataLocal.phone"
+                  placeholder="+1 (917) 543-9876"
+                  label="Phone Number"
+                />
+              </VCol>
+
+              <!-- 👉 Job -->
+              <VCol
+                md="4"
+                cols="12"
+              >
+                <AppTextField
+                  v-model="accountDataLocal.job"
+                  placeholder="Software Engineer"
+                  label="Job Title"
+                />
+              </VCol>
+
+              <!-- 👉 income -->
+              <VCol
+                cols="12"
+                md="4"
+              >
+                <AppSelect
+                  v-model="accountDataLocal.income"
+                  label="Income"
+                  :items="['< 5 juta', '5 - 10 juta', '10 - 20 juta', '20 juta >']"
+                  placeholder="Select Income"
                 />
               </VCol>
 
               <!-- 👉 Actions Button -->
               <VCol
                 cols="12"
-                class="d-flex flex-wrap gap-4"
+                class="d-flex flex-wrap gap-4 mt-4"
               >
                 <VBtn type="submit">
                   Save changes
@@ -135,6 +170,7 @@ const countryList = [
                   type="reset"
                   color="secondary"
                   variant="tonal"
+                  @click="resetForm"
                 >
                   Reset
                 </VBtn>

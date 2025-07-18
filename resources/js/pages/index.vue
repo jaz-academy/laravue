@@ -7,10 +7,10 @@ import HomeCard from '@/views/front/sections/HomeCard.vue'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-const route = useRoute();
+const route = useRoute()
 const router = useRouter()
 const searchQuery = ref(route.query.search || '')
-const hasQuery = computed(() => Object.keys(route.query).length > 0);
+const hasQuery = computed(() => Object.keys(route.query).length > 0)
 const tasks = ref([])
 const page = ref(1)
 const perPage = ref(3)
@@ -30,6 +30,7 @@ const loadTasks = async () => {
   if (loading.value || !hasMore.value) return
 
   loading.value = true
+
   const { data } = await useApi(`/public/tasks?page=${page.value}&perPage=${perPage.value}&search=${search.value}`)
   const newTasks = data.value?.data || []
 
@@ -43,13 +44,13 @@ const loadTasks = async () => {
   loading.value = false
 }
 
-watch(() => route.query.search, async (val) => {
+watch(() => route.query.search, async val => {
   searchQuery.value = val || ''
   page.value = 1
   tasks.value = []
   hasMore.value = true
   await loadTasks()
-  console.log(tasks.value);
+  console.log(tasks.value)
 })
 
 // Pakai IntersectionObserver biar lebih smooth
@@ -60,7 +61,7 @@ onMounted(async () => {
 
   await nextTick()
   if (loadMoreTrigger.value) {
-    observer = new IntersectionObserver((entries) => {
+    observer = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting) loadTasks()
     })
     observer.observe(loadMoreTrigger.value)
@@ -79,18 +80,28 @@ onUnmounted(() => {
     <Navbar :active-id="activeSectionId" />
 
     <!-- 👉 Hero Section  -->
-    <HeroSection v-if="!hasQuery" ref="refHome" class="mb-16" />
+    <HeroSection
+      v-if="!hasQuery"
+      ref="refHome"
+      class="mb-16"
+    />
 
-    <div v-if="hasQuery" class="text-center sticky-header bg-background pb-8">
+    <div
+      v-if="hasQuery"
+      class="text-center sticky-header bg-background pb-8"
+    >
       <br><br>
-      <div class="input-group mt-16 justify-center" style="display: flex; align-items: center; gap: 0.5rem;">
+      <div
+        class="input-group mt-16 justify-center"
+        style="display: flex; align-items: center; gap: 0.5rem;"
+      >
         <input
           v-model="searchQuery"
           type="text"
           placeholder="Search by Id, Name, Mentor, Theme..."
           class="border w-50 px-3 py-2 rounded"
           @keyup.enter="applySearch"
-        />
+        >
         <a
           :href="`?search=${encodeURIComponent(searchQuery)}`"
           class="btn btn-primary"
@@ -99,7 +110,12 @@ onUnmounted(() => {
         </VBtn></a>
       </div>
     </div>
-    <div v-else class="text-center my-16 py-2">.</div>
+    <div
+      v-else
+      class="text-center my-16 py-2"
+    >
+      .
+    </div>
 
     <div
       id="content-post"
@@ -123,10 +139,17 @@ onUnmounted(() => {
           :email="task.admin_student.email"
           :mentor="task.admin_teacher?.nickname || 'Not Accepted'"
           :review="task?.review || null"
+          :teacher="task.admin_teacher ? { id: task.admin_teacher.id, name: task.admin_teacher.nickname } : 'Not Accepted'"
+          :accepted="task.accepted"
+          :link="task.link"
         />
       </div>
-      <div ref="loadMoreTrigger" class="py-4 text-center text-gray-400">Loading more...</div>
-
+      <div
+        ref="loadMoreTrigger"
+        class="py-4 text-center text-gray-400"
+      >
+        Loading more...
+      </div>
     </div>
 
     <!-- 👉 Footer -->

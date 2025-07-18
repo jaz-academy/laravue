@@ -16,10 +16,10 @@ class TaskController extends Controller
         $perPage = $request->input('perPage', 10);
         $page = $request->input('page', 1);
         $queryInput = $request->input('search');
-    
+
         $query = Task::with('projectPlan', 'adminStudent', 'adminTeacher')
             ->orderBy('id', 'DESC');
-    
+
         if ($queryInput) {
             $query->where(function ($q) use ($queryInput) {
                 $q->where('id', $queryInput)
@@ -36,9 +36,21 @@ class TaskController extends Controller
         } else {
             $query->where('rate', '>', 4);
         }
-    
+
         return $query->paginate($perPage, ['*'], 'page', $page);
-    }    
+    }
+
+    public function allTasks()
+    {
+        $tasks = Task::with('projectPlan', 'adminStudent', 'adminTeacher')
+            ->orderBy('id', 'DESC')
+            ->get();
+
+        return response()->json([
+            'data' => $tasks,
+            'count' => $tasks->count(),
+        ]);
+    }
 
     /**
      * Store a newly created resource in storage.
@@ -61,9 +73,9 @@ class TaskController extends Controller
             'review' => 'nullable|string',
             'admin_teacher_id' => 'nullable|exists:admin_teachers,id',
         ]);
-    
+
         $task = Task::create($fields);
-    
+
         return response()->json([
             'message' => 'Task created successfully',
             'data' => $task
@@ -102,9 +114,9 @@ class TaskController extends Controller
             'review' => 'nullable|string',
             'admin_teacher_id' => 'nullable',
         ]);
-    
+
         $task->update($fields);
-    
+
         return response()->json([
             'message' => 'Task updated successfully',
             'data' => $task
@@ -177,9 +189,9 @@ class TaskController extends Controller
         $page = $request->input('page', 1); // Default to page 1 if not provided
 
         $tasks = Task::where('media', '!=', 'Instagram')
-        ->with('projectPlan', 'adminStudent', 'adminTeacher')
-        ->orderBy('id', 'DESC')
-        ->paginate($perPage);
+            ->with('projectPlan', 'adminStudent', 'adminTeacher')
+            ->orderBy('id', 'DESC')
+            ->paginate($perPage);
 
         return response()->json([
             'data' => $tasks, // Paginated items
@@ -195,9 +207,9 @@ class TaskController extends Controller
         $page = $request->input('page', 1); // Default to page 1 if not provided
 
         $tasks = Task::where('media', 'Instagram')
-        ->with('projectPlan', 'adminStudent', 'adminTeacher')
-        ->orderBy('id', 'DESC')
-        ->paginate($perPage, ['*'], 'page', $page); // Explicitly set the page
+            ->with('projectPlan', 'adminStudent', 'adminTeacher')
+            ->orderBy('id', 'DESC')
+            ->paginate($perPage, ['*'], 'page', $page); // Explicitly set the page
 
         return response()->json([
             'data' => $tasks, // Paginated items
@@ -215,7 +227,7 @@ class TaskController extends Controller
             'rate' => 'nullable|numeric|min:0|max:5',
             'review' => 'nullable|string',
         ]);
-    
+
         $task->update($fields);
         $task->refresh();
 
@@ -223,5 +235,5 @@ class TaskController extends Controller
             'message' => 'Task accepted status updated successfully',
             'data' => $task
         ]);
-    }    
+    }
 }

@@ -47,6 +47,7 @@ Route::get('login', function () {
 
 Route::group(['prefix' => 'public'], function () {
   Route::get('students', [StudentController::class, 'index']);
+  Route::get('students/{id}', [StudentController::class, 'show']);
   Route::get('students-show', [StudentController::class, 'showAll']);
   Route::get('teachers', [TeacherController::class, 'index']);
   Route::get('home-tasks-with-all', [TaskController::class, 'homeTasksWithAll']);
@@ -55,6 +56,7 @@ Route::group(['prefix' => 'public'], function () {
   Route::get('plans-with-tasks', [PlanController::class, 'planWithTasks']);
   Route::get('plans', [PlanController::class, 'index']);
   Route::get('tasks', [TaskController::class, 'index']);
+  Route::get('all-tasks', [TaskController::class, 'allTasks']);
   Route::get('task-by-student/{id}', [TaskController::class, 'getTaskByStudent']);
   Route::get('task-by-teacher/{id}', [TaskController::class, 'getTaskByTeacher']);
   Route::get('task-by-plan/{id}', [TaskController::class, 'getTaskByProjectPlan']);

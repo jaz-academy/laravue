@@ -5,6 +5,8 @@ const isConfirmPasswordVisible = ref(false)
 const currentPassword = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
+const userData = useCookie('userData')
+const userAbilityRules = useCookie('userAbilityRules').value[0]
 
 const passwordRequirements = [
   'Minimum 8 characters long - the more, the better',
@@ -133,7 +135,7 @@ const isOneTimePasswordDialogVisible = ref(false)
                 <!-- 👉 Email -->
                 <AppTextField
                   type="text"
-                  placeholder="admin@jazacademy.id"
+                  :placeholder="userData?.email"
                   label="Email"
                   readonly
                 />

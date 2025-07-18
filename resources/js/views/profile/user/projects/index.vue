@@ -1,7 +1,7 @@
 <script setup>
 import { useCookie } from '@/@core/composable/useCookie'
 import { fetchProjectData, plansTasks } from '@/composables/fetchProjectData'
-import avatar1 from '@images/avatars/avatar-1.png'
+import avatar from '@images/avatars/no-profile.png'
 import socialLabel from '@images/icons/project-icons/social.png'
 import { onMounted } from 'vue'
 
@@ -121,17 +121,25 @@ const moreList = [
             <div class="d-flex align-center">
               <div class="v-avatar-group me-2">
                 <VAvatar 
-                  color="info" 
-                  v-for="task in getDistinctTasks(data.project_task)"
+                  v-for="task in getDistinctTasks(data.project_task).slice(0, 10)" 
                   :key="task.id"
-                  :size="32">
-                  <VImg :src="avatar1" />
+                  color="info"
+                  :size="32"
+                >
+                  <VImg :src="avatar" />
                   <VTooltip
                     location="top"
                     activator="parent"
                   >
                     {{ task.admin_student.name }}
                   </VTooltip>
+                </VAvatar>
+                <VAvatar
+                  v-if="getDistinctTasks(data.project_task).length > 10"
+                  color="secondary"
+                  size="32"
+                >
+                  <span class="text-xs">+{{ getDistinctTasks(data.project_task).length - 10 }}</span>
                 </VAvatar>
               </div>
               <span class="text-xs" />

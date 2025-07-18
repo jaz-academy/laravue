@@ -1,77 +1,89 @@
 <script setup>
-const recentDevices = ref([
-  {
-    type: 'New for you',
-    email: true,
-    browser: true,
-    app: true,
-  },
-  {
-    type: 'Account activity',
-    email: true,
-    browser: true,
-    app: true,
-  },
-  {
-    type: 'A new browser used to sign in',
-    email: true,
-    browser: true,
-    app: false,
-  },
-  {
-    type: 'A new device is linked',
-    email: true,
-    browser: false,
-    app: false,
-  },
-])
+import { fetchUserData } from '@/composables/fetchUserData'
 
-const selectedNotification = ref('Only when I\'m online')
+const userData = useCookie('userData')
+const userAbilityRules = useCookie('userAbilityRules').value[0]
+
+const { user, isLoading, error } = fetchUserData()
+
+const recentAccess = userData.value?.access?.split(',').map(item => item.trim()) || []
+const selectedRole = ref(null)
+
+const adminRolesOption = [
+  { text: 'User', value: 1 },
+  { text: 'Editor', value: 2 },
+  { text: 'Administrator', value: 3 },
+  { text: 'Manager', value: 4 },
+  { text: 'Programmer', value: 5 },
+]
 </script>
 
 <template>
   <VCard>
     <VCardItem>
-      <VCardTitle>Recent Devices</VCardTitle>
+      <VCardTitle>Access and Roles</VCardTitle>
       <p class="text-sm mt-2 mb-0">
-        We need permission from your browser to show notifications. <span class="font-weight-bold">Request Permission</span>
+        Can only be changed by the admin.
       </p>
-    </VCardItem>
 
+      <VForm
+        class="mt-4"
+        @submit.prevent="() => {}"
+      >
+        <VRow>
+          <!-- 👉 User Ability Roles -->
+          <VCol
+            md="4"
+            cols="12"
+          >
+            <AppTextField v-model="userAbilityRules.member" />
+          </VCol>
+          <VCol
+            md="4"
+            cols="12"
+          >
+            <AppTextField v-model="userAbilityRules.action" />
+          </VCol>
+          <VCol
+            md="4"
+            cols="12"
+          >
+            <AppTextField v-model="userAbilityRules.subject" />
+          </VCol>
+        </VRow>
+      </VForm>
+    </VCardItem>
     <VCardText>
       <VTable class="text-no-wrap rounded border">
         <thead>
           <tr>
-            <th scope="col">
-              Type
+            <th
+              scope="col"
+              style="inline-size: 70%;"
+            >
+              ACCESS
             </th>
             <th scope="col">
-              EMAIL
+              VIEW
             </th>
             <th scope="col">
-              BROWSER
-            </th>
-            <th scope="col">
-              App
+              EDIT
             </th>
           </tr>
         </thead>
         <tbody>
           <tr
-            v-for="device in recentDevices"
-            :key="device.type"
+            v-for="access in recentAccess"
+            :key="access"
           >
             <td>
-              {{ device.type }}
+              {{ access }}
             </td>
             <td>
-              <VCheckbox v-model="device.email" />
+              <VCheckbox />
             </td>
             <td>
-              <VCheckbox v-model="device.browser" />
-            </td>
-            <td>
-              <VCheckbox v-model="device.app" />
+              <VCheckbox />
             </td>
           </tr>
         </tbody>
@@ -82,7 +94,7 @@ const selectedNotification = ref('Only when I\'m online')
     <VCardText>
       <VForm @submit.prevent="() => {}">
         <h6 class="text-base font-weight-medium mb-3">
-          When should we send you notifications?
+          Admin Roles
         </h6>
 
         <VRow>
@@ -91,9 +103,12 @@ const selectedNotification = ref('Only when I\'m online')
             sm="6"
           >
             <AppSelect
-              v-model="selectedNotification"
+              v-model="selectedRole"
               mandatory
-              :items="['Only when I\'m online', 'Anytime']"
+              :items="adminRolesOption"
+              item-title="text"
+              item-value="value"
+              placeholder="Select Role"
             />
           </VCol>
         </VRow>

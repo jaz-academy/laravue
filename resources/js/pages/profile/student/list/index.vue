@@ -1,55 +1,59 @@
 <script setup>
-import { fetchStudents } from '@/composables/fetchStudentData'
-import AddNewUserDrawer from '@/views/profile/student/list/AddNewUserDrawer.vue'
+import { fetchStudentData, fetchStudents, students } from '@/composables/fetchStudentData'
+import AddNewStudent from '@/views/profile/student/list/AddNewStudent.vue'
 import { paginationMeta } from '@api-utils/paginationMeta'
+import { computed, onMounted, ref } from 'vue'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
+
+onMounted (() => {
+  fetchStudentData()
+})
 
 // 👉 Store
 const searchQuery = ref('')
-const selectedYear = ref()
-const selectedCity = ref()
-const selectedStatus = ref()
+const selectedYear = ref('')
+const selectedCity = ref('')
+const selectedStatus = ref('')
+
+// 👉 Alert
+const isAlertVisible = ref(false)
+const alertMessage = ref('')
+const alertColor = ref('primary')
+
+const showAlert = (message, color = 'primary') => {
+  alertMessage.value = message
+  alertColor.value = color
+  isAlertVisible.value = true
+  setTimeout(() => {
+    isAlertVisible.value = false
+  }, 10000)
+}
 
 // Data table options
 const itemsPerPage = ref(10)
 const page = ref(1)
-const sortBy = ref()
-const orderBy = ref()
+const sortBy = ref('')
+const orderBy = ref('')
 const usersData = ref([])
 
 const updateOptions = options => {
   page.value = options.page
-  sortBy.value = options.sortBy[0]?.key
-  orderBy.value = options.sortBy[0]?.order
-}
+  itemsPerPage.value = options.itemsPerPage
+  searchQuery.value = options.search || ''
+  selectedStatus.value = options.status || ''
+  selectedCity.value = options.city || ''
+  selectedYear.value = options.year || ''
 
-const fetchUsers = async () => {
-  try {
-    const result = await fetchStudents({
-      q: searchQuery,
-      status: selectedStatus,
-      city: selectedCity,
-      year: selectedYear,
-      itemsPerPage: itemsPerPage,
-      page: page,
-      sortBy: sortBy,
-      orderBy: orderBy,
-    })
-    
-    usersData.value = result
-  } catch (error) {
-    console.error('Error fetching students:', error.message)
+  if (options.sortBy?.length) {
+    sortBy.value = options.sortBy[0].key
+    orderBy.value = options.sortBy[0].order
+  } else {
+    sortBy.value = null
+    orderBy.value = null
   }
-}
 
-onMounted(() => {
   fetchUsers()
-})
-
-const users = computed(() => usersData.value?.users || [])
-const totalStudents = computed(() => usersData.value?.totalUsers || 0)
-
-console.log(users.value)
+}
 
 // Headers
 const headers = [
@@ -59,19 +63,15 @@ const headers = [
   },
   {
     title: 'Year',
-    key: 'year',
+    key: 'registered',
   },
   {
     title: 'City',
     key: 'city',
   },
   {
-    title: 'Address',
-    key: 'address',
-  },
-  {
     title: 'Status',
-    key: 'status',
+    key: 'graduation',
   },
   {
     title: 'Actions',
@@ -80,107 +80,183 @@ const headers = [
   },
 ]
 
-// 👉 search filters
-const distinctYear = [...new Set(users.value.map(student => student.registered))]
-
-const years = distinctYear.map(year => ({
-  title: year,
-}))
-
-const distinctCities = [...new Set(users.value.map(student => student.city))]
-
-const cities = distinctCities.map(city => ({
-  title: city,
-  value: city.toLowerCase(),
-}))
-
-const distinctStatus = [...new Set(users.value.map(student => student.graduation))]
-
-const status = []
-
-distinctStatus.forEach(statusItem => {
-  if (statusItem === null) {
-    status.push({
-      title: 'Active',
-      value: null,
-    })
-  } else if (statusItem === 0) {
-    status.push({
-      title: 'Suspend',
-      value: '-',
-    })
-  } else {
-    status.push({
-      title: statusItem,
-      value: statusItem,
-    })
+const fetchUsers = async () => {
+  const params = {
+    q: searchQuery.value || '',
+    status: selectedStatus.value || '',
+    city: selectedCity.value || '',
+    year: selectedYear.value || '',
+    itemsPerPage: itemsPerPage.value,
+    page: page.value,
+    sortBy: sortBy.value || '',
+    orderBy: orderBy.value || '',
   }
+  
+  try {
+    const result = await fetchStudents(params)
+
+    console.log('📦 FETCHING with:', params, result)
+
+    usersData.value = result
+  } catch (error) {
+    console.error('Error fetching students:', error.message)
+  }
+}
+
+const users = computed(() => usersData.value?.users || [])
+const totalUsers = computed(() => usersData.value?.totalUsers || 0)
+
+const years = computed(() => {
+  const userYears = usersData.value?.users?.map(user => user.registered) || []
+  const uniqueYears = [...new Set(userYears.filter(year => typeof year === 'number'))]
+  
+  return uniqueYears.map(year => ({ title: String(year), value: String(year) }))
 })
 
+const cities = computed(() => {
+  const userCities = usersData.value?.users?.map(user => user.city) || []
+  const uniqueCities = [...new Set(userCities.filter(Boolean))]
+  
+  return uniqueCities.map(city => ({ title: city, value: city }))
+})
+
+const status = [
+  {
+    title: 'Graduated',
+    value: 'graduated',
+  },
+  {
+    title: 'Active',
+    value: 'active',
+  },
+  {
+    title: 'Inactive',
+    value: 'inactive',
+  },
+]
+
+// ✅ Dynamic: Count students by gender
+const countStudentByGender = gender => {
+  return students.value.filter(student => {
+    return (student.gender || '').toLowerCase() === gender.toLowerCase() &&
+           student.graduation === null
+  }).length
+}
+
+// ✅ Dynamic: Percentage of students by gender
+const countPercentageStudentByGender = gender => {
+  if (students.value.length === 0) return 0
+  
+  return ((countStudentByGender(gender) / students.value.length) * 100).toFixed(0)
+}
+
+// ✅ Dynamic: Percentage of students by graduation
+const graduatedCount = computed(() => {
+  return students.value.filter(student => {
+    const grad = student.graduation || ''
+    
+    return grad.startsWith('2')
+  }).length
+})
+
+const suspendedCount = computed(() => {
+  return students.value.filter(student => student.graduation === 0).length
+})
+
+const countPercentageStudentByGraduated = angka => {
+  if (students.value.length === 0) return 0
+
+  return ((angka / students.value.length) * 100).toFixed(0)
+}
+
+console.log(graduatedCount.value, suspendedCount.value, countPercentageStudentByGraduated(graduatedCount.value), countPercentageStudentByGraduated(suspendedCount.value))
+
+
 const resolveUserStatusVariant = stat => {
-  if (!stat) return 'primary'
+  if (!stat) return 'primary' // default color kalau null/undefined
   const statLowerCase = stat.toLowerCase()
-  if (statLowerCase === '-')
-    return 'warning'
-  if (statLowerCase === '')
-    return 'success'
-  if (statLowerCase > 2023)
-    return 'secondary'
+  if (statLowerCase === 'active') return 'primary'
+  if (statLowerCase === 'graduated') return 'success'
+  if (statLowerCase === 'inactive') return 'warning'
   
   return 'primary'
 }
 
-const isAddNewUserDrawerVisible = ref(false)
+const isAddNewStudentVisible = ref(false)
 
-const addNewUser = async userData => {
-  await $fake('/apps/users', {
-    method: 'POST',
-    body: userData,
-  })
+const addNewStudent = async userData => {
+  console.log('Sending userData:', userData)
+  try {
+    const { data, response } = await useApi('/students', {
+      method: 'POST',
+      body: JSON.stringify(userData), // harus JSON
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    })
 
-  // refetch User
-  fetchUsers()
+    if (response.value.ok) {
+      showAlert('Data berhasil ditambahkan', 'success')
+      console.log('Student created:', data)
+      fetchUsers()
+    }else {
+      showAlert(response.value.statusText || 'Gagal menambahkan data', 'error')
+    }
+    
+  } catch (error) {
+    console.error('Create student error:', error?.data?.errors || error)
+    showAlert(error.message || 'Gagal menambahkan data', 'error')
+  }
 }
 
-const deleteUser = async id => {
-  await $fake(`/apps/users/${ id }`, { method: 'DELETE' })
 
-  // refetch User
-  fetchUsers()
+const deleteStudent = async id => {
+  try {
+    if (confirm('Apakah kamu yakin ingin menghapus data ini?')) {
+      console.log('Deleting student with ID:', id)
+      await useApi(`/students/${id}`, { method: 'DELETE' })
+      showAlert('Data berhasil dihapus', 'success')
+      fetchUsers() 
+    }
+  } catch (err) {
+    showAlert(err.message || 'Gagal menghapus data', 'error')
+    console.error(err)
+  }
 }
 
 const widgetData = ref([
   {
-    title: 'Session',
-    value: '21,459',
-    change: 29,
-    desc: 'Total Users',
+    title: 'Male Active',
+    value: countStudentByGender('Laki-laki').toLocaleString(),
+    change: countPercentageStudentByGender('Laki-laki'),
+    desc: 'Total Students',
     icon: 'tabler-user',
     iconColor: 'primary',
   },
   {
-    title: 'Paid Users',
-    value: '4,567',
-    change: 18,
-    desc: 'Last Week Analytics',
-    icon: 'tabler-user-plus',
-    iconColor: 'error',
+    title: 'Female Active',
+    value: countStudentByGender('Perempuan').toLocaleString(),
+    change: countPercentageStudentByGender('Perempuan'),
+    desc: 'Total Students',
+    icon: 'tabler-user',
+    iconColor: 'warning',
   },
   {
-    title: 'Active Users',
-    value: '19,860',
-    change: -14,
-    desc: 'Last Week Analytics',
+    title: 'Graduated',
+    value: graduatedCount.value,
+    change: countPercentageStudentByGraduated(graduatedCount.value),
+    desc: 'Graduated Students',
     icon: 'tabler-user-check',
     iconColor: 'success',
   },
   {
-    title: 'Pending Users',
-    value: '237',
-    change: 42,
-    desc: 'Last Week Analytics',
+    title: 'Suspended',
+    value: suspendedCount.value,
+    change: countPercentageStudentByGraduated(suspendedCount.value),
+    desc: 'Suspended Students',
     icon: 'tabler-user-exclamation',
-    iconColor: 'warning',
+    iconColor: 'error',
   },
 ])
 </script>
@@ -240,7 +316,7 @@ const widgetData = ref([
     >
       <VCardText>
         <VRow>
-          <!-- 👉 Select Role -->
+          <!-- 👉 Select Year -->
           <VCol
             cols="12"
             sm="4"
@@ -252,9 +328,10 @@ const widgetData = ref([
               :items="years"
               clearable
               clear-icon="tabler-x"
+              @update:model-value="fetchUsers"
             />
           </VCol>
-          <!-- 👉 Select City -->
+          <!-- 👉 Select Plan -->
           <VCol
             cols="12"
             sm="4"
@@ -266,6 +343,7 @@ const widgetData = ref([
               :items="cities"
               clearable
               clear-icon="tabler-x"
+              @update:model-value="fetchUsers"
             />
           </VCol>
           <!-- 👉 Select Status -->
@@ -280,11 +358,23 @@ const widgetData = ref([
               :items="status"
               clearable
               clear-icon="tabler-x"
+              @update:model-value="fetchUsers"
             />
           </VCol>
         </VRow>
       </VCardText>
     </VCard>
+    
+    <VAlert
+      v-model="isAlertVisible"
+      closable
+      close-label="Close Alert"
+      class="mb-6"
+      :color="alertColor"
+    >
+      {{ alertMessage }}
+    </VAlert>
+
     <VCard>
       <VCardText class="d-flex flex-wrap py-4 gap-4">
         <div class="me-3 d-flex gap-3">
@@ -310,6 +400,7 @@ const widgetData = ref([
               v-model="searchQuery"
               placeholder="Search"
               density="compact"
+              @input="fetchUsers"
             />
           </div>
 
@@ -325,9 +416,9 @@ const widgetData = ref([
           <!-- 👉 Add user button -->
           <VBtn
             prepend-icon="tabler-plus"
-            @click="isAddNewUserDrawerVisible = true"
+            @click="isAddNewStudentVisible = true"
           >
-            Add New User
+            Add New Student
           </VBtn>
         </div>
       </VCardText>
@@ -339,7 +430,7 @@ const widgetData = ref([
         v-model:items-per-page="itemsPerPage"
         v-model:page="page"
         :items="users"
-        :items-length="totalStudents"
+        :items-length="totalUsers"
         :headers="headers"
         class="text-no-wrap"
         @update:options="updateOptions"
@@ -350,7 +441,6 @@ const widgetData = ref([
             <VAvatar
               size="34"
               :variant="!item.avatar ? 'tonal' : undefined"
-              :color="!item.avatar ? 'primary' : undefined"
               class="me-3"
             >
               <VImg
@@ -362,19 +452,19 @@ const widgetData = ref([
             <div class="d-flex flex-column">
               <h6 class="text-base">
                 <RouterLink
-                  :to="{ name: 'profile-student-detail-tab', params: { tab: 'account' } }"
+                  :to="{ name: 'profile-student-id-tab', params: { id: item.id, tab: 'account' } }"
                   class="font-weight-medium text-link"
                 >
                   {{ item.name }}
                 </RouterLink>
               </h6>
-              <span class="text-sm text-medium-emphasis">{{ item.email || item.nickname }}</span>
+              <span class="text-sm text-medium-emphasis">{{ item.nis }} - {{ item.nickname }}</span>
             </div>
           </div>
         </template>
 
         <!-- 👉 Year -->
-        <template #item.year="{ item }">
+        <template #item.registered="{ item }">
           <div class="d-flex align-center gap-4">
             <span class="text-capitalize">{{ item.registered }}</span>
           </div>
@@ -385,69 +475,29 @@ const widgetData = ref([
           <span class="text-capitalize font-weight-medium">{{ item.city }}</span>
         </template>
 
-        <!-- Address -->
-        <template #item.address="{ item }">
-          <span class="text-capitalize font-weight-medium">{{ item.address }}</span>
-        </template>
-
         <!-- Status -->
-        <template #item.status="{ item }">
+        <template #item.graduation="{ item }">
           <VChip
-            :color="resolveUserStatusVariant(item.graduation)"
+            :color="resolveUserStatusVariant(
+              item.graduation === null ? 'active' : (item.graduation === 0 ? 'inactive' : 'graduated')
+            )"
             size="small"
             label
             class="text-capitalize"
           >
-            {{ item.graduation || 'Active' }}
+            {{ item.graduation === null ? 'Active' : (item.graduation === 0 ? 'Inactive' : 'Graduated') }}
           </VChip>
         </template>
 
         <!-- Actions -->
         <template #item.actions="{ item }">
-          <IconBtn @click="deleteUser(item.id)">
+          <IconBtn @click="deleteStudent(item.id)">
             <VIcon icon="tabler-trash" />
           </IconBtn>
 
-          <IconBtn>
+          <IconBtn :to="{ name: 'profile-student-id-tab', params: { id: item.id, tab: 'account' } }">
             <VIcon icon="tabler-edit" />
           </IconBtn>
-
-          <VBtn
-            icon
-            variant="text"
-            size="small"
-            color="medium-emphasis"
-          >
-            <VIcon
-              size="24"
-              icon="tabler-dots-vertical"
-            />
-            <VMenu activator="parent">
-              <VList>
-                <VListItem :to="{ name: 'profile-student-detail-tab', params: { tab: 'account' } }">
-                  <template #prepend>
-                    <VIcon icon="tabler-eye" />
-                  </template>
-
-                  <VListItemTitle>View</VListItemTitle>
-                </VListItem>
-
-                <VListItem link>
-                  <template #prepend>
-                    <VIcon icon="tabler-pencil" />
-                  </template>
-                  <VListItemTitle>Edit</VListItemTitle>
-                </VListItem>
-
-                <VListItem @click="deleteUser(item.id)">
-                  <template #prepend>
-                    <VIcon icon="tabler-trash" />
-                  </template>
-                  <VListItemTitle>Delete</VListItemTitle>
-                </VListItem>
-              </VList>
-            </VMenu>
-          </VBtn>
         </template>
 
         <!-- pagination -->
@@ -455,13 +505,13 @@ const widgetData = ref([
           <VDivider />
           <div class="d-flex align-center justify-sm-space-between justify-center flex-wrap gap-3 pa-5 pt-3">
             <p class="text-sm text-disabled mb-0">
-              {{ paginationMeta({ page, itemsPerPage }, totalStudents) }}
+              {{ paginationMeta({ page, itemsPerPage }, totalUsers) }}
             </p>
 
             <VPagination
               v-model="page"
-              :length="Math.ceil(totalStudents / itemsPerPage)"
-              :total-visible="$vuetify.display.xs ? 1 : Math.ceil(totalStudents / itemsPerPage)"
+              :length="Math.ceil(totalUsers / itemsPerPage)"
+              :total-visible="$vuetify.display.xs ? 1 : Math.ceil(totalUsers / itemsPerPage)"
             >
               <template #prev="slotProps">
                 <VBtn
@@ -490,10 +540,10 @@ const widgetData = ref([
       </VDataTableServer>
       <!-- SECTION -->
     </VCard>
-    <!-- 👉 Add New User -->
-    <AddNewUserDrawer
-      v-model:is-drawer-open="isAddNewUserDrawerVisible"
-      @user-data="addNewUser"
+    <!-- 👉 Add New Student -->
+    <AddNewStudent
+      v-model:is-drawer-open="isAddNewStudentVisible"
+      @user-data="addNewStudent"
     />
   </section>
 </template>
