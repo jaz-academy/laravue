@@ -50,6 +50,8 @@ Route::group(['prefix' => 'public'], function () {
   Route::get('students/{id}', [StudentController::class, 'show']);
   Route::get('students-show', [StudentController::class, 'showAll']);
   Route::get('teachers', [TeacherController::class, 'index']);
+  Route::get('teachers/{id}', [TeacherController::class, 'show']);
+  Route::get('teachers-show', [TeacherController::class, 'showAll']);
   Route::get('home-tasks-with-all', [TaskController::class, 'homeTasksWithAll']);
   Route::get('upload-tasks-with-all', [TaskController::class, 'uploadTasksWithAll']);
   Route::get('instagram-tasks-with-all', [TaskController::class, 'instagramTasksWithAll']);
@@ -75,6 +77,12 @@ Route::group(['prefix' => 'auth'], function () {
 Route::group(['middleware' => 'auth:sanctum'], function () {
   Route::get('logout', [AuthController::class, 'logout']);
   Route::get('user', [AuthController::class, 'user']);
+  Route::get('users', [AuthController::class, 'users']);
+  Route::patch('users/{user}', [AuthController::class, 'update']);
+  Route::delete('users/{user}', [AuthController::class, 'destroy']);
+  Route::put('user/password', [AuthController::class, 'updatePassword']);
+  Route::put('user/role', [AuthController::class, 'updateRole']);
+  Route::put('user/profile', [AuthController::class, 'updateProfile']);
 
   Route::apiResource('likes', LikeController::class);
   Route::apiResource('comments', CommentController::class);

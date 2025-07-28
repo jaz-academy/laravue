@@ -1,24 +1,58 @@
 <script setup>
-import AddNewUserDrawer from '@/views/profile/student/list/AddNewUserDrawer.vue'
+import { fetchTeacherData, fetchTeachers, teachers } from '@/composables/fetchTeacherData'
+import AddNewTeacher from '@/views/profile/teacher/list/AddNewTeacher.vue'
 import { paginationMeta } from '@api-utils/paginationMeta'
+import { computed, onMounted, ref } from 'vue'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
+
+onMounted (() => {
+  fetchTeacherData()
+})
 
 // 👉 Store
 const searchQuery = ref('')
-const selectedRole = ref()
-const selectedPlan = ref()
-const selectedStatus = ref()
+const selectedYear = ref('')
+const selectedCity = ref('')
+const selectedStatus = ref('')
+
+// 👉 Alert
+const isAlertVisible = ref(false)
+const alertMessage = ref('')
+const alertColor = ref('primary')
+
+const showAlert = (message, color = 'primary') => {
+  alertMessage.value = message
+  alertColor.value = color
+  isAlertVisible.value = true
+  setTimeout(() => {
+    isAlertVisible.value = false
+  }, 10000)
+}
 
 // Data table options
 const itemsPerPage = ref(10)
 const page = ref(1)
-const sortBy = ref()
-const orderBy = ref()
+const sortBy = ref('')
+const orderBy = ref('')
+const usersData = ref([])
 
 const updateOptions = options => {
   page.value = options.page
-  sortBy.value = options.sortBy[0]?.key
-  orderBy.value = options.sortBy[0]?.order
+  itemsPerPage.value = options.itemsPerPage
+  searchQuery.value = options.search || ''
+  selectedStatus.value = options.status || ''
+  selectedCity.value = options.city || ''
+  selectedYear.value = options.year || ''
+
+  if (options.sortBy?.length) {
+    sortBy.value = options.sortBy[0].key
+    orderBy.value = options.sortBy[0].order
+  } else {
+    sortBy.value = null
+    orderBy.value = null
+  }
+
+  fetchUsers()
 }
 
 // Headers
@@ -28,16 +62,12 @@ const headers = [
     key: 'name',
   },
   {
-    title: 'Role',
-    key: 'role',
+    title: 'Year',
+    key: 'registered',
   },
   {
-    title: 'Plan',
-    key: 'plan',
-  },
-  {
-    title: 'Billing',
-    key: 'billing',
+    title: 'City',
+    key: 'city',
   },
   {
     title: 'Status',
@@ -50,180 +80,188 @@ const headers = [
   },
 ]
 
-const {
-  data: usersData,
-  execute: fetchUsers,
-} = await useFake(createUrl('/apps/users', {
-  query: {
-    q: searchQuery,
-    status: selectedStatus,
-    plan: selectedPlan,
-    role: selectedRole,
-    itemsPerPage,
-    page,
-    sortBy,
-    orderBy,
-  },
-}))
+const fetchUsers = async () => {
+  const params = {
+    q: searchQuery.value || '',
+    status: selectedStatus.value || '',
+    city: selectedCity.value || '',
+    year: selectedYear.value || '',
+    itemsPerPage: itemsPerPage.value,
+    page: page.value,
+    sortBy: sortBy.value || '',
+    orderBy: orderBy.value || '',
+  }
+  
+  try {
+    const result = await fetchTeachers(params)
 
-const users = computed(() => usersData.value.users)
-const totalUsers = computed(() => usersData.value.totalUsers)
+    console.log('📦 FETCHING with:', params, result)
 
-// 👉 search filters
-const roles = [
-  {
-    title: 'Admin',
-    value: 'admin',
-  },
-  {
-    title: 'Author',
-    value: 'author',
-  },
-  {
-    title: 'Editor',
-    value: 'editor',
-  },
-  {
-    title: 'Maintainer',
-    value: 'maintainer',
-  },
-  {
-    title: 'Subscriber',
-    value: 'subscriber',
-  },
-]
+    usersData.value = result
+  } catch (error) {
+    console.error('Error fetching Teachers:', error.message)
+  }
+}
 
-const plans = [
-  {
-    title: 'Basic',
-    value: 'basic',
-  },
-  {
-    title: 'Company',
-    value: 'company',
-  },
-  {
-    title: 'Enterprise',
-    value: 'enterprise',
-  },
-  {
-    title: 'Team',
-    value: 'team',
-  },
-]
+const users = computed(() => usersData.value?.users || [])
+const totalUsers = computed(() => usersData.value?.totalUsers || 0)
+
+const years = computed(() => {
+  const userYears = usersData.value?.users?.map(user => user.registered) || []
+  const uniqueYears = [...new Set(userYears.filter(year => typeof year === 'number'))]
+  
+  return uniqueYears.map(year => ({ title: String(year), value: String(year) }))
+})
+
+const cities = computed(() => {
+  const userCities = usersData.value?.users?.map(user => user.city) || []
+  const uniqueCities = [...new Set(userCities.filter(Boolean))]
+  
+  return uniqueCities.map(city => ({ title: city, value: city }))
+})
 
 const status = [
-  {
-    title: 'Pending',
-    value: 'pending',
-  },
   {
     title: 'Active',
     value: 'active',
   },
   {
-    title: 'Inactive',
-    value: 'inactive',
+    title: 'On Duty',
+    value: 'on_duty',
+  },
+  {
+    title: 'Passive',
+    value: 'passive',
+  },
+  {
+    title: 'Suspend',
+    value: 'suspend',
   },
 ]
 
-const resolveUserRoleVariant = role => {
-  const roleLowerCase = role.toLowerCase()
-  if (roleLowerCase === 'subscriber')
-    return {
-      color: 'warning',
-      icon: 'tabler-circle-check',
-    }
-  if (roleLowerCase === 'author')
-    return {
-      color: 'success',
-      icon: 'tabler-user',
-    }
-  if (roleLowerCase === 'maintainer')
-    return {
-      color: 'primary',
-      icon: 'tabler-chart-pie-2',
-    }
-  if (roleLowerCase === 'editor')
-    return {
-      color: 'info',
-      icon: 'tabler-edit',
-    }
-  if (roleLowerCase === 'admin')
-    return {
-      color: 'secondary',
-      icon: 'tabler-device-laptop',
-    }
-  
-  return {
-    color: 'primary',
-    icon: 'tabler-user',
-  }
+// ✅ Dynamic: Count teachers by gender
+const countTeacherByGender = gender => {
+  return teachers.value.filter(teacher => {
+    return (teacher.gender || '').toLowerCase() === gender.toLowerCase() &&
+           teacher.status === null
+  }).length
 }
 
+// ✅ Dynamic: Percentage of teachers by gender
+const countPercentageTeacherByGender = gender => {
+  if (teachers.value.length === 0) return 0
+
+  return ((countTeacherByGender(gender) / teachers.value.length) * 100).toFixed(0)
+}
+
+// ✅ Dynamic: Percentage of teachers by status
+const graduatedCount = computed(() => {
+  return teachers.value.filter(teacher => {
+    const grad = teacher.status || ''
+
+    return String(grad).startsWith('2')
+  }).length
+})
+
+const suspendedCount = computed(() => {
+  return teachers.value.filter(teacher => teacher.status === 0).length
+})
+
+const countPercentageTeacherByGraduated = angka => {
+  if (teachers.value.length === 0) return 0
+
+  return ((angka / teachers.value.length) * 100).toFixed(0)
+}
+
+console.log(graduatedCount.value, suspendedCount.value, countPercentageTeacherByGraduated(graduatedCount.value), countPercentageTeacherByGraduated(suspendedCount.value))
+
+
 const resolveUserStatusVariant = stat => {
+  if (!stat) return 'primary' // default color kalau null/undefined
   const statLowerCase = stat.toLowerCase()
-  if (statLowerCase === 'pending')
-    return 'warning'
-  if (statLowerCase === 'active')
-    return 'success'
-  if (statLowerCase === 'inactive')
-    return 'secondary'
+  if (statLowerCase === 'active') return 'primary'
+  if (statLowerCase === 'passive') return 'warning'
+  if (statLowerCase === 'on duty') return 'success'
+  if (statLowerCase === 'suspend') return 'danger'
   
   return 'primary'
 }
 
-const isAddNewUserDrawerVisible = ref(false)
+const isAddNewTeacherVisible = ref(false)
 
-const addNewUser = async userData => {
-  await $fake('/apps/users', {
-    method: 'POST',
-    body: userData,
-  })
+const addNewTeacher = async userData => {
+  console.log('Sending userData:', userData)
+  try {
+    const { data, response } = await useApi('/teachers', {
+      method: 'POST',
+      body: JSON.stringify(userData), // harus JSON
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    })
 
-  // refetch User
-  fetchUsers()
+    if (response.value.ok) {
+      showAlert('Data berhasil ditambahkan', 'success')
+      console.log('Teacher created:', data)
+      fetchUsers()
+    }else {
+      showAlert(response.value.statusText || 'Gagal menambahkan data', 'error')
+    }
+    
+  } catch (error) {
+    console.error('Create Teacher error:', error?.data?.errors || error)
+    showAlert(error.message || 'Gagal menambahkan data', 'error')
+  }
 }
 
-const deleteUser = async id => {
-  await $fake(`/apps/users/${ id }`, { method: 'DELETE' })
 
-  // refetch User
-  fetchUsers()
+const deleteTeacher = async id => {
+  try {
+    if (confirm('Apakah kamu yakin ingin menghapus data ini?')) {
+      console.log('Deleting teacher with ID:', id)
+      await useApi(`/teachers/${id}`, { method: 'DELETE' })
+      showAlert('Data berhasil dihapus', 'success')
+      fetchUsers() 
+    }
+  } catch (err) {
+    showAlert(err.message || 'Gagal menghapus data', 'error')
+    console.error(err)
+  }
 }
 
 const widgetData = ref([
   {
-    title: 'Session',
-    value: '21,459',
-    change: 29,
-    desc: 'Total Users',
+    title: 'Male Active',
+    value: countTeacherByGender('Laki-laki').toLocaleString(),
+    change: countPercentageTeacherByGender('Laki-laki'),
+    desc: 'Total Teachers',
     icon: 'tabler-user',
     iconColor: 'primary',
   },
   {
-    title: 'Paid Users',
-    value: '4,567',
-    change: 18,
-    desc: 'Last Week Analytics',
-    icon: 'tabler-user-plus',
-    iconColor: 'error',
+    title: 'Female Active',
+    value: countTeacherByGender('Perempuan').toLocaleString(),
+    change: countPercentageTeacherByGender('Perempuan'),
+    desc: 'Total Teachers',
+    icon: 'tabler-user',
+    iconColor: 'warning',
   },
   {
-    title: 'Active Users',
-    value: '19,860',
-    change: -14,
-    desc: 'Last Week Analytics',
+    title: 'Graduated',
+    value: graduatedCount.value,
+    change: countPercentageTeacherByGraduated(graduatedCount.value),
+    desc: 'Graduated Teachers',
     icon: 'tabler-user-check',
     iconColor: 'success',
   },
   {
-    title: 'Pending Users',
-    value: '237',
-    change: 42,
-    desc: 'Last Week Analytics',
+    title: 'Suspended',
+    value: suspendedCount.value,
+    change: countPercentageTeacherByGraduated(suspendedCount.value),
+    desc: 'Suspended Teachers',
     icon: 'tabler-user-exclamation',
-    iconColor: 'warning',
+    iconColor: 'error',
   },
 ])
 </script>
@@ -283,18 +321,19 @@ const widgetData = ref([
     >
       <VCardText>
         <VRow>
-          <!-- 👉 Select Role -->
+          <!-- 👉 Select Year -->
           <VCol
             cols="12"
             sm="4"
           >
             <AppSelect
-              v-model="selectedRole"
-              label="Select Role"
-              placeholder="Select Role"
-              :items="roles"
+              v-model="selectedYear"
+              label="Select Year"
+              placeholder="Select Year"
+              :items="years"
               clearable
               clear-icon="tabler-x"
+              @update:model-value="fetchUsers"
             />
           </VCol>
           <!-- 👉 Select Plan -->
@@ -303,12 +342,13 @@ const widgetData = ref([
             sm="4"
           >
             <AppSelect
-              v-model="selectedPlan"
-              label="Select Plan"
-              placeholder="Select Plan"
-              :items="plans"
+              v-model="selectedCity"
+              label="Select City"
+              placeholder="Select City"
+              :items="cities"
               clearable
               clear-icon="tabler-x"
+              @update:model-value="fetchUsers"
             />
           </VCol>
           <!-- 👉 Select Status -->
@@ -323,11 +363,23 @@ const widgetData = ref([
               :items="status"
               clearable
               clear-icon="tabler-x"
+              @update:model-value="fetchUsers"
             />
           </VCol>
         </VRow>
       </VCardText>
     </VCard>
+    
+    <VAlert
+      v-model="isAlertVisible"
+      closable
+      close-label="Close Alert"
+      class="mb-6"
+      :color="alertColor"
+    >
+      {{ alertMessage }}
+    </VAlert>
+
     <VCard>
       <VCardText class="d-flex flex-wrap py-4 gap-4">
         <div class="me-3 d-flex gap-3">
@@ -353,6 +405,7 @@ const widgetData = ref([
               v-model="searchQuery"
               placeholder="Search"
               density="compact"
+              @input="fetchUsers"
             />
           </div>
 
@@ -368,9 +421,9 @@ const widgetData = ref([
           <!-- 👉 Add user button -->
           <VBtn
             prepend-icon="tabler-plus"
-            @click="isAddNewUserDrawerVisible = true"
+            @click="isAddNewTeacherVisible = true"
           >
-            Add New User
+            Add New Teacher
           </VBtn>
         </div>
       </VCardText>
@@ -393,55 +446,47 @@ const widgetData = ref([
             <VAvatar
               size="34"
               :variant="!item.avatar ? 'tonal' : undefined"
-              :color="!item.avatar ? resolveUserRoleVariant(item.role).color : undefined"
-              class="me-3"
+              class="me-3 overflow-hidden"
             >
               <VImg
-                v-if="item.avatar"
-                :src="item.avatar"
+                v-if="item?.image"
+                cover
+                :src="`/storage/${item.image}`"
               />
               <span v-else>{{ avatarText(item.name) }}</span>
             </VAvatar>
             <div class="d-flex flex-column">
               <h6 class="text-base">
                 <RouterLink
-                  :to="{ name: 'profile-teacher-detail-tab', params: { tab: 'account' } }"
+                  :to="{ name: 'profile-teacher-id-tab', params: { id: item.id, tab: 'account' } }"
                   class="font-weight-medium text-link"
                 >
                   {{ item.name }}
                 </RouterLink>
               </h6>
-              <span class="text-sm text-medium-emphasis">{{ item.email }}</span>
+              <span class="text-sm text-medium-emphasis">{{ item.nig }} - {{ item.nickname }}</span>
             </div>
           </div>
         </template>
 
-        <!-- 👉 Role -->
-        <template #item.role="{ item }">
+        <!-- 👉 Year -->
+        <template #item.registered="{ item }">
           <div class="d-flex align-center gap-4">
-            <VAvatar
-              :size="30"
-              :color="resolveUserRoleVariant(item.role).color"
-              variant="tonal"
-            >
-              <VIcon
-                :size="20"
-                :icon="resolveUserRoleVariant(item.role).icon"
-              />
-            </VAvatar>
-            <span class="text-capitalize">{{ item.role }}</span>
+            <span class="text-capitalize">{{ item.registered }}</span>
           </div>
         </template>
 
-        <!-- Plan -->
-        <template #item.plan="{ item }">
-          <span class="text-capitalize font-weight-medium">{{ item.currentPlan }}</span>
+        <!-- City -->
+        <template #item.city="{ item }">
+          <span class="text-capitalize font-weight-medium">{{ item.city }}</span>
         </template>
 
         <!-- Status -->
         <template #item.status="{ item }">
           <VChip
-            :color="resolveUserStatusVariant(item.status)"
+            :color="resolveUserStatusVariant(
+              item.status || ''
+            )"
             size="small"
             label
             class="text-capitalize"
@@ -452,50 +497,13 @@ const widgetData = ref([
 
         <!-- Actions -->
         <template #item.actions="{ item }">
-          <IconBtn @click="deleteUser(item.id)">
+          <IconBtn @click="deleteTeacher(item.id)">
             <VIcon icon="tabler-trash" />
           </IconBtn>
 
-          <IconBtn>
+          <IconBtn :to="{ name: 'profile-teacher-id-tab', params: { id: item.id, tab: 'account' } }">
             <VIcon icon="tabler-edit" />
           </IconBtn>
-
-          <VBtn
-            icon
-            variant="text"
-            size="small"
-            color="medium-emphasis"
-          >
-            <VIcon
-              size="24"
-              icon="tabler-dots-vertical"
-            />
-            <VMenu activator="parent">
-              <VList>
-                <VListItem :to="{ name: 'profile-teacher-detail-tab', params: { tab: 'account' } }">
-                  <template #prepend>
-                    <VIcon icon="tabler-eye" />
-                  </template>
-
-                  <VListItemTitle>View</VListItemTitle>
-                </VListItem>
-
-                <VListItem link>
-                  <template #prepend>
-                    <VIcon icon="tabler-pencil" />
-                  </template>
-                  <VListItemTitle>Edit</VListItemTitle>
-                </VListItem>
-
-                <VListItem @click="deleteUser(item.id)">
-                  <template #prepend>
-                    <VIcon icon="tabler-trash" />
-                  </template>
-                  <VListItemTitle>Delete</VListItemTitle>
-                </VListItem>
-              </VList>
-            </VMenu>
-          </VBtn>
         </template>
 
         <!-- pagination -->
@@ -538,10 +546,10 @@ const widgetData = ref([
       </VDataTableServer>
       <!-- SECTION -->
     </VCard>
-    <!-- 👉 Add New User -->
-    <AddNewUserDrawer
-      v-model:is-drawer-open="isAddNewUserDrawerVisible"
-      @user-data="addNewUser"
+    <!-- 👉 Add New Teacher -->
+    <AddNewTeacher
+      v-model:is-drawer-open="isAddNewTeacherVisible"
+      @user-data="addNewTeacher"
     />
   </section>
 </template>

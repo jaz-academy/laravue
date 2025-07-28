@@ -8,124 +8,90 @@ const confirmPassword = ref('')
 const userData = useCookie('userData')
 const userAbilityRules = useCookie('userAbilityRules').value[0]
 
+// 👉 Alert
+const isAlertVisible = ref(false)
+const alertMessage = ref('')
+const alertColor = ref('primary')
+
+const showAlert = (message, color = 'primary') => {
+  alertMessage.value = message
+  alertColor.value = color
+  isAlertVisible.value = true
+  setTimeout(() => {
+    isAlertVisible.value = false
+  }, 10000)
+}
+
 const passwordRequirements = [
-  'Minimum 8 characters long - the more, the better',
-  'At least one lowercase character',
-  'At least one number, symbol, or whitespace character',
-]
-
-const serverKeys = [
-  {
-    name: 'Server Key 1',
-    key: '23eaf7f0-f4f7-495e-8b86-fad3261282ac',
-    createdOn: '28 Apr 2021, 18:20 GTM+4:10',
-    permission: 'Full Access',
-  },
-  {
-    name: 'Server Key 2',
-    key: 'bb98e571-a2e2-4de8-90a9-2e231b5e99',
-    createdOn: '12 Feb 2021, 10:30 GTM+2:30',
-    permission: 'Read Only',
-  },
-  {
-    name: 'Server Key 3',
-    key: '2e915e59-3105-47f2-8838-6e46bf83b711',
-    createdOn: '28 Dec 2020, 12:21 GTM+4:10',
-    permission: 'Full Access',
-  },
-]
-
-const recentDevicesHeaders = [
-  {
-    title: 'BROWSER',
-    key: 'browser',
-  },
-  {
-    title: 'DEVICE',
-    key: 'device',
-  },
-  {
-    title: 'LOCATION',
-    key: 'location',
-  },
-  {
-    title: 'RECENT ACTIVITY',
-    key: 'recentActivity',
-  },
-]
-
-const recentDevices = [
-  {
-    browser: 'Chrome on Windows',
-    device: 'HP Spectre 360',
-    location: 'New York, NY',
-    recentActivity: '28 Apr 2022, 18:20',
-    deviceIcon: {
-      icon: 'tabler-brand-windows',
-      color: 'primary',
-    },
-  },
-  {
-    browser: 'Chrome on iPhone',
-    device: 'iPhone 12x',
-    location: 'Los Angeles, CA',
-    recentActivity: '20 Apr 2022, 10:20',
-    deviceIcon: {
-      icon: 'tabler-device-mobile',
-      color: 'error',
-    },
-  },
-  {
-    browser: 'Chrome on Android',
-    device: 'Oneplus 9 Pro',
-    location: 'San Francisco, CA',
-    recentActivity: '16 Apr 2022, 04:20',
-    deviceIcon: {
-      icon: 'tabler-brand-android',
-      color: 'success',
-    },
-  },
-  {
-    browser: 'Chrome on macOS',
-    device: 'Apple iMac',
-    location: 'New York, NY',
-    recentActivity: '28 Apr 2022, 18:20',
-    deviceIcon: {
-      icon: 'tabler-brand-apple',
-      color: 'secondary',
-    },
-  },
-  {
-    browser: 'Chrome on Windows',
-    device: 'HP Spectre 360',
-    location: 'Los Angeles, CA',
-    recentActivity: '20 Apr 2022, 10:20',
-    deviceIcon: {
-      icon: 'tabler-brand-windows',
-      color: 'primary',
-    },
-  },
-  {
-    browser: 'Chrome on Android',
-    device: 'Oneplus 9 Pro',
-    location: 'San Francisco, CA',
-    recentActivity: '16 Apr 2022, 04:20',
-    deviceIcon: {
-      icon: 'tabler-brand-android',
-      color: 'success',
-    },
-  },
+  'Must be at least 6 characters long - the more, the better',
+  'Recommends any or one lowercase character',
+  'Recommends any or one number, symbol, or whitespace character',
 ]
 
 const isOneTimePasswordDialogVisible = ref(false)
+
+const updatePassword = async () => {
+  if (!currentPassword.value || !newPassword.value || !confirmPassword.value) {
+    showAlert('Semua field harus diisi!', 'error')
+    
+    return
+  }else if (newPassword.value !== confirmPassword.value) {
+    showAlert('Konfirmasi password tidak cocok!', 'error')
+    
+    return
+  }
+  if (newPassword.value === currentPassword.value) {
+    showAlert('Password baru tidak boleh sama dengan password lama!', 'error')
+    
+    return
+  }
+  if (newPassword.value.length < 6) {
+    showAlert('Password baru harus minimal 6 karakter!', 'error')
+    
+    return
+  }
+
+  try {
+    const response = await useApi('/user/password', {
+      method: 'PUT',
+      body: JSON.stringify({
+        current_password: currentPassword.value,
+        new_password: newPassword.value,
+        new_password_confirmation: confirmPassword.value,
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    })
+
+    if (response.response.value.ok) {
+      showAlert('Berhasil mengubah Password!', 'success')
+    } else {
+      showAlert(response.data.value?.message || 'Cek lagi Password nya ya!', 'error')
+    }
+  } catch (error) {
+    console.error('Error updating password:', error?.data?.errors || error)
+    showAlert(error.message || 'Gagal mengubah Password', 'error')
+  }
+}
 </script>
 
 <template>
+  <VAlert
+    v-model="isAlertVisible"
+    closable
+    close-label="Close Alert"
+    class="mb-6"
+    :color="alertColor"
+  >
+    {{ alertMessage }}
+  </VAlert>
   <VRow>
     <!-- SECTION: Change Password -->
     <VCol cols="12">
       <VCard title="Change Password">
-        <VForm>
+        <VForm @submit.prevent="updatePassword">
           <VCardText class="pt-0">
             <VRow>
               <VCol
@@ -221,7 +187,9 @@ const isOneTimePasswordDialogVisible = ref(false)
 
           <!-- 👉 Action Buttons -->
           <VCardText class="d-flex flex-wrap gap-4">
-            <VBtn>Save changes</VBtn>
+            <VBtn type="submit">
+              Save changes
+            </VBtn>
 
             <VBtn
               type="reset"

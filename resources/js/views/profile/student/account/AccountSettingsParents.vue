@@ -64,9 +64,9 @@ const onSubmit = () => {
                 md="4"
                 cols="12"
               >
-                <AppTextField
+                <AppDateTimePicker
                   v-model="accountDataLocal.father_birth"
-                  placeholder="01/01/1980"
+                  placeholder="1980-01-01"
                   label="Birth Date"
                 />
               </VCol>
@@ -101,9 +101,9 @@ const onSubmit = () => {
                 md="4"
                 cols="12"
               >
-                <AppTextField
+                <AppDateTimePicker
                   v-model="accountDataLocal.mother_birth"
-                  placeholder="01/01/1980"
+                  placeholder="1980-01-01"
                   label="Birth Date"
                 />
               </VCol>
@@ -128,7 +128,7 @@ const onSubmit = () => {
               >
                 <AppTextField
                   v-model="accountDataLocal.phone"
-                  placeholder="+1 (917) 543-9876"
+                  placeholder="+62 888 1234 5678"
                   label="Phone Number"
                 />
               </VCol>

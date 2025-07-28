@@ -1,5 +1,6 @@
 <script setup>
 import AppSelect from '@/@core/components/app-form-elements/AppSelect.vue'
+import AppTextField from '@/@core/components/app-form-elements/AppTextField.vue'
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 
 const props = defineProps({
@@ -17,13 +18,13 @@ const emit = defineEmits([
 const currentYear = new Date().getFullYear()
 const isFormValid = ref(false)
 const refForm = ref()
-const nis = ref('')
+const nig = ref('')
 const name = ref('')
 const nickname = ref('')
 const gender = ref('')
 const registered = ref(currentYear)
-const rumble = ref('7')
-const paymentCategory = ref('Regular')
+const grade = ref('7')
+const phone = ref('')
 const birthPlace = ref('')
 const birthDate = ref('')
 
@@ -44,15 +45,15 @@ const onSubmit = () => {
   refForm.value?.validate().then(({ valid }) => {
     if (valid) {
       emit('userData', {
-        nis: nis.value,
+        nig: nig.value,
         name: name.value,
         nickname: nickname.value,
         gender: gender.value,
-        rumble: rumble.value,
+        grade: grade.value,
+        registered: registered.value,
+        phone: phone.value,
         birth_date: birthDate.value,
         birth_place: birthPlace.value,
-        registered: registered.value,
-        payment_category: paymentCategory.value,
       })
       emit('update:isDrawerOpen', false)
       nextTick(() => {
@@ -79,7 +80,7 @@ const handleDrawerModelValueUpdate = val => {
   >
     <!-- 👉 Title -->
     <AppDrawerHeaderSection
-      title="Add New Student"
+      title="Add New Teacher"
       @cancel="closeNavigationDrawer"
     />
 
@@ -93,12 +94,12 @@ const handleDrawerModelValueUpdate = val => {
             @submit.prevent="onSubmit"
           >
             <VRow>
-              <!-- 👉 NIS -->
+              <!-- 👉 nig -->
               <VCol cols="12">
                 <AppTextField
-                  v-model="nis"
+                  v-model="nig"
                   :rules="[requiredValidator]"
-                  label="NIS"
+                  label="NIG"
                   placeholder="201122"
                 />
               </VCol>
@@ -145,24 +146,24 @@ const handleDrawerModelValueUpdate = val => {
                 />
               </VCol>
 
-              <!-- 👉 rumble -->
+              <!-- 👉 grade -->
               <VCol cols="12">
-                <AppTextField
-                  v-model="rumble"
+                <AppSelect
+                  v-model="grade"
                   :rules="[requiredValidator]"
-                  label="Class"
-                  placeholder="7"
+                  label="Grade"
+                  placeholder="1"
+                  :items="['1', '2', '3', '4', '5', '6', '7']"
                 />
               </VCol>
 
-              <!-- 👉 Payment Category -->
+              <!-- 👉 Phone Number -->
               <VCol cols="12">
-                <AppSelect
-                  v-model="paymentCategory"
+                <AppTextField
+                  v-model="phone"
                   :rules="[requiredValidator]"
-                  label="Payment Category"
-                  placeholder="Select Payment Category"
-                  :items="['Regular', 'Yayasan', 'Founder']"
+                  label="Phone Number"
+                  placeholder="+62 888 1234 5678"
                 />
               </VCol>
 

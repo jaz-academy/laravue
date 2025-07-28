@@ -1,3 +1,7 @@
+const userData = useCookie('userData')
+const idTeacher = userData.value?.admin_teacher_id || 1
+const idStudent = userData.value?.admin_student_id || 1
+
 export default [
   {
     title: 'Profile',
@@ -9,14 +13,14 @@ export default [
         title: 'Teacher',
         children: [
           { title: 'List', to: 'profile-teacher-list' },
-          { title: 'Detail', to: { name: 'profile-teacher-detail-tab', params: { tab: 'account' } } },
+          { title: 'Detail', to: { name: 'profile-teacher-id-tab', params: { id: idTeacher, tab: 'account' } } },
         ],
       },
       {
         title: 'Student',
         children: [
           { title: 'List', to: 'profile-student-list' },
-          { title: 'Detail', to: { name: 'profile-student-id-tab', params: { id: 1, tab: 'account' } } },
+          { title: 'Detail', to: { name: 'profile-student-id-tab', params: { id: idStudent, tab: 'account' } } },
         ],
       },
 

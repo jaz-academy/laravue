@@ -1,189 +1,124 @@
 <script setup>
-import asana from '@images/icons/brands/asana.png'
-import behance from '@images/icons/brands/behance.png'
-import dribbble from '@images/icons/brands/dribbble.png'
-import facebook from '@images/icons/brands/facebook.png'
-import github from '@images/icons/brands/github.png'
-import google from '@images/icons/brands/google.png'
-import intagram from '@images/icons/brands/instagram.png'
-import mailchimp from '@images/icons/brands/mailchimp.png'
-import slack from '@images/icons/brands/slack.png'
-import twitter from '@images/icons/brands/twitter.png'
+const { teacher } = defineProps({
+  teacher: Object,
+})
 
-const connectedAccounts = ref([
-  {
-    logo: google,
-    name: 'Google',
-    subtitle: 'Calendar and contacts',
-    connected: true,
-  },
-  {
-    logo: slack,
-    name: 'Slack',
-    subtitle: 'Communication',
-    connected: false,
-  },
-  {
-    logo: github,
-    name: 'GitHub',
-    subtitle: 'Manage your Git repositories',
-    connected: true,
-  },
-  {
-    logo: mailchimp,
-    name: 'MailChimp',
-    subtitle: 'Email marketing service',
-    connected: true,
-  },
-  {
-    logo: asana,
-    name: 'Asana',
-    subtitle: 'Task management',
-    connected: false,
-  },
-])
+const emit = defineEmits(['userData'])
+const accountDataLocal = ref({})
+const refForm = ref()
 
-const socialAccounts = ref([
-  {
-    logo: facebook,
-    name: 'Facebook',
-    connected: false,
+watch(
+  () => teacher,
+  newTeacher => {
+    if (newTeacher) {
+      accountDataLocal.value = JSON.parse(JSON.stringify(newTeacher))
+    }
   },
-  {
-    logo: twitter,
-    name: 'Twitter',
-    links: {
-      username: '@Pixinvent',
-      link: 'https://twitter.com/Pixinvents',
-    },
-    connected: true,
-  },
-  {
-    logo: intagram,
-    name: 'Instagram',
-    links: {
-      username: '@Pixinvent',
-      link: 'https://www.instagram.com/pixinvents/',
-    },
-    connected: true,
-  },
-  {
-    logo: dribbble,
-    name: 'Dribbble',
-    connected: false,
-  },
-  {
-    logo: behance,
-    name: 'Behance',
-    connected: false,
-  },
-])
+  { immediate: true },
+)
+
+const resetForm = () => {
+  accountDataLocal.value = JSON.parse(JSON.stringify(teacher))
+}
+
+const onSubmit = () => {
+  refForm.value?.validate().then(({ valid }) => {
+    if (valid) {
+      console.log('SUBMIT PAYLOAD', accountDataLocal.value)
+      emit('userData', { ...accountDataLocal.value })
+    }
+  })
+}
 </script>
 
 <template>
-  <VRow>
-    <!-- 👉 Connected Accounts -->
+  <VForm 
+    ref="refForm"
+    @submit.prevent="onSubmit"
+  >
+    <VRow>
+      <!-- 👉 Registration Data -->
+      <VCol
+        cols="12"
+        md="6"
+      >
+        <VCard title="Registration Data">
+          <VCardText>
+            <p class="mt-n4 mb-6 text-sm">
+              Can only be changed by the admin
+            </p>
+            <VRow>
+              <!-- 👉 Registered -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="accountDataLocal.registered"
+                  placeholder="2000"
+                  label="Registered"
+                />
+              </VCol>
+              <!-- 👉 Status -->
+              <VCol cols="12">
+                <AppSelect
+                  v-model="accountDataLocal.status"
+                  :items="['Active', 'On Duty', 'Passive', 'Suspend']"
+                  placeholder="Select Status"
+                  label="Status"
+                />
+              </VCol>
+            </VRow>
+          </VCardText>
+        </VCard>
+      </VCol>
+
+      <!-- 👉 Resignation Data -->
+      <VCol
+        cols="12"
+        md="6"
+      >
+        <VCard title="Resignation Data">
+          <VCardText>
+            <p class="mt-n4 mb-6 text-sm">
+              Can only be changed by the admin
+            </p>
+            <VRow>
+              <!-- 👉 Resign -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="accountDataLocal.resign"
+                  placeholder="2000"
+                  label="Resignation"
+                />
+              </VCol>
+              <!-- 👉 Next Job -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="accountDataLocal.update_job"
+                  placeholder="Oxford University"
+                  label="Next Job"
+                />
+              </VCol>
+            </VRow>
+          </VCardText>
+        </VCard>
+      </VCol>
+    </VRow>
+
+    <!-- 👉 Actions Button -->
     <VCol
       cols="12"
-      md="6"
+      class="d-flex flex-wrap gap-4 mt-4 d-none"
     >
-      <VCard title="Connected Accounts">
-        <VCardText>
-          <p class="mt-n4 mb-6 text-sm">
-            Display content from your connected accounts on your site
-          </p>
-          <VList class="card-list">
-            <VListItem
-              v-for="item in connectedAccounts"
-              :key="item.logo"
-              :title="item.name"
-            >
-              <template #prepend>
-                <VAvatar start>
-                  <VImg
-                    :src="item.logo"
-                    height="30"
-                  />
-                </VAvatar>
-              </template>
-
-              <VListItemSubtitle class="text-xs">
-                {{ item.subtitle }}
-              </VListItemSubtitle>
-
-              <template #append>
-                <VListItemAction>
-                  <VSwitch
-                    v-model="item.connected"
-                    density="compact"
-                    class="me-1"
-                  />
-                </VListItemAction>
-              </template>
-            </VListItem>
-          </VList>
-        </VCardText>
-      </VCard>
+      <VBtn type="submit">
+        Save changes
+      </VBtn>
+      <VBtn
+        type="reset"
+        color="secondary"
+        variant="tonal"
+        @click="resetForm"
+      >
+        Reset
+      </VBtn>
     </VCol>
-
-    <!-- 👉 Social Accounts -->
-    <VCol
-      cols="12"
-      md="6"
-    >
-      <VCard title="Social Accounts">
-        <VCardText>
-          <p class="mt-n4 mb-6 text-sm">
-            Display content from social accounts on your site
-          </p>
-          <VList class="card-list">
-            <VListItem
-              v-for="item in socialAccounts"
-              :key="item.logo"
-              :title="item.name"
-            >
-              <template #prepend>
-                <VAvatar start>
-                  <VImg
-                    :src="item.logo"
-                    height="30"
-                  />
-                </VAvatar>
-              </template>
-
-              <VListItemSubtitle v-if="item.links?.link">
-                <a
-                  :href="item.links.link"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >{{ item.links?.username }}</a>
-              </VListItemSubtitle>
-
-              <VListItemSubtitle
-                v-else
-                class="text-xs"
-              >
-                Not Connected
-              </VListItemSubtitle>
-
-              <template #append>
-                <VListItemAction>
-                  <IconBtn
-                    variant="tonal"
-                    :color="item.connected ? 'error' : 'secondary'"
-                    class="rounded"
-                  >
-                    <VIcon
-                      size="20"
-                      :icon="item.connected ? 'tabler-trash' : 'tabler-link' "
-                    />
-                  </IconBtn>
-                </VListItemAction>
-              </template>
-            </VListItem>
-          </VList>
-        </VCardText>
-      </VCard>
-    </VCol>
-  </VRow>
+  </Vform>
 </template>

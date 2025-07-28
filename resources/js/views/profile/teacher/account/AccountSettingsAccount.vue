@@ -1,28 +1,55 @@
 <script setup>
-import avatar1 from '@images/avatars/avatar-14.png'
+import avatar from '@images/avatars/no-profile.png'
+import { ref, watch } from 'vue'
 
-const accountData = {
-  avatarImg: avatar1,
-  firstName: 'johny',
-  lastName: 'Doe',
-  email: 'johnDoe@example.com',
-  org: 'Pixinvent',
-  phone: '+1 (917) 543-9876',
-  address: '123 Main St, New York, NY 10001',
-  state: 'New York',
-  zip: '10001',
-  country: 'USA',
-  language: 'English',
-  timezone: '(GMT-11:00) International Date Line West',
-  currency: 'USD',
-}
+const { teacher } = defineProps({
+  teacher: Object,
+})
 
+const emit = defineEmits([
+  'userData',
+])
+
+const refForm = ref()
+const selectedFile = ref(null)
 const refInputEl = ref()
 const isConfirmDialogOpen = ref(false)
-const accountDataLocal = ref(structuredClone(accountData))
+const accountDataLocal = ref({})
+
+watch(
+  () => teacher,
+  newTeacher => {
+    if (newTeacher) {
+      const parsedTeacher = JSON.parse(JSON.stringify(newTeacher))
+
+      // Fix: Pastikan note adalah array
+      if (typeof parsedTeacher.note === 'string') {
+        try {
+          const jsonParsed = JSON.parse(parsedTeacher.note)
+
+          parsedTeacher.note = Array.isArray(jsonParsed) ? jsonParsed : []
+        } catch (e) {
+          // fallback kalau JSON.parse gagal
+          parsedTeacher.note = parsedTeacher.note.split(',').map(s => s.trim())
+        }
+      }
+
+      accountDataLocal.value = parsedTeacher
+    }
+  },
+  { immediate: true },
+)
+
+
+const profileImg = computed(() => {
+  const imagePath = accountDataLocal.value?.image
+  
+  return imagePath ? `/storage/${imagePath}` : avatar
+})
+
 
 const resetForm = () => {
-  accountDataLocal.value = structuredClone(accountData)
+  accountDataLocal.value = JSON.parse(JSON.stringify(teacher))
 }
 
 const changeAvatar = file => {
@@ -31,73 +58,59 @@ const changeAvatar = file => {
   if (files && files.length) {
     fileReader.readAsDataURL(files[0])
     fileReader.onload = () => {
-      if (typeof fileReader.result === 'string')
-        accountDataLocal.value.avatarImg = fileReader.result
+      if (typeof fileReader.result === 'string') {
+        profileImg.value = fileReader.result
+        uploadAvatar()
+      }
     }
+
+    // Simpan file ke ref agar bisa diupload nanti
+    selectedFile.value = files[0]
   }
 }
 
-// reset avatar image
 const resetAvatar = () => {
-  accountDataLocal.value.avatarImg = accountData.avatarImg
+  profileImg.value = avatar
 }
 
-const timezones = [
-  '(GMT-11:00) International Date Line West',
-  '(GMT-11:00) Midway Island',
-  '(GMT-10:00) Hawaii',
-  '(GMT-09:00) Alaska',
-  '(GMT-08:00) Pacific Time (US & Canada)',
-  '(GMT-08:00) Tijuana',
-  '(GMT-07:00) Arizona',
-  '(GMT-07:00) Chihuahua',
-  '(GMT-07:00) La Paz',
-  '(GMT-07:00) Mazatlan',
-  '(GMT-07:00) Mountain Time (US & Canada)',
-  '(GMT-06:00) Central America',
-  '(GMT-06:00) Central Time (US & Canada)',
-  '(GMT-06:00) Guadalajara',
-  '(GMT-06:00) Mexico City',
-  '(GMT-06:00) Monterrey',
-  '(GMT-06:00) Saskatchewan',
-  '(GMT-05:00) Bogota',
-  '(GMT-05:00) Eastern Time (US & Canada)',
-  '(GMT-05:00) Indiana (East)',
-  '(GMT-05:00) Lima',
-  '(GMT-05:00) Quito',
-  '(GMT-04:00) Atlantic Time (Canada)',
-  '(GMT-04:00) Caracas',
-  '(GMT-04:00) La Paz',
-  '(GMT-04:00) Santiago',
-  '(GMT-03:30) Newfoundland',
-  '(GMT-03:00) Brasilia',
-  '(GMT-03:00) Buenos Aires',
-  '(GMT-03:00) Georgetown',
-  '(GMT-03:00) Greenland',
-  '(GMT-02:00) Mid-Atlantic',
-  '(GMT-01:00) Azores',
-  '(GMT-01:00) Cape Verde Is.',
-  '(GMT+00:00) Casablanca',
-  '(GMT+00:00) Dublin',
-  '(GMT+00:00) Edinburgh',
-  '(GMT+00:00) Lisbon',
-  '(GMT+00:00) London',
-]
+const onSubmit = () => {
+  refForm.value?.validate().then(({ valid }) => {
+    if (valid) {
+      console.log('SUBMIT PAYLOAD', accountDataLocal.value)
+      emit('userData', { ...accountDataLocal.value })
+    }
+  })
+}
 
-const currencies = [
-  'USD',
-  'EUR',
-  'GBP',
-  'AUD',
-  'BRL',
-  'CAD',
-  'CNY',
-  'CZK',
-  'DKK',
-  'HKD',
-  'HUF',
-  'INR',
-]
+const uploadAvatar = async () => {
+  if (!selectedFile.value) return
+
+  const formData = new FormData()
+
+  formData.append('image', selectedFile.value)
+  formData.append('_method', 'PUT') // Laravel support
+
+  try {
+    const response = await useApi('/user/profile', {
+      method: 'POST', // ini POST karena FormData PUT sering error
+      body: formData,
+    })
+
+    const newImagePath = response.data.image
+    const newImageUrl = response.data.url
+
+    // Update image di local UI
+    profileImg.value = newImageUrl
+    accountDataLocal.value.image = newImagePath
+
+    // ✅ Update userData biar ke-sync ke seluruh app
+    userData.value.image = newImagePath
+
+    console.log('Upload success', response)
+  } catch (err) {
+    console.error('Upload failed', err)
+  }
+}
 </script>
 
 <template>
@@ -110,11 +123,11 @@ const currencies = [
             rounded
             size="100"
             class="me-6"
-            :image="accountDataLocal.avatarImg"
+            :image="profileImg"
           />
 
           <!-- 👉 Upload Photo -->
-          <form class="d-flex flex-column justify-center gap-4">
+          <div class="d-flex flex-column justify-center gap-4">
             <div class="d-flex flex-wrap gap-2">
               <VBtn
                 color="primary"
@@ -153,172 +166,190 @@ const currencies = [
             <p class="text-body-1 mb-0">
               Allowed JPG, GIF or PNG. Max size of 800K
             </p>
-          </form>
+          </div>
         </VCardText>
 
-        <VDivider />
+        <!-- 👉 Form -->
+        <VForm
+          ref="refForm"
+          @submit.prevent="onSubmit"
+        >
+          <VDivider class="my-4" />
 
-        <VCardText class="pt-2">
-          <!-- 👉 Form -->
-          <VForm class="mt-6">
+          <VCardText class="pt-2">
             <VRow>
-              <!-- 👉 First Name -->
+              <!-- 👉 NIG -->
               <VCol
-                md="6"
+                md="4"
                 cols="12"
               >
                 <AppTextField
-                  v-model="accountDataLocal.firstName"
-                  placeholder="John"
-                  label="First Name"
+                  v-model="accountDataLocal.nig"
+                  placeholder="201122"
+                  label="NIG"
                 />
               </VCol>
 
-              <!-- 👉 Last Name -->
+              <!-- 👉 Name -->
               <VCol
-                md="6"
+                md="4"
                 cols="12"
               >
                 <AppTextField
-                  v-model="accountDataLocal.lastName"
-                  placeholder="Doe"
-                  label="Last Name"
+                  v-model="accountDataLocal.name"
+                  placeholder="John Doe"
+                  label="Name"
                 />
               </VCol>
 
-              <!-- 👉 Email -->
+              <!-- 👉 Nickname -->
               <VCol
+                md="4"
                 cols="12"
-                md="6"
               >
                 <AppTextField
-                  v-model="accountDataLocal.email"
-                  label="E-mail"
-                  placeholder="johndoe@gmail.com"
-                  type="email"
+                  v-model="accountDataLocal.nickname"
+                  placeholder="Mr. Doe"
+                  label="Nickname"
                 />
               </VCol>
 
-              <!-- 👉 Organization -->
+              <!-- 👉 birthPlace -->
               <VCol
                 cols="12"
-                md="6"
+                md="4"
               >
                 <AppTextField
-                  v-model="accountDataLocal.org"
-                  label="Organization"
-                  placeholder="ThemeSelection"
+                  v-model="accountDataLocal.birth_place"
+                  label="Birth Place"
+                  placeholder="Enter your birth place"
                 />
               </VCol>
 
-              <!-- 👉 Phone -->
+              <!-- 👉 Birth Date -->
               <VCol
                 cols="12"
-                md="6"
+                md="4"
+              >
+                <AppTextField
+                  v-model="accountDataLocal.birth_date"
+                  label="Birth Date"
+                  placeholder="Select Birth Date"
+                />
+              </VCol>
+
+              <!-- 👉 phone -->
+              <VCol
+                cols="12"
+                md="4"
               >
                 <AppTextField
                   v-model="accountDataLocal.phone"
                   label="Phone Number"
-                  placeholder="+1 (917) 543-9876"
+                  placeholder="+62 888 1234 5678"
                 />
               </VCol>
 
               <!-- 👉 Address -->
               <VCol
                 cols="12"
-                md="6"
+                md="4"
               >
                 <AppTextField
                   v-model="accountDataLocal.address"
                   label="Address"
-                  placeholder="123 Main St, New York, NY 10001"
+                  placeholder="Jln. Sirot No. 123"
                 />
               </VCol>
 
-              <!-- 👉 State -->
+              <!-- 👉 hamlet -->
               <VCol
                 cols="12"
-                md="6"
+                md="4"
               >
                 <AppTextField
-                  v-model="accountDataLocal.state"
-                  label="State"
-                  placeholder="New York"
+                  v-model="accountDataLocal.hamlet"
+                  label="Hamlet"
+                  placeholder="Dusun Mustaqim"
                 />
               </VCol>
 
-              <!-- 👉 Zip Code -->
+              <!-- 👉 village -->
               <VCol
                 cols="12"
-                md="6"
+                md="4"
               >
                 <AppTextField
-                  v-model="accountDataLocal.zip"
+                  v-model="accountDataLocal.village"
+                  label="Village"
+                  placeholder="Desa / Kec. Jannah"
+                />
+              </VCol>
+
+              <!-- 👉 city -->
+              <VCol
+                cols="12"
+                md="4"
+              >
+                <AppTextField
+                  v-model="accountDataLocal.city"
+                  label="City / Regency"
+                  placeholder="Kota / Kabupaten Firdaus"
+                />
+              </VCol>
+
+              <!-- 👉 district -->
+              <VCol
+                cols="12"
+                md="4"
+              >
+                <AppTextField
+                  v-model="accountDataLocal.district"
+                  label="Province"
+                  placeholder="Prop. Firdaus"
+                />
+              </VCol>
+
+              <!-- 👉 postal_code Code -->
+              <VCol
+                cols="12"
+                md="4"
+              >
+                <AppTextField
+                  v-model="accountDataLocal.postal_code"
                   label="Zip Code"
                   placeholder="10001"
                 />
               </VCol>
+            </VRow>
+          </VCardText>
 
-              <!-- 👉 Country -->
+          <VDivider class="mt-4" />
+
+          <VCardText class="pt-2 mt-6">
+            <VRow>
+              <!-- 👉 skill -->
               <VCol
                 cols="12"
-                md="6"
+                md="12"
               >
                 <AppSelect
-                  v-model="accountDataLocal.country"
-                  label="Country"
-                  :items="['USA', 'Canada', 'UK', 'India', 'Australia']"
-                  placeholder="Select Country"
-                />
-              </VCol>
-
-              <!-- 👉 Language -->
-              <VCol
-                cols="12"
-                md="6"
-              >
-                <AppSelect
-                  v-model="accountDataLocal.language"
-                  label="Language"
-                  placeholder="Select Language"
-                  :items="['English', 'Spanish', 'Arabic', 'Hindi', 'Urdu']"
-                />
-              </VCol>
-
-              <!-- 👉 Timezone -->
-              <VCol
-                cols="12"
-                md="6"
-              >
-                <AppSelect
-                  v-model="accountDataLocal.timezone"
-                  label="Timezone"
-                  placeholder="Select Timezone"
-                  :items="timezones"
-                  :menu-props="{ maxHeight: 200 }"
-                />
-              </VCol>
-
-              <!-- 👉 Currency -->
-              <VCol
-                cols="12"
-                md="6"
-              >
-                <AppSelect
-                  v-model="accountDataLocal.currency"
-                  label="Currency"
-                  placeholder="Select Currency"
-                  :items="currencies"
-                  :menu-props="{ maxHeight: 200 }"
+                  v-model="accountDataLocal.note"
+                  label="Skills"
+                  placeholder="Select Skills"
+                  multiple
+                  :items="['Design', 'Editing', 'Copywriting', 'Photography', 'HTML', 'CSS', 'JavaScript', 'React', 'NodeJS', 'MongoDB', 'MySQL', 'Python']"
                 />
               </VCol>
 
               <!-- 👉 Form Actions -->
               <VCol
                 cols="12"
-                class="d-flex flex-wrap gap-4"
+                class="d-flex flex-wrap gap-4 mt-4"
               >
-                <VBtn>Save changes</VBtn>
+                <VBtn type="submit">
+                  Save changes
+                </VBtn>
 
                 <VBtn
                   color="secondary"
@@ -330,8 +361,8 @@ const currencies = [
                 </VBtn>
               </VCol>
             </VRow>
-          </VForm>
-        </VCardText>
+          </VCardText>
+        </vform>
       </VCard>
     </VCol>
   </VRow>

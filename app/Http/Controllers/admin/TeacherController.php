@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers\admin;
 
-use App\Http\Controllers\Controller;
-use App\Models\AdminTeacher as Teacher;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Illuminate\Pagination\Paginator;
+use App\Models\AdminTeacher as Teacher;
 
 class TeacherController extends Controller
 {
@@ -21,34 +22,110 @@ class TeacherController extends Controller
         ]);
     }
 
+    public function showAll(Request $request)
+    {
+        $itemsPerPage = (int) $request->get('itemsPerPage', 10);
+        $page = (int) ($request->get('page', 1));
+        $sortBy = $request->get('sortBy', 'name'); // default sort field
+        $orderBy = $request->get('orderBy', 'asc'); // default order
+        $search = $request->get('q', '');
+        $registered = $request->get('year');
+        $city = $request->get('city');
+        $status = $request->get('status');
+
+        // 💥 Override page resolver
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page > 0 ? $page : 1;
+        });
+
+        $query = Teacher::query();
+
+        // Search
+        if ($search) {
+            $query->where('name', 'like', "%{$search}%")
+                ->orWhere('nickname', 'like', "%{$search}%");
+        }
+
+        // Filter by year
+        if ($registered) {
+            $query->where('registered', $registered);
+        }
+
+        // Filter by city
+        if ($city) {
+            $query->where('city', $city);
+        }
+
+        // Filter by status
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        // Sorting
+        if ($sortBy) {
+            $query->orderBy($sortBy, $orderBy);
+        } else {
+            $query->orderBy('id', 'desc'); // default sorting
+        }
+
+        $teachers = $query->paginate($itemsPerPage);
+
+        return response()->json([
+            'count' => $teachers->total(),
+            'data' => $teachers->items(),
+            'totalPages' => $teachers->lastPage(),
+            'page' => $teachers->currentPage(),
+        ]);
+    }
+
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        $fields = $request->validate([
-            'nig' => 'required|unique:admin_teachers,nis',
-            'name' => 'required',
-            'nickname' => 'required|unique:admin_teachers,nickname',
-            'gender' => 'required'
-        ]);
+        try {
+            $fields = $request->validate([
+                'nig' => 'required|unique:admin_teachers,nig',
+                'name' => 'required',
+                'nickname' => 'required|unique:admin_teachers,nickname',
+                'gender' => 'required',
+                'birth_place' => 'nullable|string',
+                'birth_date' => 'nullable',
+                'grade' => 'nullable',
+                'registered' => 'nullable',
+                'phone' => 'nullable|string',
+            ]);
 
-        $teacher = Teacher::create($fields);
+            $teacher = Teacher::create($fields);
 
-        return response()->json([
-            'message' => 'Teacher data created successfully',
-            'data' => $teacher
-        ]);
+            return response()->json([
+                'message' => 'Teacher data created successfully',
+                'data' => $teacher
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        }
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Teacher $teacher)
+    public function show($id)
     {
+        $teacher = Teacher::find($id);
+
+        if (!$teacher) {
+            return response()->json([
+                'message' => 'Teacher not found',
+            ], 404);
+        }
+
         return response()->json([
-            'message' => 'Teacher data founded',
-            'data' => $teacher
+            'message' => 'Teacher data found',
+            'data' => $teacher,
         ]);
     }
 
@@ -57,13 +134,7 @@ class TeacherController extends Controller
      */
     public function update(Request $request, Teacher $teacher)
     {
-        $fields = $request->validate([
-            'name' => 'required',
-            'nickname' => 'required|unique:admin_teachers,nickname',
-            'gender' => 'required'
-        ]);
-
-        $teacher->update($fields);
+        $teacher->update($request->all());
 
         return response()->json([
             'message' => 'Teacher data updated successfully',

@@ -155,7 +155,7 @@ const graduatedCount = computed(() => {
   return students.value.filter(student => {
     const grad = student.graduation || ''
     
-    return grad.startsWith('2')
+    return String(grad).startsWith('2')
   }).length
 })
 
@@ -209,7 +209,6 @@ const addNewStudent = async userData => {
     showAlert(error.message || 'Gagal menambahkan data', 'error')
   }
 }
-
 
 const deleteStudent = async id => {
   try {
@@ -441,11 +440,12 @@ const widgetData = ref([
             <VAvatar
               size="34"
               :variant="!item.avatar ? 'tonal' : undefined"
-              class="me-3"
+              class="me-3 overflow-hidden"
             >
               <VImg
-                v-if="item.avatar"
-                :src="item.avatar"
+                v-if="item?.image"
+                cover
+                :src="`/storage/${item.image}`"
               />
               <span v-else>{{ avatarText(item.name) }}</span>
             </VAvatar>

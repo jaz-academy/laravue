@@ -34,3 +34,34 @@ export const fetchUserData = () => {
 
   return { user, isLoading, error }
 }
+
+export const fetchAllUsers = async ({
+  q = '',
+  page = 1,
+  itemsPerPage = 10,
+  sortBy = '',
+  orderBy = 'asc',
+}) => {
+  // Build query string
+  const params = new URLSearchParams({
+    q,
+    page,
+    itemsPerPage,
+    sortBy,
+    orderBy,
+  })
+
+  const { data: usersData, error: usersError } = await useApi(`/users?${params.toString()}`)
+
+  if (usersError.value) {
+    console.error('Error fetching users:', usersError.value)
+    throw new Error(usersError.value)
+  }
+
+  return {
+    users: usersData.value?.data || [],
+    totalPages: usersData.value?.totalPages || 0,
+    totalUsers: usersData.value?.count || 0,
+    page: usersData.value?.page || 1,
+  }
+}

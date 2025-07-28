@@ -7,6 +7,21 @@ const ability = useAbility()
 // TODO: Get type from backend
 const userData = useCookie('userData')
 const userAbilityRules = useCookie('userAbilityRules').value[0]
+const accountPage = ref({})
+
+console.log(userData.value.admin_student_id)
+
+if (userData.value.admin_teacher_id >0) {
+  accountPage.value = {
+    name: 'profile-teacher-id-tab',
+    params: { id: userData.value.admin_teacher_id, tab: 'account' },
+  }
+}else{
+  accountPage.value = {
+    name: 'profile-student-id-tab',
+    params: { id: userData.value.admin_student_id, tab: 'account' },
+  }
+}
 
 const logout = async () => {
 
@@ -33,37 +48,20 @@ const userProfileList = [
   { type: 'divider' },
   {
     type: 'navItem',
+    icon: 'tabler-users',
+    title: 'Users',
+    to: { name: 'profile-users' },
+  },
+  {
+    type: 'navItem',
     icon: 'tabler-settings',
-    title: 'Settings',
-    to: {
-      name: 'profile-teacher-detail-tab',
-      params: { tab: 'account' },
-    },
-  },
-  {
-    type: 'navItem',
-    icon: 'tabler-credit-card',
-    title: 'Billing',
-    to: {
-      name: 'profile-teacher-detail-tab',
-      params: { tab: 'billing-plans' },
-    },
-    badgeProps: {
-      color: 'error',
-      content: '3',
-    },
-  },
-  { type: 'divider' },
-  {
-    type: 'navItem',
-    icon: 'tabler-currency-dollar',
-    title: 'Pricing',
-    to: { name: 'pages-pricing' },
+    title: 'Account',
+    to: accountPage.value,
   },
   {
     type: 'navItem',
     icon: 'tabler-help-circle',
-    title: 'FAQ',
+    title: 'Manual',
     to: { name: 'pages-faq' },
   },
   { type: 'divider' },
@@ -87,13 +85,14 @@ const userProfileList = [
     color="success"
   >
     <VAvatar
-      class="cursor-pointer"
-      :color="!(userData && userData.image) ? 'primary' : undefined"
-      :variant="!(userData && userData.image) ? 'tonal' : undefined"
+      class="cursor-pointer overflow-hidden"
+      :color="!(userData?.image) ? 'primary' : undefined"
+      :variant="!(userData?.image) ? 'tonal' : undefined"
     >
       <VImg
-        v-if="userData && userData.image"
-        :src="userData.image"
+        v-if="userData?.image"
+        cover
+        :src="`/storage/${userData.image}`"
       />
       <VIcon
         v-else
@@ -120,12 +119,14 @@ const userProfileList = [
                   bordered
                 >
                   <VAvatar
-                    :color="!(userData && userData.image) ? 'primary' : undefined"
-                    :variant="!(userData && userData.image) ? 'tonal' : undefined"
+                    class="cursor-pointer overflow-hidden"
+                    :color="!(userData?.image) ? 'primary' : undefined"
+                    :variant="!(userData?.image) ? 'tonal' : undefined"
                   >
                     <VImg
-                      v-if="userData && userData.image"
-                      :src="userData.image"
+                      v-if="userData?.image"
+                      cover
+                      :src="`/storage/${userData.image}`"
                     />
                     <VIcon
                       v-else

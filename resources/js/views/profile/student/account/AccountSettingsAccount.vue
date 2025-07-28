@@ -10,21 +10,43 @@ const emit = defineEmits([
   'userData',
 ])
 
-const accountDataLocal = ref({})
 const refForm = ref()
+const selectedFile = ref(null)
+const refInputEl = ref()
+const isConfirmDialogOpen = ref(false)
+const accountDataLocal = ref({})
 
 watch(
   () => student,
   newStudent => {
     if (newStudent) {
-      accountDataLocal.value = JSON.parse(JSON.stringify(newStudent))
+      const parsedStudent = JSON.parse(JSON.stringify(newStudent))
+
+      // Fix: Pastikan skills adalah array
+      if (typeof parsedStudent.skills === 'string') {
+        try {
+          const jsonParsed = JSON.parse(parsedStudent.skills)
+
+          parsedStudent.skills = Array.isArray(jsonParsed) ? jsonParsed : []
+        } catch (e) {
+          // fallback kalau JSON.parse gagal
+          parsedStudent.skills = parsedStudent.skills.split(',').map(s => s.trim())
+        }
+      }
+
+      accountDataLocal.value = parsedStudent
     }
   },
   { immediate: true },
 )
 
-const refInputEl = ref()
-const isConfirmDialogOpen = ref(false)
+
+const profileImg = computed(() => {
+  const imagePath = accountDataLocal.value?.image
+  
+  return imagePath ? `/storage/${imagePath}` : avatar
+})
+
 
 const resetForm = () => {
   accountDataLocal.value = JSON.parse(JSON.stringify(student))
@@ -36,14 +58,19 @@ const changeAvatar = file => {
   if (files && files.length) {
     fileReader.readAsDataURL(files[0])
     fileReader.onload = () => {
-      if (typeof fileReader.result === 'string')
-        accountDataLocal.value.image = fileReader.result
+      if (typeof fileReader.result === 'string') {
+        profileImg.value = fileReader.result
+        uploadAvatar()
+      }
     }
+
+    // Simpan file ke ref agar bisa diupload nanti
+    selectedFile.value = files[0]
   }
 }
 
 const resetAvatar = () => {
-  accountDataLocal.value.image = student?.image || ''
+  profileImg.value = avatar
 }
 
 const onSubmit = () => {
@@ -53,6 +80,36 @@ const onSubmit = () => {
       emit('userData', { ...accountDataLocal.value })
     }
   })
+}
+
+const uploadAvatar = async () => {
+  if (!selectedFile.value) return
+
+  const formData = new FormData()
+
+  formData.append('image', selectedFile.value)
+  formData.append('_method', 'PUT') // Laravel support
+
+  try {
+    const response = await useApi('/user/profile', {
+      method: 'POST', // ini POST karena FormData PUT sering error
+      body: formData,
+    })
+
+    const newImagePath = response.data.image
+    const newImageUrl = response.data.url
+
+    // Update image di local UI
+    profileImg.value = newImageUrl
+    accountDataLocal.value.image = newImagePath
+
+    // ✅ Update userData biar ke-sync ke seluruh app
+    userData.value.image = newImagePath
+
+    console.log('Upload success', response)
+  } catch (err) {
+    console.error('Upload failed', err)
+  }
 }
 </script>
 
@@ -66,11 +123,11 @@ const onSubmit = () => {
             rounded
             size="100"
             class="me-6"
-            :image="avatar"
+            :image="profileImg"
           />
 
           <!-- 👉 Upload Photo -->
-          <form class="d-flex flex-column justify-center gap-4">
+          <div class="d-flex flex-column justify-center gap-4">
             <div class="d-flex flex-wrap gap-2">
               <VBtn
                 color="primary"
@@ -109,7 +166,7 @@ const onSubmit = () => {
             <p class="text-body-1 mb-0">
               Allowed JPG, GIF or PNG. Max size of 800K
             </p>
-          </form>
+          </div>
         </VCardText>
 
         <!-- 👉 Form -->
@@ -189,7 +246,7 @@ const onSubmit = () => {
                 <AppTextField
                   v-model="accountDataLocal.ownPhone"
                   label="Phone Number"
-                  placeholder="+1 (917) 543-9876"
+                  placeholder="+62 888 1234 5678"
                 />
               </VCol>
 
@@ -201,7 +258,7 @@ const onSubmit = () => {
                 <AppTextField
                   v-model="accountDataLocal.address"
                   label="Address"
-                  placeholder="123 Main St, New York, NY 10001"
+                  placeholder="Jln. Sirot No. 123"
                 />
               </VCol>
 
@@ -213,7 +270,7 @@ const onSubmit = () => {
                 <AppTextField
                   v-model="accountDataLocal.hamlet"
                   label="Hamlet"
-                  placeholder="Enter your hamlet"
+                  placeholder="Dusun Mustaqim"
                 />
               </VCol>
 
@@ -225,7 +282,7 @@ const onSubmit = () => {
                 <AppTextField
                   v-model="accountDataLocal.village"
                   label="Village"
-                  placeholder="Enter your village"
+                  placeholder="Desa / Kec. Jannah"
                 />
               </VCol>
 
@@ -237,7 +294,7 @@ const onSubmit = () => {
                 <AppTextField
                   v-model="accountDataLocal.city"
                   label="City / Regency"
-                  placeholder="Enter your city"
+                  placeholder="Kota / Kabupaten Firdaus"
                 />
               </VCol>
 
@@ -249,7 +306,7 @@ const onSubmit = () => {
                 <AppTextField
                   v-model="accountDataLocal.district"
                   label="Province"
-                  placeholder="Enter your Province"
+                  placeholder="Prop. Firdaus"
                 />
               </VCol>
 
@@ -279,7 +336,7 @@ const onSubmit = () => {
                 <AppTextField
                   v-model="accountDataLocal.hobby"
                   label="Hobby"
-                  placeholder="Enter your Hobby"
+                  placeholder="What do you like to do?"
                 />
               </VCol>
 
@@ -291,7 +348,7 @@ const onSubmit = () => {
                 <AppTextField
                   v-model="accountDataLocal.sport"
                   label="Sport"
-                  placeholder="Enter your Sport"
+                  placeholder="What is your favorite sport?"
                 />
               </VCol>
 
@@ -303,7 +360,7 @@ const onSubmit = () => {
                 <AppTextField
                   v-model="accountDataLocal.ambition"
                   label="Ambition"
-                  placeholder="Enter your Ambition"
+                  placeholder="What do you want to be?"
                 />
               </VCol>
 
@@ -329,7 +386,8 @@ const onSubmit = () => {
                   v-model="accountDataLocal.skills"
                   label="Skills"
                   placeholder="Select Skills"
-                  :items="['Design', 'Editing', 'Copywriting', 'Photography', 'Scheduling']"
+                  multiple
+                  :items="['Design', 'Editing', 'Copywriting', 'Photography', 'HTML', 'CSS', 'JavaScript', 'React', 'NodeJS', 'MongoDB', 'MySQL', 'Python']"
                 />
               </VCol>
 

@@ -396,6 +396,10 @@
     "allTasks": true,
     "fetchStudentById": true,
     "useCurrentUser": true,
-    "fetchUserData": true
+    "fetchUserData": true,
+    "fetchTeacherById": true,
+    "fetchTeachers": true,
+    "useUserData": true,
+    "fetchAllUsers": true
   }
 }
