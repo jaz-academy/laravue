@@ -1,9 +1,9 @@
 <script setup>
-import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 import ComposeDialog from '@/views/apps/email/ComposeDialog.vue'
 import EmailLeftSidebarContent from '@/views/apps/email/EmailLeftSidebarContent.vue'
 import EmailView from '@/views/apps/email/EmailView.vue'
 import { useEmail } from '@/views/apps/email/useEmail'
+import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 
 definePage({ meta: { layoutWrapperClasses: 'layout-content-height-fixed' } })
 
@@ -27,7 +27,7 @@ const selectedEmails = ref([])
 const {
   data: emailData,
   execute: fetchEmails,
-} = await useApi(createUrl('/apps/email', {
+} = await useFake(createUrl('/apps/email', {
   query: {
     q,
     filter: () => 'filter' in route.params ? route.params.filter : undefined,

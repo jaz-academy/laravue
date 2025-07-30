@@ -1,11 +1,11 @@
 <script setup>
-import Footer from '@/views/front-pages/front-page-footer.vue'
-import Navbar from '@/views/front-pages/front-page-navbar.vue'
+import Footer from '@/views/front/front-page-footer.vue'
+import Navbar from '@/views/front/front-page-navbar.vue'
 
 definePage({ meta: { layout: 'blank' } })
 
 const articleData = ref()
-const { data, error } = await useApi('/pages/help-center/article')
+const { data, error } = await useFake('/pages/help-center/article')
 if (error.value)
   console.log(error.value)
 else

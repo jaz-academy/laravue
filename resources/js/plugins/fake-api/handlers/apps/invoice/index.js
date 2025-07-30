@@ -1,8 +1,8 @@
+import { paginateArray } from '@api-utils/paginateArray'
+import { database } from '@db/apps/invoice/db'
 import is from '@sindresorhus/is'
 import destr from 'destr'
 import { rest } from 'msw'
-import { database } from '@db/apps/invoice/db'
-import { paginateArray } from '@api-utils/paginateArray'
 
 export const handlerAppsInvoice = [
   // 👉 Client
@@ -15,7 +15,7 @@ export const handlerAppsInvoice = [
 
   // 👉 Invoice
   // Get Invoice List
-  rest.get(('/api/apps/invoice'), (req, res, ctx) => {
+  rest.get(('/fake/apps/invoice'), (req, res, ctx) => {
     const q = req.url.searchParams.get('q')
     const status = req.url.searchParams.get('status')
     const selectedDateRange = req.url.searchParams.get('selectedDateRange')

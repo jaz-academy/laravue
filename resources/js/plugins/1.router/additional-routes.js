@@ -5,19 +5,24 @@ export const redirects = [
   // ℹ️ We are redirecting to different pages based on role.
   // NOTE: Role is just for UI purposes. ACL is based on abilities.
   {
-    path: '/',
+    path: '/login',
     name: 'index',
     redirect: to => {
       // TODO: Get type from backend
       const userData = useCookie('userData')
       const userRole = userData.value?.role
-      if (userRole === 'admin')
+      if (userRole > 0)
         return { name: 'dashboards-crm' }
-      if (userRole === 'client')
+      if (userRole === 0)
         return { name: 'access-control' }
       
       return { name: 'login', query: to.query }
     },
+  },
+  {
+    path: '/',
+    name: 'front',
+    component: () => import('@/pages/index.vue'),
   },
   {
     path: '/pages/user-profile',
@@ -61,7 +66,7 @@ export const routes = [
   {
     path: '/dashboards/academy',
     name: 'dashboards-academy',
-    component: () => import('@/pages/apps/academy/dashboard.vue'),
+    component: () => import('@/pages/academy/dashboard.vue'),
   },
   {
     path: '/apps/ecommerce/dashboard',

@@ -1,7 +1,5 @@
 <!-- ❗Errors in the form are set on line 60 -->
 <script setup>
-import { VForm } from 'vuetify/components/VForm'
-import AuthProvider from '@/views/pages/authentication/AuthProvider.vue'
 import { useGenerateImageVariant } from '@core/composable/useGenerateImageVariant'
 import authV2LoginIllustrationBorderedDark from '@images/pages/auth-v2-login-illustration-bordered-dark.png'
 import authV2LoginIllustrationBorderedLight from '@images/pages/auth-v2-login-illustration-bordered-light.png'
@@ -11,6 +9,7 @@ import authV2MaskDark from '@images/pages/misc-mask-dark.png'
 import authV2MaskLight from '@images/pages/misc-mask-light.png'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
+import { VForm } from 'vuetify/components/VForm'
 
 const authThemeImg = useGenerateImageVariant(authV2LoginIllustrationLight, authV2LoginIllustrationDark, authV2LoginIllustrationBorderedLight, authV2LoginIllustrationBorderedDark, true)
 const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
@@ -32,11 +31,13 @@ const errors = ref({
   password: undefined,
 })
 
+const errorMessage = ref('')
+
 const refVForm = ref()
 
 const credentials = ref({
-  email: 'admin@demo.com',
-  password: 'admin',
+  email: 'zah@jaz.id',
+  password: 'semangka',
 })
 
 const rememberMe = ref(false)
@@ -51,6 +52,7 @@ const login = async () => {
       },
       onResponseError({ response }) {
         errors.value = response._data.errors
+        errorMessage.value = response._data.message || 'Login failed'
       },
     })
 
@@ -61,7 +63,7 @@ const login = async () => {
     useCookie('userData').value = userData
     useCookie('accessToken').value = accessToken
     await nextTick(() => {
-      router.replace(route.query.to ? String(route.query.to) : '/')
+      router.replace(route.query.to ? String(route.query.to) : '/login')
     })
   } catch (err) {
     console.error(err)
@@ -121,20 +123,17 @@ const onSubmit = () => {
             Welcome to <span class="text-capitalize"> {{ themeConfig.app.title }} </span>! 👋🏻
           </h4>
           <p class="mb-0">
-            Please sign-in to your account and start the adventure
+            Jaz Academy Project Management System
           </p>
         </VCardText>
         <VCardText>
           <VAlert
-            color="primary"
-            variant="tonal"
+            v-if="errorMessage"
+            type="error"
+            dismissible
+            @click:close="errorMessage = ''"
           >
-            <p class="text-sm mb-2">
-              Admin Email: <strong>admin@demo.com</strong> / Pass: <strong>admin</strong>
-            </p>
-            <p class="text-sm mb-0">
-              Client Email: <strong>client@demo.com</strong> / Pass: <strong>client</strong>
-            </p>
+            {{ errorMessage }}
           </VAlert>
         </VCardText>
         <VCardText>
@@ -175,7 +174,7 @@ const onSubmit = () => {
                     label="Remember me"
                   />
                   <RouterLink
-                    class="text-primary ms-2 mb-1"
+                    class="text-primary ms-2 mb-1 d-none"
                     :to="{ name: 'forgot-password' }"
                   >
                     Forgot Password?
@@ -195,7 +194,7 @@ const onSubmit = () => {
                 cols="12"
                 class="text-center"
               >
-                <span>New on our platform?</span>
+                <span>New member?</span>
                 <RouterLink
                   class="text-primary ms-2"
                   :to="{ name: 'register' }"
@@ -217,7 +216,12 @@ const onSubmit = () => {
                 cols="12"
                 class="text-center"
               >
-                <AuthProvider />
+                <VBtn
+                  color="secondary"
+                  to="/"
+                >
+                  Back to Dashboard
+                </VBtn>
               </VCol>
             </VRow>
           </VForm>

@@ -31,27 +31,27 @@ const resolveUserStatusVariant = stat => {
 }
 
 const resolveUserRoleVariant = role => {
-  if (role === 'subscriber')
+  if (role === 'maintainer')
     return {
-      color: 'warning',
+      color: 'admin',
       icon: 'tabler-user',
     }
-  if (role === 'author')
+  if (role === 'warning')
     return {
       color: 'success',
       icon: 'tabler-circle-check',
     }
-  if (role === 'maintainer')
+  if (role === 'editor')
     return {
       color: 'primary',
       icon: 'tabler-chart-pie-2',
     }
-  if (role === 'editor')
+  if (role === 'subscriber')
     return {
       color: 'info',
       icon: 'tabler-pencil',
     }
-  if (role === 'admin')
+  if (role === 'author')
     return {
       color: 'secondary',
       icon: 'tabler-server-2',
@@ -74,24 +74,24 @@ const resolveUserRoleVariant = role => {
           <VAvatar
             rounded
             :size="100"
-            :color="!props.userData.avatar ? 'primary' : undefined"
-            :variant="!props.userData.avatar ? 'tonal' : undefined"
+            :color="!props.userData.image ? 'primary' : undefined"
+            :variant="!props.userData.image ? 'tonal' : undefined"
           >
             <VImg
-              v-if="props.userData.avatar"
-              :src="props.userData.avatar"
+              v-if="props.userData.image"
+              :src="props.userData.image"
             />
             <span
               v-else
               class="text-5xl font-weight-medium"
             >
-              {{ avatarText(props.userData.fullName) }}
+              {{ avatarText(props.userData.name) }}
             </span>
           </VAvatar>
 
-          <!-- 👉 User fullName -->
+          <!-- 👉 User name -->
           <h6 class="text-h4 mt-4">
-            {{ props.userData.fullName }}
+            {{ props.userData.name }}
           </h6>
 
           <!-- 👉 Role chip -->
@@ -168,7 +168,7 @@ const resolveUserRoleVariant = role => {
                 <h6 class="text-h6">
                   Username:
                   <span class="text-body-1">
-                    {{ props.userData.fullName }}
+                    {{ props.userData.username }}
                   </span>
                 </h6>
               </VListItemTitle>
@@ -359,12 +359,12 @@ const resolveUserRoleVariant = role => {
 
   <!-- 👉 Edit user info dialog -->
   <UserInfoEditDialog
-    v-model:isDialogVisible="isUserInfoEditDialogVisible"
+    v-model:is-dialog-visible="isUserInfoEditDialogVisible"
     :user-data="props.userData"
   />
 
   <!-- 👉 Upgrade plan dialog -->
-  <UserUpgradePlanDialog v-model:isDialogVisible="isUpgradePlanDialogVisible" />
+  <UserUpgradePlanDialog v-model:is-dialog-visible="isUpgradePlanDialogVisible" />
 </template>
 
 <style lang="scss" scoped>

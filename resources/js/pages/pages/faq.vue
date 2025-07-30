@@ -5,7 +5,7 @@ const faqSearchQuery = ref('')
 const faqs = ref([])
 
 const fetchFaqs = async () => {
-  const data = await $api('/pages/faq', { query: { q: faqSearchQuery.value } }).catch(err => console.log(err))
+  const data = await $fake('/pages/faq', { query: { q: faqSearchQuery.value } }).catch(err => console.log(err))
 
   faqs.value = data
 }

@@ -142,12 +142,12 @@ export const db = {
           title: 'Academy - Dashboard',
         },
         {
-          url: { name: 'apps-academy-my-course' },
+          url: { name: 'academy-course-list' },
           icon: 'tabler-list',
           title: 'Academy - My Courses',
         },
         {
-          url: { name: 'apps-academy-course-details' },
+          url: { name: 'academy-course-details' },
           icon: 'tabler-list',
           title: 'Academy - Course Details',
         },
@@ -182,12 +182,12 @@ export const db = {
           title: 'Invoice Add',
         },
         {
-          url: { name: 'apps-user-list' },
+          url: { name: 'profile-teacher-list' },
           icon: 'tabler-users-group',
           title: 'User List',
         },
         {
-          url: { name: 'apps-user-view-id', params: { id: 21 } },
+          url: { name: 'profile-teacher-id-tab', params: { tab: 'account' } },
           icon: 'tabler-eye',
           title: 'User View',
         },

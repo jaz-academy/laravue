@@ -86,7 +86,7 @@ const dialogModelValueUpdate = val => {
               md="6"
             >
               <AppTextField
-                v-model="userData.fullName"
+                v-model="userData.name"
                 label="Full Name"
                 placeholder="John Doe"
               />
@@ -98,7 +98,7 @@ const dialogModelValueUpdate = val => {
               md="6"
             >
               <AppTextField
-                v-model="userData.username"
+                v-model="userData.name"
                 label="Username"
                 placeholder="johndoe"
               />

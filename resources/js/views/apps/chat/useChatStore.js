@@ -8,7 +8,7 @@ export const useChatStore = defineStore('chat', {
   }),
   actions: {
     async fetchChatsAndContacts(q) {
-      const { data, error } = await useApi(createUrl('/apps/chat/chats-and-contacts', {
+      const { data, error } = await useFake(createUrl('/apps/chat/chats-and-contacts', {
         query: {
           q,
         },
@@ -26,14 +26,14 @@ export const useChatStore = defineStore('chat', {
       }
     },
     async getChat(userId) {
-      const res = await $api(`/apps/chat/chats/${userId}`)
+      const res = await $fake(`/apps/chat/chats/${userId}`)
 
       this.activeChat = res
     },
     async sendMsg(message) {
       const senderId = this.profileUser?.id
 
-      const response = await $api(`apps/chat/chats/${this.activeChat?.contact.id}`, {
+      const response = await $fake(`apps/chat/chats/${this.activeChat?.contact.id}`, {
         method: 'POST',
         body: { message, senderId },
       })

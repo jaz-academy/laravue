@@ -1,6 +1,6 @@
 <script setup>
-import { VDataTableServer } from 'vuetify/labs/VDataTable'
 import { paginationMeta } from '@api-utils/paginationMeta'
+import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
 // 👉 headers
 const headers = [
@@ -66,7 +66,7 @@ const colors = {
   },
 }
 
-const { data: permissionsData } = await useApi(createUrl('/apps/permissions', {
+const { data: permissionsData } = await useFake(createUrl('/apps/permissions', {
   query: {
     q: search,
     itemsPerPage,
@@ -231,10 +231,10 @@ const editPermission = name => {
       </VCard>
 
       <AddEditPermissionDialog
-        v-model:isDialogVisible="isPermissionDialogVisible"
+        v-model:is-dialog-visible="isPermissionDialogVisible"
         v-model:permission-name="permissionName"
       />
-      <AddEditPermissionDialog v-model:isDialogVisible="isAddPermissionDialogVisible" />
+      <AddEditPermissionDialog v-model:is-dialog-visible="isAddPermissionDialogVisible" />
     </VCol>
   </VRow>
 </template>

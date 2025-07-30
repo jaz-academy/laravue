@@ -1,6 +1,6 @@
 <script setup>
-import Footer from '@/views/front-pages/front-page-footer.vue'
-import Navbar from '@/views/front-pages/front-page-navbar.vue'
+import Footer from '@/views/front/front-page-footer.vue'
+import Navbar from '@/views/front/front-page-navbar.vue'
 import AddressContent from '@/views/wizard-examples/checkout/Address.vue'
 import CartContent from '@/views/wizard-examples/checkout/Cart.vue'
 import ConfirmationContent from '@/views/wizard-examples/checkout/Confirmation.vue'
@@ -143,8 +143,7 @@ const currentStep = ref(0)
 }
 
 .checkout-card {
-  margin-block-end: 6.25rem;
-  margin-block-start: 9.75rem;
+  margin-block: 9.75rem 6.25rem;
 }
 
 @media (max-width: 960px) and (min-width: 600px) {

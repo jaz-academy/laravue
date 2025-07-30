@@ -1,7 +1,7 @@
 <script setup>
-import { VDataTable } from 'vuetify/labs/VDataTable'
 import { paginationMeta } from '@api-utils/paginationMeta'
 import { avatarText } from '@core/utils/formatters'
+import { VDataTable } from 'vuetify/labs/VDataTable'
 
 const searchQuery = ref('')
 
@@ -42,7 +42,7 @@ const headers = [
   },
 ]
 
-const { data: projectsData } = await useApi('/dashboard/analytics/projects')
+const { data: projectsData } = await useFake('/dashboard/analytics/projects')
 const projects = computed(() => projectsData.value)
 </script>
 

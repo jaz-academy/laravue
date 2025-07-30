@@ -9,7 +9,7 @@ export const db = {
   users: [
     {
       id: 1,
-      fullName: 'Galasasen Slixby',
+      name: 'Galasasen Slixby',
       company: 'Yotz PVT LTD',
       role: 'editor',
       username: 'gslixby0',
@@ -23,7 +23,7 @@ export const db = {
     },
     {
       id: 2,
-      fullName: 'Halsey Redmore',
+      name: 'Halsey Redmore',
       company: 'Skinder PVT LTD',
       role: 'author',
       username: 'hredmore1',
@@ -37,7 +37,7 @@ export const db = {
     },
     {
       id: 3,
-      fullName: 'Marjory Sicely',
+      name: 'Marjory Sicely',
       company: 'Oozz PVT LTD',
       role: 'maintainer',
       username: 'msicely2',
@@ -51,7 +51,7 @@ export const db = {
     },
     {
       id: 4,
-      fullName: 'Cyrill Risby',
+      name: 'Cyrill Risby',
       company: 'Oozz PVT LTD',
       role: 'maintainer',
       username: 'crisby3',
@@ -65,7 +65,7 @@ export const db = {
     },
     {
       id: 5,
-      fullName: 'Maggy Hurran',
+      name: 'Maggy Hurran',
       company: 'Aimbo PVT LTD',
       role: 'subscriber',
       username: 'mhurran4',
@@ -79,7 +79,7 @@ export const db = {
     },
     {
       id: 6,
-      fullName: 'Silvain Halstead',
+      name: 'Silvain Halstead',
       company: 'Jaxbean PVT LTD',
       role: 'author',
       username: 'shalstead5',
@@ -93,7 +93,7 @@ export const db = {
     },
     {
       id: 7,
-      fullName: 'Breena Gallemore',
+      name: 'Breena Gallemore',
       company: 'Jazzy PVT LTD',
       role: 'subscriber',
       username: 'bgallemore6',
@@ -107,7 +107,7 @@ export const db = {
     },
     {
       id: 8,
-      fullName: 'Kathryne Liger',
+      name: 'Kathryne Liger',
       company: 'Pixoboo PVT LTD',
       role: 'author',
       username: 'kliger7',
@@ -121,7 +121,7 @@ export const db = {
     },
     {
       id: 9,
-      fullName: 'Franz Scotfurth',
+      name: 'Franz Scotfurth',
       company: 'Tekfly PVT LTD',
       role: 'subscriber',
       username: 'fscotfurth8',
@@ -135,7 +135,7 @@ export const db = {
     },
     {
       id: 10,
-      fullName: 'Jillene Bellany',
+      name: 'Jillene Bellany',
       company: 'Gigashots PVT LTD',
       role: 'maintainer',
       username: 'jbellany9',
@@ -149,7 +149,7 @@ export const db = {
     },
     {
       id: 11,
-      fullName: 'Jonah Wharlton',
+      name: 'Jonah Wharlton',
       company: 'Eare PVT LTD',
       role: 'subscriber',
       username: 'jwharltona',
@@ -163,7 +163,7 @@ export const db = {
     },
     {
       id: 12,
-      fullName: 'Seth Hallam',
+      name: 'Seth Hallam',
       company: 'Yakitri PVT LTD',
       role: 'subscriber',
       username: 'shallamb',
@@ -177,7 +177,7 @@ export const db = {
     },
     {
       id: 13,
-      fullName: 'Yoko Pottie',
+      name: 'Yoko Pottie',
       company: 'Leenti PVT LTD',
       role: 'subscriber',
       username: 'ypottiec',
@@ -191,7 +191,7 @@ export const db = {
     },
     {
       id: 14,
-      fullName: 'Maximilianus Krause',
+      name: 'Maximilianus Krause',
       company: 'Digitube PVT LTD',
       role: 'author',
       username: 'mkraused',
@@ -205,7 +205,7 @@ export const db = {
     },
     {
       id: 15,
-      fullName: 'Zsazsa McCleverty',
+      name: 'Zsazsa McCleverty',
       company: 'Kaymbo PVT LTD',
       role: 'maintainer',
       username: 'zmcclevertye',
@@ -219,7 +219,7 @@ export const db = {
     },
     {
       id: 16,
-      fullName: 'Bentlee Emblin',
+      name: 'Bentlee Emblin',
       company: 'Yambee PVT LTD',
       role: 'author',
       username: 'bemblinf',
@@ -233,7 +233,7 @@ export const db = {
     },
     {
       id: 17,
-      fullName: 'Brockie Myles',
+      name: 'Brockie Myles',
       company: 'Wikivu PVT LTD',
       role: 'maintainer',
       username: 'bmylesg',
@@ -247,7 +247,7 @@ export const db = {
     },
     {
       id: 18,
-      fullName: 'Bertha Biner',
+      name: 'Bertha Biner',
       company: 'Twinte PVT LTD',
       role: 'editor',
       username: 'bbinerh',
@@ -261,7 +261,7 @@ export const db = {
     },
     {
       id: 19,
-      fullName: 'Travus Bruntjen',
+      name: 'Travus Bruntjen',
       company: 'Cogidoo PVT LTD',
       role: 'admin',
       username: 'tbruntjeni',
@@ -275,7 +275,7 @@ export const db = {
     },
     {
       id: 20,
-      fullName: 'Wesley Burland',
+      name: 'Wesley Burland',
       company: 'Bubblemix PVT LTD',
       role: 'editor',
       username: 'wburlandj',
@@ -289,7 +289,7 @@ export const db = {
     },
     {
       id: 21,
-      fullName: 'Selina Kyle',
+      name: 'Selina Kyle',
       company: 'Wayne Enterprises',
       role: 'admin',
       username: 'catwomen1940',
@@ -303,7 +303,7 @@ export const db = {
     },
     {
       id: 22,
-      fullName: 'Jameson Lyster',
+      name: 'Jameson Lyster',
       company: 'Quaxo PVT LTD',
       role: 'editor',
       username: 'jlysterl',
@@ -317,7 +317,7 @@ export const db = {
     },
     {
       id: 23,
-      fullName: 'Kare Skitterel',
+      name: 'Kare Skitterel',
       company: 'Ainyx PVT LTD',
       role: 'maintainer',
       username: 'kskitterelm',
@@ -331,7 +331,7 @@ export const db = {
     },
     {
       id: 24,
-      fullName: 'Cleavland Hatherleigh',
+      name: 'Cleavland Hatherleigh',
       company: 'Flipopia PVT LTD',
       role: 'admin',
       username: 'chatherleighn',
@@ -345,7 +345,7 @@ export const db = {
     },
     {
       id: 25,
-      fullName: 'Adeline Micco',
+      name: 'Adeline Micco',
       company: 'Topicware PVT LTD',
       role: 'admin',
       username: 'amiccoo',
@@ -359,7 +359,7 @@ export const db = {
     },
     {
       id: 26,
-      fullName: 'Hugh Hasson',
+      name: 'Hugh Hasson',
       company: 'Skinix PVT LTD',
       role: 'admin',
       username: 'hhassonp',
@@ -373,7 +373,7 @@ export const db = {
     },
     {
       id: 27,
-      fullName: 'Germain Jacombs',
+      name: 'Germain Jacombs',
       company: 'Youopia PVT LTD',
       role: 'editor',
       username: 'gjacombsq',
@@ -387,7 +387,7 @@ export const db = {
     },
     {
       id: 28,
-      fullName: 'Bree Kilday',
+      name: 'Bree Kilday',
       company: 'Jetpulse PVT LTD',
       role: 'maintainer',
       username: 'bkildayr',
@@ -401,7 +401,7 @@ export const db = {
     },
     {
       id: 29,
-      fullName: 'Candice Pinyon',
+      name: 'Candice Pinyon',
       company: 'Kare PVT LTD',
       role: 'maintainer',
       username: 'cpinyons',
@@ -415,7 +415,7 @@ export const db = {
     },
     {
       id: 30,
-      fullName: 'Isabel Mallindine',
+      name: 'Isabel Mallindine',
       company: 'Voomm PVT LTD',
       role: 'subscriber',
       username: 'imallindinet',
@@ -429,7 +429,7 @@ export const db = {
     },
     {
       id: 31,
-      fullName: 'Gwendolyn Meineken',
+      name: 'Gwendolyn Meineken',
       company: 'Oyondu PVT LTD',
       role: 'admin',
       username: 'gmeinekenu',
@@ -443,7 +443,7 @@ export const db = {
     },
     {
       id: 32,
-      fullName: 'Rafaellle Snowball',
+      name: 'Rafaellle Snowball',
       company: 'Fivespan PVT LTD',
       role: 'editor',
       username: 'rsnowballv',
@@ -457,7 +457,7 @@ export const db = {
     },
     {
       id: 33,
-      fullName: 'Rochette Emer',
+      name: 'Rochette Emer',
       company: 'Thoughtworks PVT LTD',
       role: 'admin',
       username: 'remerw',
@@ -471,7 +471,7 @@ export const db = {
     },
     {
       id: 34,
-      fullName: 'Ophelie Fibbens',
+      name: 'Ophelie Fibbens',
       company: 'Jaxbean PVT LTD',
       role: 'subscriber',
       username: 'ofibbensx',
@@ -485,7 +485,7 @@ export const db = {
     },
     {
       id: 35,
-      fullName: 'Stephen MacGilfoyle',
+      name: 'Stephen MacGilfoyle',
       company: 'Browseblab PVT LTD',
       role: 'maintainer',
       username: 'smacgilfoyley',
@@ -499,7 +499,7 @@ export const db = {
     },
     {
       id: 36,
-      fullName: 'Bradan Rosebotham',
+      name: 'Bradan Rosebotham',
       company: 'Agivu PVT LTD',
       role: 'subscriber',
       username: 'brosebothamz',
@@ -513,7 +513,7 @@ export const db = {
     },
     {
       id: 37,
-      fullName: 'Skip Hebblethwaite',
+      name: 'Skip Hebblethwaite',
       company: 'Katz PVT LTD',
       role: 'admin',
       username: 'shebblethwaite10',
@@ -527,7 +527,7 @@ export const db = {
     },
     {
       id: 38,
-      fullName: 'Moritz Piccard',
+      name: 'Moritz Piccard',
       company: 'Twitternation PVT LTD',
       role: 'maintainer',
       username: 'mpiccard11',
@@ -541,7 +541,7 @@ export const db = {
     },
     {
       id: 39,
-      fullName: 'Tyne Widmore',
+      name: 'Tyne Widmore',
       company: 'Yombu PVT LTD',
       role: 'subscriber',
       username: 'twidmore12',
@@ -555,7 +555,7 @@ export const db = {
     },
     {
       id: 40,
-      fullName: 'Florenza Desporte',
+      name: 'Florenza Desporte',
       company: 'Kamba PVT LTD',
       role: 'author',
       username: 'fdesporte13',
@@ -569,7 +569,7 @@ export const db = {
     },
     {
       id: 41,
-      fullName: 'Edwina Baldetti',
+      name: 'Edwina Baldetti',
       company: 'Dazzlesphere PVT LTD',
       role: 'maintainer',
       username: 'ebaldetti14',
@@ -583,7 +583,7 @@ export const db = {
     },
     {
       id: 42,
-      fullName: 'Benedetto Rossiter',
+      name: 'Benedetto Rossiter',
       company: 'Mybuzz PVT LTD',
       role: 'editor',
       username: 'brossiter15',
@@ -597,7 +597,7 @@ export const db = {
     },
     {
       id: 43,
-      fullName: 'Micaela McNirlan',
+      name: 'Micaela McNirlan',
       company: 'Tambee PVT LTD',
       role: 'admin',
       username: 'mmcnirlan16',
@@ -611,7 +611,7 @@ export const db = {
     },
     {
       id: 44,
-      fullName: 'Vladamir Koschek',
+      name: 'Vladamir Koschek',
       company: 'Centimia PVT LTD',
       role: 'author',
       username: 'vkoschek17',
@@ -625,7 +625,7 @@ export const db = {
     },
     {
       id: 45,
-      fullName: 'Corrie Perot',
+      name: 'Corrie Perot',
       company: 'Flipopia PVT LTD',
       role: 'subscriber',
       username: 'cperot18',
@@ -639,7 +639,7 @@ export const db = {
     },
     {
       id: 46,
-      fullName: 'Saunder Offner',
+      name: 'Saunder Offner',
       company: 'Skalith PVT LTD',
       role: 'maintainer',
       username: 'soffner19',
@@ -653,7 +653,7 @@ export const db = {
     },
     {
       id: 47,
-      fullName: 'Karena Courtliff',
+      name: 'Karena Courtliff',
       company: 'Feedfire PVT LTD',
       role: 'admin',
       username: 'kcourtliff1a',
@@ -667,7 +667,7 @@ export const db = {
     },
     {
       id: 48,
-      fullName: 'Onfre Wind',
+      name: 'Onfre Wind',
       company: 'Thoughtmix PVT LTD',
       role: 'admin',
       username: 'owind1b',
@@ -681,7 +681,7 @@ export const db = {
     },
     {
       id: 49,
-      fullName: 'Paulie Durber',
+      name: 'Paulie Durber',
       company: 'Babbleblab PVT LTD',
       role: 'subscriber',
       username: 'pdurber1c',
@@ -695,7 +695,7 @@ export const db = {
     },
     {
       id: 50,
-      fullName: 'Beverlie Krabbe',
+      name: 'Beverlie Krabbe',
       company: 'Kaymbo PVT LTD',
       role: 'editor',
       username: 'bkrabbe1d',

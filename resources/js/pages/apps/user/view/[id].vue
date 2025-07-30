@@ -32,7 +32,7 @@ const tabs = [
   },
 ]
 
-const { data: userData } = await useApi(`/apps/users/${ route.params.id }`)
+const { data: userData } = await useFake(`/apps/users/${ route.params.id }`)
 </script>
 
 <template>

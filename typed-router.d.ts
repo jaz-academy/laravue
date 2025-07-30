@@ -8,64 +8,61 @@
 /// <reference types="unplugin-vue-router/client" />
 
 import type {
+  NavigationGuard,
+  ParamValue,
+  RouteLocationAsPathTypedList,
+  RouteLocationAsRelativeTypedList,
+  RouteLocationAsString,
+  RouteLocationNormalizedLoadedTypedList,
+  RouteLocationNormalizedTypedList,
+  RouteLocationResolvedTypedList,
   // type safe route locations
   RouteLocationTypedList,
-  RouteLocationResolvedTypedList,
-  RouteLocationNormalizedTypedList,
-  RouteLocationNormalizedLoadedTypedList,
-  RouteLocationAsString,
-  RouteLocationAsRelativeTypedList,
-  RouteLocationAsPathTypedList,
-
   // helper types
   // route definitions
   RouteRecordInfo,
-  ParamValue,
-  ParamValueOneOrMore,
-  ParamValueZeroOrMore,
-  ParamValueZeroOrOne,
-
-  // vue-router extensions
-  _RouterTyped,
-  RouterLinkTyped,
   RouterLinkPropsTyped,
-  NavigationGuard,
+  RouterLinkTyped,
   UseLinkFnTyped,
 
   // data fetching
   _DataLoader,
   _DefineLoaderOptions,
+  // vue-router extensions
+  _RouterTyped
 } from 'unplugin-vue-router/types'
 
 declare module 'vue-router/auto/routes' {
   export interface RouteNamedMap {
     '$error': RouteRecordInfo<'$error', '/:error(.*)', { error: ParamValue<true> }, { error: ParamValue<false> }>,
+    'academy-assessment-competence': RouteRecordInfo<'academy-assessment-competence', '/academy/assessment/competence', Record<never, never>, Record<never, never>>,
+    'academy-assessment-details-id': RouteRecordInfo<'academy-assessment-details-id', '/academy/assessment/details/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    'academy-assessment-report-id': RouteRecordInfo<'academy-assessment-report-id', '/academy/assessment/report/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    'academy-assessment-scores': RouteRecordInfo<'academy-assessment-scores', '/academy/assessment/scores', Record<never, never>, Record<never, never>>,
+    'academy-assessment-scores-edit-id': RouteRecordInfo<'academy-assessment-scores-edit-id', '/academy/assessment/scores/edit/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    'academy-assessment-subject': RouteRecordInfo<'academy-assessment-subject', '/academy/assessment/subject', Record<never, never>, Record<never, never>>,
+    'academy-awards': RouteRecordInfo<'academy-awards', '/academy/awards', Record<never, never>, Record<never, never>>,
+    'academy-calendar': RouteRecordInfo<'academy-calendar', '/academy/calendar', Record<never, never>, Record<never, never>>,
+    'academy-course-details': RouteRecordInfo<'academy-course-details', '/academy/course/details', Record<never, never>, Record<never, never>>,
+    'academy-course-list': RouteRecordInfo<'academy-course-list', '/academy/course/list', Record<never, never>, Record<never, never>>,
+    'academy-dashboard': RouteRecordInfo<'academy-dashboard', '/academy/dashboard', Record<never, never>, Record<never, never>>,
+    'academy-product-add': RouteRecordInfo<'academy-product-add', '/academy/product/add', Record<never, never>, Record<never, never>>,
+    'academy-product-courses': RouteRecordInfo<'academy-product-courses', '/academy/product/courses', Record<never, never>, Record<never, never>>,
+    'academy-product-list': RouteRecordInfo<'academy-product-list', '/academy/product/list', Record<never, never>, Record<never, never>>,
+    'academy-project-plans': RouteRecordInfo<'academy-project-plans', '/academy/project/plans', Record<never, never>, Record<never, never>>,
+    'academy-project-tasks': RouteRecordInfo<'academy-project-tasks', '/academy/project/tasks', Record<never, never>, Record<never, never>>,
     'access-control': RouteRecordInfo<'access-control', '/access-control', Record<never, never>, Record<never, never>>,
-    'apps-academy-course-details': RouteRecordInfo<'apps-academy-course-details', '/apps/academy/course-details', Record<never, never>, Record<never, never>>,
-    'apps-academy-dashboard': RouteRecordInfo<'apps-academy-dashboard', '/apps/academy/dashboard', Record<never, never>, Record<never, never>>,
-    'apps-academy-my-course': RouteRecordInfo<'apps-academy-my-course', '/apps/academy/my-course', Record<never, never>, Record<never, never>>,
-    'apps-calendar': RouteRecordInfo<'apps-calendar', '/apps/calendar', Record<never, never>, Record<never, never>>,
     'apps-chat': RouteRecordInfo<'apps-chat', '/apps/chat', Record<never, never>, Record<never, never>>,
-    'apps-ecommerce-customer-details-id': RouteRecordInfo<'apps-ecommerce-customer-details-id', '/apps/ecommerce/customer/details/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
-    'apps-ecommerce-customer-list': RouteRecordInfo<'apps-ecommerce-customer-list', '/apps/ecommerce/customer/list', Record<never, never>, Record<never, never>>,
     'apps-ecommerce-manage-review': RouteRecordInfo<'apps-ecommerce-manage-review', '/apps/ecommerce/manage-review', Record<never, never>, Record<never, never>>,
     'apps-ecommerce-order-details-id': RouteRecordInfo<'apps-ecommerce-order-details-id', '/apps/ecommerce/order/details/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'apps-ecommerce-order-list': RouteRecordInfo<'apps-ecommerce-order-list', '/apps/ecommerce/order/list', Record<never, never>, Record<never, never>>,
-    'apps-ecommerce-product-add': RouteRecordInfo<'apps-ecommerce-product-add', '/apps/ecommerce/product/add', Record<never, never>, Record<never, never>>,
-    'apps-ecommerce-product-category-list': RouteRecordInfo<'apps-ecommerce-product-category-list', '/apps/ecommerce/product/category-list', Record<never, never>, Record<never, never>>,
-    'apps-ecommerce-product-list': RouteRecordInfo<'apps-ecommerce-product-list', '/apps/ecommerce/product/list', Record<never, never>, Record<never, never>>,
     'apps-ecommerce-referrals': RouteRecordInfo<'apps-ecommerce-referrals', '/apps/ecommerce/referrals', Record<never, never>, Record<never, never>>,
     'apps-ecommerce-settings': RouteRecordInfo<'apps-ecommerce-settings', '/apps/ecommerce/settings', Record<never, never>, Record<never, never>>,
     'apps-email': RouteRecordInfo<'apps-email', '/apps/email', Record<never, never>, Record<never, never>>,
-    'apps-invoice-add': RouteRecordInfo<'apps-invoice-add', '/apps/invoice/add', Record<never, never>, Record<never, never>>,
-    'apps-invoice-edit-id': RouteRecordInfo<'apps-invoice-edit-id', '/apps/invoice/edit/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
-    'apps-invoice-list': RouteRecordInfo<'apps-invoice-list', '/apps/invoice/list', Record<never, never>, Record<never, never>>,
-    'apps-invoice-preview-id': RouteRecordInfo<'apps-invoice-preview-id', '/apps/invoice/preview/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'apps-logistics-dashboard': RouteRecordInfo<'apps-logistics-dashboard', '/apps/logistics/dashboard', Record<never, never>, Record<never, never>>,
     'apps-logistics-fleet': RouteRecordInfo<'apps-logistics-fleet', '/apps/logistics/fleet', Record<never, never>, Record<never, never>>,
     'apps-permissions': RouteRecordInfo<'apps-permissions', '/apps/permissions', Record<never, never>, Record<never, never>>,
     'apps-roles': RouteRecordInfo<'apps-roles', '/apps/roles', Record<never, never>, Record<never, never>>,
-    'apps-user-list': RouteRecordInfo<'apps-user-list', '/apps/user/list', Record<never, never>, Record<never, never>>,
     'apps-user-view-id': RouteRecordInfo<'apps-user-view-id', '/apps/user/view/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'apps-email-filter': RouteRecordInfo<'apps-email-filter', '/apps/email/:filter', { filter: ParamValue<true> }, { filter: ParamValue<false> }>,
     'apps-email-label': RouteRecordInfo<'apps-email-label', '/apps/email/:label', { label: ParamValue<true> }, { label: ParamValue<false> }>,
@@ -92,6 +89,18 @@ declare module 'vue-router/auto/routes' {
     'dashboards-ecommerce': RouteRecordInfo<'dashboards-ecommerce', '/dashboards/ecommerce', Record<never, never>, Record<never, never>>,
     'extensions-swiper': RouteRecordInfo<'extensions-swiper', '/extensions/swiper', Record<never, never>, Record<never, never>>,
     'extensions-tour': RouteRecordInfo<'extensions-tour', '/extensions/tour', Record<never, never>, Record<never, never>>,
+    'financial-finance': RouteRecordInfo<'financial-finance', '/financial/finance', Record<never, never>, Record<never, never>>,
+    'financial-finance-account': RouteRecordInfo<'financial-finance-account', '/financial/finance/account', Record<never, never>, Record<never, never>>,
+    'financial-finance-billing': RouteRecordInfo<'financial-finance-billing', '/financial/finance/billing', Record<never, never>, Record<never, never>>,
+    'financial-finance-discount': RouteRecordInfo<'financial-finance-discount', '/financial/finance/discount', Record<never, never>, Record<never, never>>,
+    'financial-finance-edit-id': RouteRecordInfo<'financial-finance-edit-id', '/financial/finance/edit/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    'financial-finance-preview-id': RouteRecordInfo<'financial-finance-preview-id', '/financial/finance/preview/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    'financial-payment-add': RouteRecordInfo<'financial-payment-add', '/financial/payment/add', Record<never, never>, Record<never, never>>,
+    'financial-payment-edit-id': RouteRecordInfo<'financial-payment-edit-id', '/financial/payment/edit/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    'financial-payment-list': RouteRecordInfo<'financial-payment-list', '/financial/payment/list', Record<never, never>, Record<never, never>>,
+    'financial-payment-preview-id': RouteRecordInfo<'financial-payment-preview-id', '/financial/payment/preview/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    'financial-payment-recap-id': RouteRecordInfo<'financial-payment-recap-id', '/financial/payment/recap/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    'financial-savings': RouteRecordInfo<'financial-savings', '/financial/savings', Record<never, never>, Record<never, never>>,
     'forgot-password': RouteRecordInfo<'forgot-password', '/forgot-password', Record<never, never>, Record<never, never>>,
     'forms-autocomplete': RouteRecordInfo<'forms-autocomplete', '/forms/autocomplete', Record<never, never>, Record<never, never>>,
     'forms-checkbox': RouteRecordInfo<'forms-checkbox', '/forms/checkbox', Record<never, never>, Record<never, never>>,
@@ -120,7 +129,6 @@ declare module 'vue-router/auto/routes' {
     'front-pages-pricing': RouteRecordInfo<'front-pages-pricing', '/front-pages/pricing', Record<never, never>, Record<never, never>>,
     'login': RouteRecordInfo<'login', '/login', Record<never, never>, Record<never, never>>,
     'not-authorized': RouteRecordInfo<'not-authorized', '/not-authorized', Record<never, never>, Record<never, never>>,
-    'pages-account-settings-tab': RouteRecordInfo<'pages-account-settings-tab', '/pages/account-settings/:tab', { tab: ParamValue<true> }, { tab: ParamValue<false> }>,
     'pages-authentication-forgot-password-v1': RouteRecordInfo<'pages-authentication-forgot-password-v1', '/pages/authentication/forgot-password-v1', Record<never, never>, Record<never, never>>,
     'pages-authentication-forgot-password-v2': RouteRecordInfo<'pages-authentication-forgot-password-v2', '/pages/authentication/forgot-password-v2', Record<never, never>, Record<never, never>>,
     'pages-authentication-login-v1': RouteRecordInfo<'pages-authentication-login-v1', '/pages/authentication/login-v1', Record<never, never>, Record<never, never>>,
@@ -146,7 +154,13 @@ declare module 'vue-router/auto/routes' {
     'pages-misc-under-maintenance': RouteRecordInfo<'pages-misc-under-maintenance', '/pages/misc/under-maintenance', Record<never, never>, Record<never, never>>,
     'pages-pricing': RouteRecordInfo<'pages-pricing', '/pages/pricing', Record<never, never>, Record<never, never>>,
     'pages-typography': RouteRecordInfo<'pages-typography', '/pages/typography', Record<never, never>, Record<never, never>>,
-    'pages-user-profile-tab': RouteRecordInfo<'pages-user-profile-tab', '/pages/user-profile/:tab', { tab: ParamValue<true> }, { tab: ParamValue<false> }>,
+    'profile-school': RouteRecordInfo<'profile-school', '/profile/school', Record<never, never>, Record<never, never>>,
+    'profile-student-id-tab': RouteRecordInfo<'profile-student-id-tab', '/profile/student/:id/:tab', { tab: ParamValue<true> }, { tab: ParamValue<false> }>,
+    'profile-student-list': RouteRecordInfo<'profile-student-list', '/profile/student/list', Record<never, never>, Record<never, never>>,
+    'profile-teacher-id-tab': RouteRecordInfo<'profile-teacher-id-tab', '/profile/teacher/:id/:tab', { tab: ParamValue<true> }, { tab: ParamValue<false> }>,
+    'profile-teacher-list': RouteRecordInfo<'profile-teacher-list', '/profile/teacher/list', Record<never, never>, Record<never, never>>,
+    'profile-user-tab': RouteRecordInfo<'profile-user-tab', '/profile/user/:tab', { tab: ParamValue<true> }, { tab: ParamValue<false> }>,
+    'profile-users': RouteRecordInfo<'profile-users', '/profile/users', Record<never, never>, Record<never, never>>,
     'register': RouteRecordInfo<'register', '/register', Record<never, never>, Record<never, never>>,
     'tables-data-table': RouteRecordInfo<'tables-data-table', '/tables/data-table', Record<never, never>, Record<never, never>>,
     'tables-simple-table': RouteRecordInfo<'tables-simple-table', '/tables/simple-table', Record<never, never>, Record<never, never>>,
@@ -232,10 +246,8 @@ declare module 'vue-router/auto' {
   ): _DataLoader<Awaited<P>, isLazy>
 
   export {
-    _definePage as definePage,
-    _HasDataLoaderMeta as HasDataLoaderMeta,
-    _setupDataFetchingGuard as setupDataFetchingGuard,
-    _stopDataFetchingScope as stopDataFetchingScope,
+    _HasDataLoaderMeta as HasDataLoaderMeta, _definePage as definePage, _setupDataFetchingGuard as setupDataFetchingGuard,
+    _stopDataFetchingScope as stopDataFetchingScope
   } from 'unplugin-vue-router/runtime'
 }
 

@@ -1,6 +1,6 @@
 <script setup>
-import { VDataTableServer } from 'vuetify/labs/VDataTable'
 import { paginationMeta } from '@api-utils/paginationMeta'
+import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
 // Data table options
 const itemsPerPage = ref(5)
@@ -14,7 +14,7 @@ const updateOptions = options => {
   orderBy.value = options.sortBy[0]?.order
 }
 
-const { data: vehiclesData } = await useApi(createUrl('/apps/logistics/vehicles', {
+const { data: vehiclesData } = await useFake(createUrl('/apps/logistics/vehicles', {
   query: {
     page,
     itemsPerPage,

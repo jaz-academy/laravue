@@ -1,12 +1,12 @@
+import { paginateArray } from '@api-utils/paginateArray'
+import { db } from '@db/apps/users/db'
 import is from '@sindresorhus/is'
 import destr from 'destr'
 import { rest } from 'msw'
-import { db } from '@db/apps/users/db'
-import { paginateArray } from '@api-utils/paginateArray'
 
 export const handlerAppsUsers = [
   // Get Users Details
-  rest.get(('/api/apps/users'), (req, res, ctx) => {
+  rest.get(('/fake/apps/users'), (req, res, ctx) => {
     const q = req.url.searchParams.get('q')
     const role = req.url.searchParams.get('role')
     const plan = req.url.searchParams.get('plan')
@@ -27,17 +27,17 @@ export const handlerAppsUsers = [
     const pageLocal = is.number(parsedPage) ? parsedPage : 1
 
     // filter users
-    let filteredUsers = db.users.filter(user => ((user.fullName.toLowerCase().includes(queryLower) || user.email.toLowerCase().includes(queryLower)) && user.role === (role || user.role) && user.currentPlan === (plan || user.currentPlan) && user.status === (status || user.status))).reverse()
+    let filteredUsers = db.users.filter(user => ((user.name.toLowerCase().includes(queryLower) || user.email.toLowerCase().includes(queryLower)) && user.role === (role || user.role) && user.currentPlan === (plan || user.currentPlan) && user.status === (status || user.status))).reverse()
 
     // sort users
     if (sortByLocal) {
       console.log(sortByLocal)
-      if (sortByLocal === 'user') {
+      if (sortByLocal === 'name') {
         filteredUsers = filteredUsers.sort((a, b) => {
           if (orderByLocal === 'asc')
-            return a.fullName.localeCompare(b.fullName)
+            return a.name.localeCompare(b.name)
           else
-            return b.fullName.localeCompare(a.fullName)
+            return b.name.localeCompare(a.name)
         })
       }
       if (sortByLocal === 'email') {
@@ -95,7 +95,7 @@ export const handlerAppsUsers = [
   }),
 
   // Get Single User Detail
-  rest.get(('/api/apps/users/:id'), (req, res, ctx) => {
+  rest.get(('/fake/apps/users/:id'), (req, res, ctx) => {
     const userId = Number(req.params.id)
     const user = db.users.find(e => e.id === userId)
     if (!user) {
@@ -117,7 +117,7 @@ export const handlerAppsUsers = [
   }),
 
   // Delete User
-  rest.delete(('/api/apps/users/:id'), (req, res, ctx) => {
+  rest.delete(('/fake/apps/users/:id'), (req, res, ctx) => {
     const userId = Number(req.params.id)
     const userIndex = db.users.findIndex(e => e.id === userId)
     if (userIndex === -1) {
@@ -133,7 +133,7 @@ export const handlerAppsUsers = [
   }),
 
   // 👉 Add user
-  rest.post(('/api/apps/users'), async (req, res, ctx) => {
+  rest.post(('/fake/apps/users'), async (req, res, ctx) => {
     const user = await req.json()
 
     db.users.push({

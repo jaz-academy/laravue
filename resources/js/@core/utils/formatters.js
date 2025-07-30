@@ -1,11 +1,29 @@
 import { isToday } from './helpers'
 
+// Less then 20 chars name
+export const abbreviateName = (name, maxLength, fixedLength) => {
+  if (name.length <= maxLength) return name
+  const words = name.split(" ")
+  
+  return words.slice(0, fixedLength).join(" ")
+}
+
+// Inisials from Name
 export const avatarText = value => {
   if (!value)
     return ''
   const nameArray = value.split(' ')
   
   return nameArray.map(word => word.charAt(0).toUpperCase()).join('')
+}
+
+// queryString builder
+export const buildQuery = (params) => {
+  const query = Object.entries(params)
+    .filter(([_, v]) => v !== undefined && v !== '')
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+    .join('&')
+  return query ? `?${query}` : ''
 }
 
 // TODO: Try to implement this: https://twitter.com/fireship_dev/status/1565424801216311297

@@ -1,6 +1,6 @@
 <script setup>
-import { VDataTableServer } from 'vuetify/labs/VDataTable'
 import { paginationMeta } from '@api-utils/paginationMeta'
+import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
 const widgetData = [
   {
@@ -83,7 +83,7 @@ const updateOptions = options => {
   orderBy.value = options.sortBy[0]?.order
 }
 
-const { data: referralData } = await useApi(createUrl('/apps/ecommerce/referrals', {
+const { data: referralData } = await useFake(createUrl('/apps/ecommerce/referrals', {
   query: {
     page,
     itemsPerPage,

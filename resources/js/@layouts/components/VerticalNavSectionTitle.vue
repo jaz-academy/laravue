@@ -31,7 +31,7 @@ const shallRenderIcon = configStore.isVerticalNavMini()
           :class="shallRenderIcon ? 'placeholder-icon' : 'title-text'"
           v-bind="{ ...layoutConfig.icons.sectionTitlePlaceholder, ...getDynamicI18nProps(item.heading, 'span') }"
         >
-          {{ !shallRenderIcon ? item.heading : null }}
+          {{ !shallRenderIcon ? (item.heading == "Admin" ? "Student" : item.heading) : null }}
         </Component>
       </Transition>
     </div>

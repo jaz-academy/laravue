@@ -1,7 +1,7 @@
 <script setup>
+import { useConfigStore } from '@core/stores/config'
 import Shepherd from 'shepherd.js'
 import { withQuery } from 'ufo'
-import { useConfigStore } from '@core/stores/config'
 
 defineOptions({
   // 👉 Is App Search Bar Visible
@@ -142,7 +142,7 @@ const router = useRouter()
 const searchResult = ref([])
 
 const fetchResults = async () => {
-  const { data } = await useApi(withQuery('/app-bar/search', { q: searchQuery.value }))
+  const { data } = await useFake(withQuery('/app-bar/search', { q: searchQuery.value }))
 
   searchResult.value = data.value
 }
@@ -189,7 +189,7 @@ const LazyAppBarSearch = defineAsyncComponent(() => import('@core/components/App
 
   <!-- 👉 App Bar Search -->
   <LazyAppBarSearch
-    v-model:isDialogVisible="isAppSearchBarVisible"
+    v-model:is-dialog-visible="isAppSearchBarVisible"
     :search-results="searchResult"
     @search="searchQuery = $event"
   >

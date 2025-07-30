@@ -1766,7 +1766,7 @@ const categoryIconFilter = (categoryName: string): {
   return [{ icon: 'tabler-help-circle', color: 'primary' }]
 }
 
-const { data, error } = await useApi<SalesDetails[]>('pages/datatable')
+const { data, error } = await useFake<SalesDetails[]>('pages/datatable')
 
 if (error.value) {
   console.error(error.value)
@@ -2075,7 +2075,7 @@ const categoryIconFilter = categoryName => {
   }]
 }
 
-const { data, error } = await useApi('pages/datatable')
+const { data, error } = await useFake('pages/datatable')
 if (error.value) {
   console.error(error.value)
 } else {

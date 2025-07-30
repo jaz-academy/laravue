@@ -18,9 +18,14 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
+        'admin_student_id',
+        'admin_teacher_id',
         'name',
         'email',
         'password',
+        'role',
+        'access',
+        'image',
     ];
 
     /**
@@ -42,4 +47,14 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    public function adminStudent()
+    {
+        return $this->hasOne(AdminStudent::class, 'id', 'admin_student_id');
+    }
+
+    public function adminTeacher()
+    {
+        return $this->hasOne(AdminTeacher::class, 'id', 'admin_teacher_id');
+    }
 }

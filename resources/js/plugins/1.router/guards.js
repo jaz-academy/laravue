@@ -4,6 +4,11 @@ export const setupGuards = router => {
   // 👉 router.beforeEach
   // Docs: https://router.vuejs.org/guide/advanced/navigation-guards.html#global-before-guards
   router.beforeEach(to => {
+    // Bypass guard untuk path '/'
+    if (to.path === '/') {
+      return
+    }
+
     /*
          * If it's a public route, continue navigation. This kind of pages are allowed to visited by login & non-login users. Basically, without any restrictions.
          * Examples of public routes are, 404, under maintenance, etc.
@@ -28,6 +33,12 @@ export const setupGuards = router => {
       else
         return undefined
     }
+    
+    // Exclude routes in the front-page folder
+    if (to.path.startsWith('/front')) {
+      return
+    }
+
     if (!canNavigate(to)) {
       /* eslint-disable indent */
             return isLoggedIn

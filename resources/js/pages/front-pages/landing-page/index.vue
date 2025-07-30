@@ -1,15 +1,15 @@
 <script setup>
-import Footer from '@/views/front-pages/front-page-footer.vue'
-import Navbar from '@/views/front-pages/front-page-navbar.vue'
 import Banner from '@/views/front-pages/landing-page/banner.vue'
 import ContactUs from '@/views/front-pages/landing-page/contact-us.vue'
 import CustomersReview from '@/views/front-pages/landing-page/customers-review.vue'
 import FaqSection from '@/views/front-pages/landing-page/faq-section.vue'
 import Features from '@/views/front-pages/landing-page/features.vue'
-import HeroSection from '@/views/front-pages/landing-page/hero-section.vue'
 import OurTeam from '@/views/front-pages/landing-page/our-team.vue'
 import PricingPlans from '@/views/front-pages/landing-page/pricing-plans.vue'
 import ProductStats from '@/views/front-pages/landing-page/product-stats.vue'
+import Footer from '@/views/front/front-page-footer.vue'
+import Navbar from '@/views/front/front-page-navbar.vue'
+import HeroSection from '@/views/front/sections/hero-section.vue'
 
 definePage({ meta: { layout: 'blank' } })
 

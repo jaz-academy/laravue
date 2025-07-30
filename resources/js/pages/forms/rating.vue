@@ -1,5 +1,5 @@
 <script setup>
-import * as demoCode from '@/views/demos/forms/form-elements/rating/demoCodeRating'
+import * as demoCode from '@/views/demos/forms/form-elements/rating/demoCodeRating';
 </script>
 
 <template>

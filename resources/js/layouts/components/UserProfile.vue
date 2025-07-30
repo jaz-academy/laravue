@@ -6,6 +6,22 @@ const ability = useAbility()
 
 // TODO: Get type from backend
 const userData = useCookie('userData')
+const userAbilityRules = useCookie('userAbilityRules').value[0]
+const accountPage = ref({})
+
+console.log(userData.value.admin_student_id)
+
+if (userData.value.admin_teacher_id >0) {
+  accountPage.value = {
+    name: 'profile-teacher-id-tab',
+    params: { id: userData.value.admin_teacher_id, tab: 'account' },
+  }
+}else{
+  accountPage.value = {
+    name: 'profile-student-id-tab',
+    params: { id: userData.value.admin_student_id, tab: 'account' },
+  }
+}
 
 const logout = async () => {
 
@@ -16,7 +32,7 @@ const logout = async () => {
   userData.value = null
 
   // Redirect to login page
-  await router.push('/login')
+  await router.push('/')
 
   // ℹ️ We had to remove abilities in then block because if we don't nav menu items mutation is visible while redirecting user to login page
 
@@ -25,52 +41,27 @@ const logout = async () => {
 
   // Reset ability to initial ability
   ability.update([])
+  console.log('You Logged out!')
 }
 
 const userProfileList = [
   { type: 'divider' },
   {
     type: 'navItem',
-    icon: 'tabler-user',
-    title: 'Profile',
-    to: {
-      name: 'apps-user-view-id',
-      params: { id: 21 },
-    },
+    icon: 'tabler-users',
+    title: 'Users',
+    to: { name: 'profile-users' },
   },
   {
     type: 'navItem',
     icon: 'tabler-settings',
-    title: 'Settings',
-    to: {
-      name: 'pages-account-settings-tab',
-      params: { tab: 'account' },
-    },
-  },
-  {
-    type: 'navItem',
-    icon: 'tabler-credit-card',
-    title: 'Billing',
-    to: {
-      name: 'pages-account-settings-tab',
-      params: { tab: 'billing-plans' },
-    },
-    badgeProps: {
-      color: 'error',
-      content: '3',
-    },
-  },
-  { type: 'divider' },
-  {
-    type: 'navItem',
-    icon: 'tabler-currency-dollar',
-    title: 'Pricing',
-    to: { name: 'pages-pricing' },
+    title: 'Account',
+    to: accountPage.value,
   },
   {
     type: 'navItem',
     icon: 'tabler-help-circle',
-    title: 'FAQ',
+    title: 'Manual',
     to: { name: 'pages-faq' },
   },
   { type: 'divider' },
@@ -94,13 +85,14 @@ const userProfileList = [
     color="success"
   >
     <VAvatar
-      class="cursor-pointer"
-      :color="!(userData && userData.avatar) ? 'primary' : undefined"
-      :variant="!(userData && userData.avatar) ? 'tonal' : undefined"
+      class="cursor-pointer overflow-hidden"
+      :color="!(userData?.image) ? 'primary' : undefined"
+      :variant="!(userData?.image) ? 'tonal' : undefined"
     >
       <VImg
-        v-if="userData && userData.avatar"
-        :src="userData.avatar"
+        v-if="userData?.image"
+        cover
+        :src="`/storage/${userData.image}`"
       />
       <VIcon
         v-else
@@ -127,12 +119,14 @@ const userProfileList = [
                   bordered
                 >
                   <VAvatar
-                    :color="!(userData && userData.avatar) ? 'primary' : undefined"
-                    :variant="!(userData && userData.avatar) ? 'tonal' : undefined"
+                    class="cursor-pointer overflow-hidden"
+                    :color="!(userData?.image) ? 'primary' : undefined"
+                    :variant="!(userData?.image) ? 'tonal' : undefined"
                   >
                     <VImg
-                      v-if="userData && userData.avatar"
-                      :src="userData.avatar"
+                      v-if="userData?.image"
+                      cover
+                      :src="`/storage/${userData.image}`"
                     />
                     <VIcon
                       v-else
@@ -144,9 +138,9 @@ const userProfileList = [
             </template>
 
             <VListItemTitle class="font-weight-medium">
-              {{ userData.fullName || userData.username }}
+              {{ userData.name || userData.email }}
             </VListItemTitle>
-            <VListItemSubtitle>{{ userData.role }}</VListItemSubtitle>
+            <VListItemSubtitle>{{ userAbilityRules.member }}</VListItemSubtitle>
           </VListItem>
 
           <PerfectScrollbar :options="{ wheelPropagation: false }">

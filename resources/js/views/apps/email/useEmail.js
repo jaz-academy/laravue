@@ -2,14 +2,14 @@ export const useEmail = () => {
   const route = useRoute('apps-email-filter')
 
   const updateEmails = async (ids, data) => {
-    await $api('apps/email', {
+    await $fake('apps/email', {
       method: 'POST',
       body: JSON.stringify({ ids, data }),
     })
   }
 
   const updateEmailLabels = async (ids, label) => {
-    await $api('/apps/email', {
+    await $fake('/apps/email', {
       method: 'POST',
       body: { ids, label },
     })

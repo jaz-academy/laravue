@@ -1,12 +1,12 @@
+import { paginateArray } from '@api-utils/paginateArray'
+import { db } from '@db/apps/academy/db'
 import is from '@sindresorhus/is'
 import destr from 'destr'
 import { rest } from 'msw'
-import { db } from '@db/apps/academy/db'
-import { paginateArray } from '@api-utils/paginateArray'
 
 export const handlerAppsAcademy = [
   // 👉 Course
-  rest.get(('/api/apps/academy/courses'), (req, res, ctx) => {
+  rest.get(('/fake/apps/academy/courses'), (req, res, ctx) => {
     const q = req.url.searchParams.get('q')
     const label = req.url.searchParams.get('label') || 'All Courses'
     const hideCompleted = req.url.searchParams.get('hideCompleted')
@@ -60,7 +60,7 @@ export const handlerAppsAcademy = [
   }),
 
   // 👉 Course Details
-  rest.get(('/api/apps/academy/course-details'), (req, res, ctx) => {
+  rest.get(('/fake/apps/academy/course-details'), (req, res, ctx) => {
     return res(ctx.status(200), ctx.json(db.courseDetails))
   }),
 ]
