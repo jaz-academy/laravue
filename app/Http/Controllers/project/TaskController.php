@@ -16,9 +16,33 @@ class TaskController extends Controller
         $perPage = $request->input('perPage', 10);
         $page = $request->input('page', 1);
         $queryInput = $request->input('search');
+        $sortBy = $request->get('sortBy', 'name'); // default sort field
+        $orderBy = $request->get('orderBy', 'asc'); // default order
+        $status = $request->get('status', ''); // default status
+        $media = $request->get('media', ''); // default media
+        $accepted = $request->get('accepted', ''); // default accepted
+        $admin_student_id = $request->get('admin_student_id', ''); // default admin_student_id
 
-        $query = Task::with('projectPlan', 'adminStudent', 'adminTeacher')
-            ->orderBy('id', 'DESC');
+        $query = Task::with('projectPlan', 'adminStudent', 'adminTeacher');
+
+        if ($admin_student_id) {
+            $query->where('admin_student_id', $admin_student_id);
+        }
+
+        // Filter by status
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        // Filter by media
+        if ($media) {
+            $query->where('media', $media);
+        }
+
+        // Filter by accepted
+        if ($request->filled('accepted')) {
+            $query->where('accepted', $accepted);
+        }
 
         if ($queryInput) {
             $query->where(function ($q) use ($queryInput) {
@@ -33,11 +57,23 @@ class TaskController extends Controller
                         $q2->where('theme', 'like', '%' . $queryInput . '%');
                     });
             });
-        } else {
-            $query->where('rate', '>', 4);
         }
 
-        return $query->paginate($perPage, ['*'], 'page', $page);
+        // Sorting
+        if ($sortBy) {
+            $query->orderBy($sortBy, $orderBy);
+        } else {
+            $query->orderBy('id', 'desc'); // default sorting
+        }
+
+        // return $query->paginate($perPage, ['*'], 'page', $page);
+        $tasks = $query->paginate($perPage, ['*'], 'page', $page);
+        return response()->json([
+            'count' => $tasks->total(),
+            'data' => $tasks->items(),
+            'totalPages' => $tasks->lastPage(),
+            'page' => $tasks->currentPage(),
+        ]);
     }
 
     public function allTasks()
@@ -98,24 +134,7 @@ class TaskController extends Controller
      */
     public function update(Request $request, Task $task)
     {
-        $fields = $request->validate([
-            'project_plan_id' => 'required',
-            'admin_student_id' => 'required',
-            'semester' => 'required|integer',
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'date' => 'required|date',
-            'status' => 'required|in:Not Started,In Progress,Completed,On Hold,Cancelled',
-            'media' => 'nullable|string|max:255',
-            'embed' => 'nullable|string',
-            'link' => 'nullable|string',
-            'accepted' => 'nullable|boolean',
-            'rate' => 'nullable|integer|min:0|max:5',
-            'review' => 'nullable|string',
-            'admin_teacher_id' => 'nullable',
-        ]);
-
-        $task->update($fields);
+        $task->update($request->all());
 
         return response()->json([
             'message' => 'Task updated successfully',

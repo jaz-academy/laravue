@@ -16,11 +16,11 @@ return new class extends Migration
             $table->string('date');
             $table->foreignId('admin_student_id')->constrained()->cascadeOnDelete();
             $table->integer('semester');
-            $table->string('subject');
+            $table->foreignId('academy_subject_id');
             $table->string('item');
             $table->integer('rate');
             $table->string('result');
-            $table->string('mentor');
+            $table->foreignId('admin_teacher_id');
             $table->string('remark')->nullable();
             $table->timestamps();
         });

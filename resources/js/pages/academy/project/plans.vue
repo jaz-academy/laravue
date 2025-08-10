@@ -1,151 +1,126 @@
 <script setup>
-import ECommerceAddCategoryDrawer from '@/views/academy/AddPlans.vue'
-import product1 from '@images/ecommerce-images/product-1.png'
-import product10 from '@images/ecommerce-images/product-10.png'
-import product11 from '@images/ecommerce-images/product-11.png'
-import product12 from '@images/ecommerce-images/product-12.png'
-import product14 from '@images/ecommerce-images/product-14.png'
-import product17 from '@images/ecommerce-images/product-17.png'
-import product19 from '@images/ecommerce-images/product-19.png'
-import product2 from '@images/ecommerce-images/product-2.png'
-import product25 from '@images/ecommerce-images/product-25.png'
-import product28 from '@images/ecommerce-images/product-28.png'
-import product9 from '@images/ecommerce-images/product-9.png'
+import { fetchProjectData, plans } from '@/composables/fetchProjectData'
+import AddPlanDrawer from '@/views/academy/AddPlans.vue'
 import { VDataTable } from 'vuetify/labs/VDataTable'
 
-const categoryData = ref([
-  {
-    id: 1,
-    categoryTitle: 'Smart Phone',
-    description: 'Choose from wide range of smartphones online at best prices.',
-    totalProduct: 12548,
-    totalEarning: 98784,
-    image: product1,
-  },
-  {
-    id: 2,
-    categoryTitle: 'Clothing, Shoes, and jewellery',
-    description: 'Fashion for a wide selection of clothing, shoes, jewellery and watches.',
-    totalProduct: 4689,
-    totalEarning: 45627,
-    image: product9,
-  },
-  {
-    id: 3,
-    categoryTitle: 'Home and Kitchen',
-    description: 'Browse through the wide range of Home and kitchen products.',
-    totalProduct: 12548,
-    totalEarning: 98784,
-    image: product10,
-  },
-  {
-    id: 4,
-    categoryTitle: 'Beauty and Personal Care',
-    description: 'Explore beauty and personal care products, shop makeup and etc.',
-    totalProduct: 12548,
-    totalEarning: 98784,
-    image: product19,
-  },
-  {
-    id: 5,
-    categoryTitle: 'Books',
-    description: 'Over 25 million titles across categories such as business  and etc.',
-    totalProduct: 12548,
-    totalEarning: 98784,
-    image: product25,
-  },
-  {
-    id: 6,
-    categoryTitle: 'Games',
-    description: 'Every month, get exclusive in-game loot, free games, a free subscription.',
-    totalProduct: 12548,
-    totalEarning: 98784,
-    image: product12,
-  },
-  {
-    id: 7,
-    categoryTitle: 'Baby Products',
-    description: 'Buy baby products across different categories from top brands.',
-    totalProduct: 12548,
-    totalEarning: 98784,
-    image: product14,
-  },
-  {
-    id: 8,
-    categoryTitle: 'Growsari',
-    description: 'Shop grocery Items through at best prices in India.',
-    totalProduct: 12548,
-    totalEarning: 98784,
-    image: product28,
-  },
-  {
-    id: 9,
-    categoryTitle: 'Computer Accessories',
-    description: 'Enhance your computing experience with our range of computer accessories.',
-    totalProduct: 9876,
-    totalEarning: 65421,
-    image: product17,
-  },
-  {
-    id: 10,
-    categoryTitle: 'Fitness Tracker',
-    description: 'Monitor your health and fitness goals with our range of advanced fitness trackers.',
-    totalProduct: 1987,
-    totalEarning: 32067,
-    image: product10,
-  },
-  {
-    id: 11,
-    categoryTitle: 'Smart Home Devices',
-    description: 'Transform your home into a smart home with our innovative smart home devices.',
-    totalProduct: 2345,
-    totalEarning: 87654,
-    image: product11,
-  },
-  {
-    id: 12,
-    categoryTitle: 'Audio Speakers',
-    description: 'Immerse yourself in rich audio quality with our wide range of speakers.',
-    totalProduct: 5678,
-    totalEarning: 32145,
-    image: product2,
-  },
-])
+const currentUser = useCookie('userData').value
+
+onMounted(async () => {
+  await fetchProjectData()
+})
+
+const isAlertVisible = ref(false)
+const alertMessage = ref('')
+const alertColor = ref('primary')
+
+const showAlert = (message, color = 'primary') => {
+  alertMessage.value = message
+  alertColor.value = color
+  isAlertVisible.value = true
+  setTimeout(() => {
+    isAlertVisible.value = false
+  }, 10000)
+}
+
+const plansData = computed(() => {
+  return plans.value.map((plan, index) => ({
+    id: plan.id,
+    subject: plan.subject || `Plan ${index + 1}`,
+    theme: plan.theme || '',
+    description: plan.description || '',
+    is_active: plan.is_active || 0,
+    start_date: plan.start_date || '',
+    end_date: plan.end_date || '',
+  }))
+})
 
 const headers = [
-  {
-    title: 'Category',
-    key: 'categoryTitle',
-  },
-  {
-    title: 'Total Products',
-    key: 'totalProduct',
-  },
-  {
-    title: 'Total Earning',
-    key: 'totalEarning',
-  },
-  {
-    title: 'Action',
-    key: 'actions',
-    sortable: false,
-  },
+  { title: 'Theme', key: 'theme' },
+  { title: 'Status', key: 'is_active' },
+  { title: 'Started', key: 'start_date' },
+  { title: 'Deadline', key: 'end_date' },
+  { title: 'Action', key: 'actions', sortable: false },
 ]
 
-const deleteCategory = id => {
-  const categoryIndex = categoryData.value.findIndex(category => category.id === id)
+const addNewPlan = async ({ action, data }) => {
+  if (currentUser?.role < 4) {
+    showAlert('You do not have permission to modify plans', 'error')
 
-  categoryData.value.splice(categoryIndex, 1)
+    return
+  }
+  console.log('Sending planData:', data, 'action:', action)
+  try {
+    let url = '/plans'
+    let method = 'POST'
+    if (action === 'update' && data.id) {
+      url = `/plans/${data.id}`
+      method = 'PUT'
+    }
+
+    const { data: resData, response } = await useApi(url, {
+      method,
+      body: JSON.stringify(data),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    })
+
+    if (response.value.ok) {
+      const msg = action === 'create' ? 'Data berhasil ditambahkan' : 'Data berhasil diperbarui'
+
+      showAlert(msg, 'success')
+      console.log('Plan response:', resData)
+      fetchProjectData()
+    } else {
+      showAlert(response.value.statusText || 'Gagal menyimpan data', 'error')
+    }
+  } catch (error) {
+    console.error('Plan save error:', error?.data?.errors || error)
+    showAlert(error.message || 'Gagal menyimpan data', 'error')
+  }
+}
+
+const isDrawerOpen = ref(false)
+const mode = ref('add')
+const selectedPlan = ref({})
+
+const editPlan = plan => {
+  selectedPlan.value = { ...plan }
+  mode.value = 'edit'
+  isDrawerOpen.value = true
+}
+
+const deletePlan = async id => {
+  try {
+    if (confirm('Apakah kamu yakin ingin menghapus data ini?')) {
+      console.log('Deleting Project Plan with ID:', id)
+      await useApi(`/plans/${id}`, { method: 'DELETE' })
+      showAlert('Data berhasil dihapus', 'success')
+      fetchProjectData()
+    }
+  } catch (err) {
+    showAlert(err.message || 'Gagal menghapus data', 'error')
+    console.error(err)
+  }
 }
 
 const itemsPerPage = ref(10)
 const page = ref(1)
 const searchQuery = ref('')
-const isModalOpen = ref(false)
 </script>
 
 <template>
   <div>
+    <VAlert
+      v-model="isAlertVisible"
+      closable
+      class="mb-6"
+      :color="alertColor"
+    >
+      {{ alertMessage }}
+    </VAlert>
+
     <VCard>
       <VCardText>
         <div class="d-flex justify-sm-space-between flex-wrap gap-y-4 gap-x-6 justify-start">
@@ -155,17 +130,17 @@ const isModalOpen = ref(false)
             density="compact"
             style="max-inline-size: 200px; min-inline-size: 200px;"
           />
-
           <div class="d-flex align-center flex-wrap gap-4">
             <AppSelect
               v-model="itemsPerPage"
-              :items="[5, 10, 15]"
+              :items="[5,10,15]"
             />
             <VBtn
+              v-if="currentUser?.role >= 4"
               prepend-icon="tabler-plus"
-              @click="isModalOpen = !isModalOpen"
+              @click="() => { mode = 'add'; selectedPlan = {}; isDrawerOpen = true }"
             >
-              Add Category
+              Add Project Plan
             </VBtn>
           </div>
         </div>
@@ -173,72 +148,85 @@ const isModalOpen = ref(false)
 
       <VDivider />
 
-      <div class="category-table">
+      <div class="plans-table">
         <VDataTable
           v-model:items-per-page="itemsPerPage"
           v-model:page="page"
           :headers="headers"
-          :items="categoryData"
-          item-value="categoryTitle"
+          :items="plansData"
+          item-value="theme"
           :search="searchQuery"
           show-select
           class="text-no-wrap"
         >
           <template #item.actions="{ item }">
-            <IconBtn>
+            <IconBtn v-if="currentUser?.role >= 4">
               <VIcon
                 icon="tabler-trash"
-                @click="deleteCategory(item.id)"
+                @click="deletePlan(item.id)"
               />
             </IconBtn>
             <IconBtn>
-              <VIcon icon="tabler-edit" />
+              <VIcon
+                icon="tabler-edit"
+                @click="editPlan(item)"
+              />
             </IconBtn>
           </template>
-          <template #item.categoryTitle="{ item }">
+
+          <template #item.theme="{ item }">
             <div class="d-flex gap-x-3">
               <VAvatar
+                size="38"
                 variant="tonal"
                 rounded
-                size="38"
               >
-                <img
-                  :src="item.image"
-                  :alt="item.categoryTitle"
-                  width="38"
-                  height="38"
-                >
+                <VImg :src="`/images/plans/${item.subject}.png`" />
               </VAvatar>
               <div>
                 <h6 class="text-h6">
-                  {{ item.categoryTitle }}
+                  <span class="text-primary">{{ item.subject }}</span>{{ ' - ' + item.theme }}
                 </h6>
                 <div class="text-sm text-disabled">
-                  {{ item.description }}
+                  {{ item.description?.substring(0,50) + '...' }}
                 </div>
               </div>
             </div>
           </template>
-          <template #item.totalEarning="{ item }">
+
+          <template #item.is_active="{ item }">
+            <VChip
+              :color="item.is_active ? 'primary' : 'error'"
+              size="small"
+              class="text-capitalize"
+              label
+            >
+              {{ item.is_active ? 'Activated' : 'Deactivated' }}
+            </VChip>
+          </template>
+
+          <template #item.end_date="{ item }">
             <h6 class="text-h6 text-end pe-4">
-              {{ (item.totalEarning).toLocaleString("en-IN", { style: "currency", currency: 'USD' }) }}
+              {{ (item.end_date).toLocaleString() }}
             </h6>
           </template>
-          <template #item.totalProduct="{ item }">
+
+          <template #item.start_date="{ item }">
             <div class="text-end pe-4">
-              {{ (item.totalProduct).toLocaleString() }}
+              {{ (item.start_date).toLocaleString() }}
             </div>
           </template>
+
           <template #bottom>
             <VDivider />
             <div class="d-flex align-center justify-space-between flex-wrap gap-3 pa-5 pt-3">
               <p class="text-sm text-medium-emphasis mb-0">
                 showing {{ itemsPerPage * (page - 1) + 1 }} to
-                {{ Math.min(itemsPerPage * page, categoryData.length) }} of {{ categoryData.length }} entries
+                {{ Math.min(itemsPerPage * page, plansData.length) }} of {{ plansData.length }} entries
               </p>
               <VPagination
                 v-model="page"
-                :length="Math.ceil(categoryData.length / itemsPerPage)"
+                :length="Math.ceil(plansData.length / itemsPerPage)"
                 :total-visible="5"
               >
                 <template #prev="slotProps">
@@ -268,21 +256,22 @@ const isModalOpen = ref(false)
       </div>
     </VCard>
 
-    <ECommerceAddCategoryDrawer v-model:is-drawer-open="isModalOpen" />
+    <AddPlanDrawer
+      v-model:is-drawer-open="isDrawerOpen"
+      :mode="mode"
+      :plan-data="selectedPlan"
+      @plan-data="addNewPlan"
+    />
   </div>
 </template>
 
 <style lang="scss">
-.ProseMirror-focused{
-  border: none;
-}
+.ProseMirror-focused{ border: none; }
 
-.category-table{
+.plans-table{
   .v-table {
     th:nth-child(3), th:nth-child(4) {
-      .v-data-table-header__content{
-        justify-content: end ;
-      }
+      .v-data-table-header__content{ justify-content: end; }
     }
   }
 }

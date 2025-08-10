@@ -2,6 +2,7 @@
 import { paginationMeta } from '@api-utils/paginationMeta'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
+const currentUser = useCookie('userData').value
 const searchQuery = ref('')
 
 // 👉 Alert
@@ -67,11 +68,13 @@ const headers = [
 ]
 
 const adminAccessOption = [
+  'Project',
+  'Award',
+  'Courses',
   'Assessment',
+  'Saving',
   'Payment',
   'Finance',
-  'Project',
-  'Reports',
 ]
 
 const deleteUser = async id => {
@@ -254,29 +257,65 @@ const totalUsers = computed(() => usersData.value?.totalUsers || 0)
 
         <template #item.role="{ item }">
           <AppSelect
+            v-if="currentUser?.role >= 4"
             v-model="item.role"
-            :items="[0, 1, 2, 3, 4, 5]"
+            :items="[
+              { text: 'Annonimous', value: 0 },
+              { text: 'Guest', value: 1 },
+              { text: 'User', value: 2 },
+              { text: 'Superuser', value: 3 },
+              { text: 'Manager', value: 4 },
+              { text: 'Programmer', value: 5 }
+            ]"
+            item-title="text"
+            item-value="value"
             @update:model-value="updateUser(item)"
           />
+          <span
+            v-else
+            :class="item.role >= 4 ? 'text-info' : item.role >= 2 ? 'text-primary' : item.role == 1 ? 'text-warning' : 'text-error'"
+          >
+            <VAvatar
+              size="30"
+              variant="tonal"
+              class="me-2"
+            >
+              <VIcon
+                icon="tabler-user-square-rounded"
+                size="18"
+              />
+            </VAvatar>
+            {{ item.role === 0 ? 'Annonimous' : item.role === 1 ? 'Guest' : item.role === 2 ? 'User' : item.role === 3 ? 'Superuser' : item.role === 4 ? 'Manager' : 'Programmer' }}
+          </span>
         </template>
 
         <template #item.access="{ item }">
           <AppSelect
+            v-if="currentUser?.role >= 4"
             v-model="item.access"
             placeholder="Select Access"
             multiple
             :items="adminAccessOption"
             @update:model-value="updateUser(item)"
           />
+          <span
+            v-else
+            class="text-capitalize"
+          >
+            {{ item.access.length }}
+          </span>
         </template>
 
         <template #item.actions="{ item }">
-          <IconBtn @click="updateUser(item)">
-            <VIcon icon="tabler-device-floppy" />
-          </IconBtn>
-          <IconBtn @click="deleteUser(item.id)">
+          <IconBtn
+            v-if="currentUser?.role >= 4" 
+            @click="deleteUser(item.id)"
+          >
             <VIcon icon="tabler-trash" />
           </IconBtn>
+          <span v-else>
+            {{ item.role === 5 ? 'Develop' : item.role === 4 ? 'Delete' : item.role === 3 ? 'Update' : item.role === 2 ? 'Create' : item.role === 1 ? 'Read' : 'Unknown' }}
+          </span>
         </template>
 
         <template #bottom>

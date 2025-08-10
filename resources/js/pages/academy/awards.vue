@@ -1,67 +1,36 @@
 <script setup>
+import { useApi } from '@/composables/useApi'
 import ECommerceAddCategoryDrawer from '@/views/academy/AddAwards.vue'
 import { paginationMeta } from '@api-utils/paginationMeta'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
-const widgetData = ref([
-  {
-    title: 'In-Store Sales',
-    value: '$5,345.43',
-    icon: 'tabler-home',
-    desc: '5k orders',
-    change: 5.7,
-  },
-  {
-    title: 'Website Sales',
-    value: '$674,347.12',
-    icon: 'tabler-device-laptop',
-    desc: '21k orders',
-    change: 12.4,
-  },
-  {
-    title: 'Discount',
-    value: '$14,235.12',
-    icon: 'tabler-gift',
-    desc: '6k orders',
-  },
-  {
-    title: 'Affiliate',
-    value: '$8,345.23',
-    icon: 'tabler-wallet',
-    desc: '150 orders',
-    change: -3.5,
-  },
-])
+const currentUser = useCookie('userData').value
 
+// Awards data table header
 const headers = [
   {
-    title: 'Product',
-    key: 'product',
+    title: 'Awards',
+    key: 'item',
   },
   {
-    title: 'Category',
-    key: 'category',
+    title: 'Subject',
+    key: 'academy_subject.name',
   },
   {
-    title: 'Stock',
-    key: 'stock',
-    sortable: false,
+    title: 'Mentor',
+    key: 'admin_teacher.nickname',
   },
   {
-    title: 'SKU',
-    key: 'sku',
+    title: 'Date',
+    key: 'date',
   },
   {
-    title: 'Price',
-    key: 'price',
+    title: 'SMT',
+    key: 'semester',
   },
   {
-    title: 'QTY',
-    key: 'qty',
-  },
-  {
-    title: 'Status',
-    key: 'status',
+    title: 'Result',
+    key: 'result',
   },
   {
     title: 'Actions',
@@ -70,64 +39,94 @@ const headers = [
   },
 ]
 
-const selectedStatus = ref()
-const selectedCategory = ref()
-const selectedStock = ref()
+// Awards API filterable & sortable
+const selectedStudentId = ref()
+const selectedSubjectId = ref()
+const selectedSemester = ref()
 const searchQuery = ref('')
 const isModalOpen = ref(false)
 
-const status = ref([
-  {
-    title: 'Scheduled',
-    value: 'Scheduled',
-  },
-  {
-    title: 'Publish',
-    value: 'Published',
-  },
-  {
-    title: 'Inactive',
-    value: 'Inactive',
-  },
-])
+const resolveSubject = subject => {
+  if (subject === 'Tahfidzh')
+    return {
+      color: 'success',
+      icon: 'tabler-book-2',
+    }
+  if (subject === 'Graphic Design')
+    return {
+      color: 'primary',
+      icon: 'tabler-brand-adobe-illustrator',
+    }
+  if (subject === 'Video Editing')
+    return {
+      color: 'primary',
+      icon: 'tabler-brand-adobe-premier',
+    }
+  if (subject === 'Python Programming')
+    return {
+      color: 'info',
+      icon: 'tabler-brand-python',
+    }
+  if (subject === 'JavaScript Programming')
+    return {
+      color: 'info',
+      icon: 'tabler-brand-react',
+    }
+  if (subject === 'Web Development')
+    return {
+      color: 'info',
+      icon: 'tabler-device-imac',
+    }
+  if (subject === 'Mobile Development')
+    return {
+      color: 'info',
+      icon: 'tabler-device-mobile',
+    }
+  if (subject === 'Google Workspace')
+    return {
+      color: 'warning',
+      icon: 'tabler-brand-google',
+    }
+  if (subject === 'Game Development')
+    return {
+      color: 'info',
+      icon: 'tabler-device-gamepad-2',
+    }
+  else
+    return {
+      color: 'secondary',
+      icon: 'tabler-award',
+    }
+}
 
-const categories = ref([
-  {
-    title: 'Accessories',
-    value: 'Accessories',
-  },
-  {
-    title: 'Home Decor',
-    value: 'Home Decor',
-  },
-  {
-    title: 'Electronics',
-    value: 'Electronics',
-  },
-  {
-    title: 'Shoes',
-    value: 'Shoes',
-  },
-  {
-    title: 'Office',
-    value: 'Office',
-  },
-  {
-    title: 'Games',
-    value: 'Games',
-  },
-])
-
-const stockStatus = ref([
-  {
-    title: 'In Stock',
-    value: true,
-  },
-  {
-    title: 'Out of Stock',
-    value: false,
-  },
-])
+// Award result resolver
+const resolveResult = rate => {
+  if (rate == 5.0)
+    return {
+      text: 'Excellent',
+      color: 'success',
+    }
+  if (rate >= 4.0)
+    return {
+      text: 'Very Good',
+      color: 'primary',
+    }
+  if (rate >= 3.0)
+    return {
+      text: 'Good',
+      color: 'warning',
+    }
+  if (rate >= 2.0)
+    return {
+      text: 'Not Bad',
+      color: 'error',
+    }
+  if (rate >= 1.0)
+    return {
+      text: 'Not Good',
+      color: 'error',
+    }
+}
 
 // Data table options
 const itemsPerPage = ref(10)
@@ -141,66 +140,89 @@ const updateOptions = options => {
   orderBy.value = options.sortBy[0]?.order
 }
 
-const resolveCategory = category => {
-  if (category === 'Accessories')
-    return {
-      color: 'error',
-      icon: 'tabler-device-watch',
+// Fetch all awards data
+const allAwards = await useApi('/awards')
+
+// data option select student
+const studentOptions = computed(() => {
+  const studentsMap = new Map()
+
+  allAwards.data.value.data?.forEach(award => {
+    const student = award.admin_student
+    if (student && student.id && student.name) {
+      studentsMap.set(student.id, student.name)
     }
-  if (category === 'Home Decor')
-    return {
-      color: 'info',
-      icon: 'tabler-home',
+  })
+  
+  return Array.from(studentsMap, ([id, name]) => ({ title: name, value: id }))
+})
+
+// data option select subject
+const subjectOptions = computed(() => {
+  const subjectsMap = new Map()
+
+  allAwards.data.value.data?.forEach(award => {
+    const subject = award.academy_subject
+    if (subject && subject.id && subject.name) {
+      subjectsMap.set(subject.id, subject.name)
     }
-  if (category === 'Electronics')
-    return {
-      color: 'primary',
-      icon: 'tabler-device-imac',
-    }
-  if (category === 'Shoes')
-    return {
-      color: 'success',
-      icon: 'tabler-shoe',
-    }
-  if (category === 'Office')
-    return {
-      color: 'warning',
-      icon: 'tabler-briefcase',
-    }
-  if (category === 'Games')
-    return {
-      color: 'primary',
-      icon: 'tabler-device-gamepad-2',
-    }
+  })
+
+  return Array.from(subjectsMap, ([id, name]) => ({ title: name, value: id }))
+})
+
+// widget data
+const countByRate = (minRate, maxRate) => {
+  return allAwards.data.value.data?.filter(a => a.rate >= minRate && a.rate <= maxRate).length ?? 0
 }
 
-const resolveStatus = statusMsg => {
-  if (statusMsg === 'Scheduled')
-    return {
-      text: 'Scheduled',
-      color: 'warning',
-    }
-  if (statusMsg === 'Published')
-    return {
-      text: 'Publish',
-      color: 'success',
-    }
-  if (statusMsg === 'Inactive')
-    return {
-      text: 'Inactive',
-      color: 'error',
-    }
+const percentByRate = (minRate, maxRate) => {
+  return allAwards.data.value.data && allAwards.data.value.data.length
+    ? ((countByRate(minRate, maxRate) / allAwards.data.value.data.length) * 100).toFixed(1)
+    : 0
 }
+ 
+const widgetData = ref([
+  {
+    title: 'Excellences',
+    value: countByRate(5.0, 5.0),
+    icon: 'tabler-award',
+    desc: 'Persons',
+    change: percentByRate(5.0, 5.0),
+  },
+  {
+    title: 'Very Good',
+    value: countByRate(4.0, 4.9),
+    icon: 'tabler-heart',
+    desc: 'Persons',
+    change: percentByRate(4.0, 4.9),
+  },
+  {
+    title: 'Good',
+    value: countByRate(3.0, 3.9),
+    icon: 'tabler-mood-smile',
+    desc: 'Persons',
+    change: percentByRate(3.0, 3.9),
+  },
+  {
+    title: 'Need Improvement',
+    value: countByRate(0.0, 2.9),
+    icon: 'tabler-flame',
+    desc: 'Persons',
+    change: percentByRate(0.0, 2.9),
+  },
+])
 
+// Awards API filterable & sortable
 const {
-  data: productsData,
-  execute: fetchProducts,
-} = await useFake(createUrl('/apps/ecommerce/products', {
+  data: awardsData,
+  execute: fetchAwards,
+} = await useApi(createUrl('/awards-custom', {
   query: {
     q: searchQuery,
-    stock: selectedStock,
-    category: selectedCategory,
-    status: selectedStatus,
+    adminStudentId: selectedStudentId,
+    academySubjectId: selectedSubjectId,
+    semester: selectedSemester,
     page,
     itemsPerPage,
     sortBy,
@@ -208,12 +230,13 @@ const {
   },
 }))
 
-const products = computed(() => productsData.value.products)
-const totalProduct = computed(() => productsData.value.total)
+// awards data table
+const awards = computed(() => awardsData.value.data)
+const totalAwards = computed(() => awardsData.value.count)
 
-const deleteProduct = async id => {
-  await $fake(`apps/ecommerce/products/${ id }`, { method: 'DELETE' })
-  fetchProducts()
+const deleteAward = async id => {
+  await $fake(`/awards/${ id }`, { method: 'DELETE' })
+  fetchAwards()
 }
 </script>
 
@@ -258,7 +281,7 @@ const deleteProduct = async id => {
                     <VChip
                       v-if="data.change"
                       label
-                      :color="data.change > 0 ? 'success' : 'error'"
+                      :color="data.change > 40 ? 'success' : 'error'"
                     >
                       {{ prefixWithPlus(data.change) }}%
                     </VChip>
@@ -290,50 +313,50 @@ const deleteProduct = async id => {
       </VCardText>
     </VCard>
 
-    <!-- 👉 products -->
+    <!-- 👉 awards -->
     <VCard
       title="Filters"
       class="mb-6"
     >
       <VCardText>
         <VRow>
-          <!-- 👉 Select Status -->
+          <!-- 👉 Select Student -->
           <VCol
             cols="12"
             sm="4"
           >
             <AppSelect
-              v-model="selectedStatus"
-              placeholder="Status"
-              :items="status"
+              v-model="selectedStudentId"
+              placeholder="Student"
+              :items="studentOptions"
               clearable
               clear-icon="tabler-x"
             />
           </VCol>
 
-          <!-- 👉 Select Category -->
+          <!-- 👉 Select Subject -->
           <VCol
             cols="12"
             sm="4"
           >
             <AppSelect
-              v-model="selectedCategory"
-              placeholder="Category"
-              :items="categories"
+              v-model="selectedSubjectId"
+              placeholder="Subject"
+              :items="subjectOptions"
               clearable
               clear-icon="tabler-x"
             />
           </VCol>
 
-          <!-- 👉 Select Stock Status -->
+          <!-- 👉 Select Semester -->
           <VCol
             cols="12"
             sm="4"
           >
             <AppSelect
-              v-model="selectedStock"
-              placeholder="Stock"
-              :items="stockStatus"
+              v-model="selectedSemester"
+              placeholder="Semester"
+              :items="[1, 2, 3, 4, 5, 6]"
               clearable
               clear-icon="tabler-x"
             />
@@ -371,11 +394,12 @@ const deleteProduct = async id => {
           </VBtn>
 
           <VBtn
+            v-if="currentUser?.access.includes('Award')"
             color="primary"
             prepend-icon="tabler-plus"
             @click="isModalOpen = !isModalOpen"
           >
-            Add Product
+            Add Academy Award
           </VBtn>
         </div>
       </div>
@@ -388,13 +412,13 @@ const deleteProduct = async id => {
         v-model:page="page"
         :headers="headers"
         show-select
-        :items="products"
-        :items-length="totalProduct"
+        :items="awards"
+        :items-length="totalAwards"
         class="text-no-wrap"
         @update:options="updateOptions"
       >
-        <!-- product  -->
-        <template #item.product="{ item }">
+        <!-- subject  -->
+        <template #item.item="{ item }">
           <div class="d-flex align-center gap-x-2">
             <VAvatar
               v-if="item.image"
@@ -404,40 +428,42 @@ const deleteProduct = async id => {
               :image="item.image"
             />
             <div class="d-flex flex-column">
-              <span class="text-body-1 font-weight-medium">{{ item.productName }}</span>
-              <span class="text-sm text-disabled">{{ item.productBrand }}</span>
+              <span class="text-body-1 font-weight-medium">{{ item.item }}</span>
+              <span class="text-sm text-disabled">{{ item.admin_student.name }}</span>
             </div>
           </div>
         </template>
 
-        <!-- category -->
-        <template #item.category="{ item }">
+        <!-- Subject -->
+        <template #item.academy_subject.name="{ item }">
           <VAvatar
             size="30"
             variant="tonal"
-            :color="resolveCategory(item.category)?.color"
+            :color="resolveSubject(item.academy_subject.name).color"
             class="me-2"
           >
             <VIcon
-              :icon="resolveCategory(item.category)?.icon"
+              :icon="resolveSubject(item.academy_subject.name).icon"
               size="18"
             />
           </VAvatar>
-          <span class="text-body-1 font-weight-medium">{{ item.category }}</span>
+          <span class="text-body-1 font-weight-medium">{{ item.academy_subject.name }}</span>
         </template>
 
-        <!-- stock -->
-        <template #item.stock="{ item }">
-          <VSwitch :model-value="item.stock" />
+        <!-- mentor -->
+        <template #item.admin_teacher.name="{ item }">
+          {{ item.admin_teacher.name }}
         </template>
 
-        <!-- status -->
-        <template #item.status="{ item }">
+        <!-- result -->
+        <template #item.result="{ item }">
           <VChip
-            v-bind="resolveStatus(item.status)"
+            v-bind="resolveResult(item.rate)"
             density="default"
             label
-          />
+          >
+            {{ item.result }}
+          </VChip>
         </template>
 
         <!-- Actions -->
@@ -446,17 +472,10 @@ const deleteProduct = async id => {
             <VIcon icon="tabler-edit" />
           </IconBtn>
 
-          <IconBtn>
+          <IconBtn v-if="currentUser?.role >= 4">
             <VIcon icon="tabler-dots-vertical" />
             <VMenu activator="parent">
               <VList>
-                <VListItem
-                  value="download"
-                  prepend-icon="tabler-download"
-                >
-                  Download
-                </VListItem>
-
                 <VListItem
                   value="delete"
                   prepend-icon="tabler-trash"
@@ -481,13 +500,13 @@ const deleteProduct = async id => {
 
           <div class="d-flex align-center justify-space-between flex-wrap gap-3 pa-5 pt-3">
             <p class="text-sm text-medium-emphasis mb-0">
-              {{ paginationMeta({ page, itemsPerPage }, totalProduct) }}
+              {{ paginationMeta({ page, itemsPerPage }, totalAwards) }}
             </p>
 
             <VPagination
               v-model="page"
-              :length="Math.min(Math.ceil(totalProduct / itemsPerPage), 5)"
-              :total-visible="$vuetify.display.xs ? 1 : Math.min(Math.ceil(totalProduct / itemsPerPage), 5)"
+              :length="Math.min(Math.ceil(totalAwards / itemsPerPage), 5)"
+              :total-visible="$vuetify.display.xs ? 1 : Math.min(Math.ceil(totalAwards / itemsPerPage), 5)"
             >
               <template #prev="slotProps">
                 <VBtn

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->integer('period')->default(date('Y'));
             $table->foreignId('admin_student_id')->constrained()->cascadeOnDelete();
             $table->foreignId('finance_account_id')->nullable()->constrained()->cascadeOnDelete();
-            $table->foreignId('payment_billing_id')->nullable()->constrained()->cascadeOnDelete();
+            $table->string('billing');
             $table->integer('amount');
             $table->boolean('is_once')->default(0);
             $table->boolean('is_monthly')->default(0);

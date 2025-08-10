@@ -23,6 +23,7 @@ return new class extends Migration
             $table->integer('month_4')->nullable();
             $table->integer('month_5')->nullable();
             $table->integer('month_6')->nullable();
+            $table->integer('final_score')->default(0);
             $table->boolean('is_ok_1')->default(false);
             $table->text('competence_1')->nullable();
             $table->boolean('is_ok_2')->default(false);

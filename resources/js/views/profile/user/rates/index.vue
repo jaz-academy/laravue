@@ -19,11 +19,18 @@ function countTasksForStudent(tasks, studentId) {
 
 function calculateStars(tasks, studentId) {
   const studentTasks = tasks.filter(task => task.admin_student_id === studentId)
-  const totalRate = studentTasks.reduce((sum, task) => sum + (task.rate || 0), 0)
+
+  const totalRate = studentTasks.reduce((sum, task) => {
+    const rate = parseFloat(task.rate) || 0  // konversi string ke float, fallback ke 0 jika null/undefined
+    
+    return sum + rate
+  }, 0)
+
   const averageRate = studentTasks.length > 0 ? totalRate / studentTasks.length : 0
 
   return { totalRate, averageRate }
 }
+
 
 // Computed property to sort students by averageRate
 const sortedStudents = computed(() => {
@@ -110,9 +117,9 @@ const sortedStudents = computed(() => {
           <div class="d-flex justify-center gap-4 mt-5">
             <VBtn
               prepend-icon="tabler-user-check"
-              :variant="member.registered == student.registered ? 'elevated' : 'tonal'"
+              :variant="member?.registered == student?.registered ? 'elevated' : 'tonal'"
             >
-              {{ student.registered }}
+              {{ student?.registered }}
             </VBtn>
           </div>
         </VCardText>

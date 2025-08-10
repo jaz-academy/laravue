@@ -1,63 +1,218 @@
 <script setup>
-import ECommerceAddCategoryDrawer from '@/views/academy/AddTasks.vue'
+import { allTasks, fetchProjectData, fetchTasksList } from '@/composables/fetchProjectData'
+import AddNewTaskDrawer from '@/views/academy/AddTasks.vue'
 import { paginationMeta } from '@api-utils/paginationMeta'
+import { onMounted } from 'vue'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
-const widgetData = ref([
+const currentUser = useCookie('userData').value
+
+onMounted(async () => {
+  await fetchProjectData()
+})
+
+// 👉 Alert
+const isAlertVisible = ref(false)
+const alertMessage = ref('')
+const alertColor = ref('primary')
+
+const showAlert = (message, color = 'primary') => {
+  alertMessage.value = message
+  alertColor.value = color
+  isAlertVisible.value = true
+  setTimeout(() => {
+    isAlertVisible.value = false
+  }, 10000)
+}
+
+// switchable drawer modal input & edit
+const isDrawerOpen = ref(false)
+const mode = ref('add')
+const selectedTask = ref({})
+
+const editTask = task => {
+  selectedTask.value = { ...task }
+  mode.value = 'edit'
+  isDrawerOpen.value = true
+}
+
+const reviewTask = task => {
+  selectedTask.value = { ...task }
+  mode.value = 'review'
+  isDrawerOpen.value = true
+}
+
+const duplicateTask = task => {
+  selectedTask.value = task
+  mode.value = 'duplicate'
+  isDrawerOpen.value = true
+}
+
+// data untuk widgets
+const widgetData = computed(() => {
+  const Tasks = computed(() => allTasks.value || [])
+  
+  return [
+    {
+      title: 'Instagram',
+      value: Tasks.value.filter(task => task.media === 'Instagram').length,
+      icon: 'tabler-brand-instagram',
+      desc: `${Tasks.value.filter(task => task.media === 'Instagram' && task.accepted == '0').length} unchecked`,
+      change: (() => {
+        const total = Tasks.value.filter(task => task.media === 'Instagram').length
+        const completed = Tasks.value.filter(task => task.media === 'Instagram' && task.accepted == '1').length
+        
+        return total ? ((completed / total) * 100).toFixed(1) : 0
+      })(),
+    },
+    {
+      title: 'TikTok',
+      value: Tasks.value.filter(task => task.media == 'TikTok').length,
+      icon: 'tabler-brand-tiktok',
+      desc: `${Tasks.value.filter(task => task.media == 'TikTok' && task.accepted == '0').length} unchecked`,
+      change: (() => {
+        const total = Tasks.value.filter(task => task.media == 'TikTok').length
+        const completed = Tasks.value.filter(task => task.media == 'TikTok' && task.accepted == '1').length
+        
+        return total ? ((completed / total) * 100).toFixed(1) : 0
+      })(),
+    },
+    {
+      title: 'YouTube',
+      value: Tasks.value.filter(task => task.media === 'YouTube').length,
+      icon: 'tabler-brand-youtube',
+      desc: `${Tasks.value.filter(task => task.media === 'YouTube' && task.accepted == '0').length} unchecked`,
+      change: (() => {
+        const total = Tasks.value.filter(task => task.media === 'YouTube').length
+        const completed = Tasks.value.filter(task => task.media === 'YouTube' && task.accepted == '1').length
+        
+        return total ? ((completed / total) * 100).toFixed(1) : 0
+      })(),
+    },
+    {
+      title: 'Others',
+      value: Tasks.value.filter(task => task.media !== 'Instagram' && task.media !== 'TikTok' && task.media !== 'YouTube').length,
+      icon: 'tabler-world',
+      desc: `${Tasks.value.filter(task => task.media !== 'Instagram' && task.media !== 'TikTok' && task.media !== 'YouTube' && task.accepted == '0').length} unchecked`,
+      change: (() => {
+        const total = Tasks.value.filter(task => task.media !== 'Instagram' && task.media !== 'TikTok' && task.media !== 'YouTube').length
+        const completed = Tasks.value.filter(task => task.media !== 'Instagram' && task.media !== 'TikTok' && task.media !== 'YouTube' && task.accepted == '1').length
+
+        return total ? ((completed / total) * 100).toFixed(1) : 0
+      })(),
+    },
+  ]
+})
+
+// memanggil dan filtering data tasks
+const itemsPerPage = ref(10)
+const page = ref(1)
+const sortBy = ref()
+const orderBy = ref()
+const tasksData = ref([])
+const selectedStatus = ref()
+const selectedMedia = ref()
+const selectedChecked = ref()
+const searchQuery = ref('')
+
+const updateOptions = options => {
+  page.value = options.page
+  itemsPerPage.value = options.itemsPerPage
+
+  if (options.sortBy?.length) {
+    sortBy.value = options.sortBy[0].key
+    orderBy.value = options.sortBy[0].order
+  } else {
+    sortBy.value = null
+    orderBy.value = null
+  }
+  
+  fetchTasks()
+}
+
+const fetchTasks = async () => {
+  const params = {
+    admin_student_id: currentUser?.admin_student_id || '',
+    search: searchQuery.value || '',
+    status: selectedStatus.value || '',
+    media: selectedMedia.value || '',
+    accepted: selectedChecked.value || '',
+    perPage: itemsPerPage.value,
+    page: page.value,
+    sortBy: sortBy.value || '',
+    orderBy: orderBy.value || '',
+  }
+  
+  try {
+    const result = await fetchTasksList(params)
+
+    console.log('📦 FETCHING with:', params, result)
+
+    tasksData.value = result
+  } catch (error) {
+    console.error('Error fetching tasks:', error.message)
+  }
+}
+
+// data untuk tabel
+const dataTasks = computed(() => tasksData.value?.tasks || [] )
+const totalTasks = computed(() => tasksData.value?.totalTasks || 0)
+
+// data untuk option select
+const mediaOptions = computed(() => {
+  const medias = tasksData.value?.tasks?.map(task => task.media) || []
+  const uniqueMedias = [...new Set(medias.filter(Boolean))]
+
+  return uniqueMedias.map(media => ({ title: media, value: media }))
+})
+
+const statusOptions = ref([
   {
-    title: 'In-Store Sales',
-    value: '$5,345.43',
-    icon: 'tabler-home',
-    desc: '5k orders',
-    change: 5.7,
+    title: 'Completed',
+    value: 'Completed',
   },
   {
-    title: 'Website Sales',
-    value: '$674,347.12',
-    icon: 'tabler-device-laptop',
-    desc: '21k orders',
-    change: 12.4,
+    title: 'In Progress',
+    value: 'In Progress',
   },
   {
-    title: 'Discount',
-    value: '$14,235.12',
-    icon: 'tabler-gift',
-    desc: '6k orders',
-  },
-  {
-    title: 'Affiliate',
-    value: '$8,345.23',
-    icon: 'tabler-wallet',
-    desc: '150 orders',
-    change: -3.5,
+    title: 'On Hold',
+    value: 'On Hold',
   },
 ])
 
+const checkedOptions = ref([
+  {
+    title: 'Accepted',
+    value: '1',
+  },
+  {
+    title: 'Unchecked',
+    value: '0',
+  },
+])
+
+// header tabel dan keys sort data
 const headers = [
   {
-    title: 'Product',
-    key: 'product',
+    title: 'Task',
+    key: 'name',
   },
   {
-    title: 'Category',
-    key: 'category',
+    title: 'Media',
+    key: 'media',
   },
   {
-    title: 'Stock',
-    key: 'stock',
-    sortable: false,
+    title: 'Stars',
+    key: 'rate',
   },
   {
-    title: 'SKU',
-    key: 'sku',
+    title: 'SMT',
+    key: 'semester',
   },
   {
-    title: 'Price',
-    key: 'price',
-  },
-  {
-    title: 'QTY',
-    key: 'qty',
+    title: 'ID',
+    key: 'id',
   },
   {
     title: 'Status',
@@ -70,150 +225,109 @@ const headers = [
   },
 ]
 
-const selectedStatus = ref()
-const selectedCategory = ref()
-const selectedStock = ref()
-const searchQuery = ref('')
-const isModalOpen = ref(false)
-
-const status = ref([
-  {
-    title: 'Scheduled',
-    value: 'Scheduled',
-  },
-  {
-    title: 'Publish',
-    value: 'Published',
-  },
-  {
-    title: 'Inactive',
-    value: 'Inactive',
-  },
-])
-
-const categories = ref([
-  {
-    title: 'Accessories',
-    value: 'Accessories',
-  },
-  {
-    title: 'Home Decor',
-    value: 'Home Decor',
-  },
-  {
-    title: 'Electronics',
-    value: 'Electronics',
-  },
-  {
-    title: 'Shoes',
-    value: 'Shoes',
-  },
-  {
-    title: 'Office',
-    value: 'Office',
-  },
-  {
-    title: 'Games',
-    value: 'Games',
-  },
-])
-
-const stockStatus = ref([
-  {
-    title: 'In Stock',
-    value: true,
-  },
-  {
-    title: 'Out of Stock',
-    value: false,
-  },
-])
-
-// Data table options
-const itemsPerPage = ref(10)
-const page = ref(1)
-const sortBy = ref()
-const orderBy = ref()
-
-const updateOptions = options => {
-  page.value = options.page
-  sortBy.value = options.sortBy[0]?.key
-  orderBy.value = options.sortBy[0]?.order
-}
-
-const resolveCategory = category => {
-  if (category === 'Accessories')
+// icon media tasks
+const resolveMedia = media => {
+  if (media == 'Instagram')
     return {
-      color: 'error',
-      icon: 'tabler-device-watch',
+      color: 'primary',
+      icon: 'tabler-brand-instagram',
     }
-  if (category === 'Home Decor')
+  if (media == 'TikTok')
     return {
       color: 'info',
-      icon: 'tabler-home',
+      icon: 'tabler-brand-tiktok',
     }
-  if (category === 'Electronics')
+  if (media == 'YouTube')
     return {
-      color: 'primary',
-      icon: 'tabler-device-imac',
+      color: 'error',
+      icon: 'tabler-brand-youtube',
     }
-  if (category === 'Shoes')
-    return {
-      color: 'success',
-      icon: 'tabler-shoe',
-    }
-  if (category === 'Office')
+  if (media == 'Google Drive')
     return {
       color: 'warning',
-      icon: 'tabler-briefcase',
+      icon: 'tabler-brand-google',
     }
-  if (category === 'Games')
+  else
     return {
       color: 'primary',
-      icon: 'tabler-device-gamepad-2',
+      icon: 'tabler-world',
     }
 }
 
+// warna teks status
 const resolveStatus = statusMsg => {
-  if (statusMsg === 'Scheduled')
+  if (statusMsg === 'Completed')
     return {
-      text: 'Scheduled',
+      text: 'Completed',
+      color: 'primary',
+    }
+  if (statusMsg === 'In Progress')
+    return {
+      text: 'In Progress',
       color: 'warning',
     }
-  if (statusMsg === 'Published')
+  if (statusMsg === 'On Hold')
     return {
-      text: 'Publish',
-      color: 'success',
-    }
-  if (statusMsg === 'Inactive')
-    return {
-      text: 'Inactive',
+      text: 'On Hold',
       color: 'error',
     }
 }
 
-const {
-  data: productsData,
-  execute: fetchProducts,
-} = await useFake(createUrl('/apps/ecommerce/products', {
-  query: {
-    q: searchQuery,
-    stock: selectedStock,
-    category: selectedCategory,
-    status: selectedStatus,
-    page,
-    itemsPerPage,
-    sortBy,
-    orderBy,
-  },
-}))
+// menambah task baru
+const addNewTask = async ({ action, data }) => {
+  const sanitizedData = {
+    ...data,
+    accepted: data.accepted === '' ? '0' : Boolean(Number(data.accepted)),
+    rate: data.rate === '' ? 0 : Number(data.rate),
+    admin_teacher_id: data.admin_teacher_id === '' ? null : Number(data.admin_teacher_id),
+  }
 
-const products = computed(() => productsData.value.products)
-const totalProduct = computed(() => productsData.value.total)
+  console.log('Sending taskData:', sanitizedData, 'action:', action)
+  try {
+    let url = '/tasks'
+    let method = 'POST'
+    if (action === 'update' && data.id) {
+      url = `/tasks/${data.id}`
+      method = 'PUT'
+    }
 
-const deleteProduct = async id => {
-  await $fake(`apps/ecommerce/products/${ id }`, { method: 'DELETE' })
-  fetchProducts()
+    const { data: resData, response } = await useApi(url, {
+      method,
+      body: JSON.stringify(sanitizedData),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    })
+
+    if (response.value.ok) {
+      const msg = action === 'create' ? 'Data berhasil ditambahkan' : 'Data berhasil diperbarui'
+
+      showAlert(msg, 'success')
+      console.log('Task response:', resData)
+      fetchTasks()
+    } else {
+      showAlert(response.value.statusText || 'Gagal menyimpan data', 'error')
+    }
+  } catch (error) {
+    console.error('Task save error:', error?.data?.errors || error)
+    showAlert(error.message || 'Gagal menyimpan data', 'error')
+  }
+}
+
+// Hapus task
+const deleteTask = async id => {
+  try {
+    if (confirm('Apakah kamu yakin ingin menghapus data ini?')) {
+      console.log('Deleting task with ID:', id)
+      await useApi(`/tasks/${id}`, { method: 'DELETE' })
+      showAlert('Data berhasil dihapus', 'success')
+      fetchTasks() 
+    }
+  } catch (err) {
+    showAlert(err.message || 'Gagal menghapus data', 'error')
+    console.error(err)
+  }
 }
 </script>
 
@@ -258,7 +372,7 @@ const deleteProduct = async id => {
                     <VChip
                       v-if="data.change"
                       label
-                      :color="data.change > 0 ? 'success' : 'error'"
+                      :color="data.change == 100 ? 'success' : 'error'"
                     >
                       {{ prefixWithPlus(data.change) }}%
                     </VChip>
@@ -290,6 +404,16 @@ const deleteProduct = async id => {
       </VCardText>
     </VCard>
 
+    <VAlert
+      v-model="isAlertVisible"
+      closable
+      close-label="Close Alert"
+      class="mb-6"
+      :color="alertColor"
+    >
+      {{ alertMessage }}
+    </VAlert>
+
     <!-- 👉 products -->
     <VCard
       title="Filters"
@@ -305,23 +429,25 @@ const deleteProduct = async id => {
             <AppSelect
               v-model="selectedStatus"
               placeholder="Status"
-              :items="status"
+              :items="statusOptions"
               clearable
               clear-icon="tabler-x"
+              @update:model-value="fetchTasks"
             />
           </VCol>
 
-          <!-- 👉 Select Category -->
+          <!-- 👉 Select Media -->
           <VCol
             cols="12"
             sm="4"
           >
             <AppSelect
-              v-model="selectedCategory"
-              placeholder="Category"
-              :items="categories"
+              v-model="selectedMedia"
+              placeholder="Media"
+              :items="mediaOptions"
               clearable
               clear-icon="tabler-x"
+              @update:model-value="fetchTasks"
             />
           </VCol>
 
@@ -331,11 +457,12 @@ const deleteProduct = async id => {
             sm="4"
           >
             <AppSelect
-              v-model="selectedStock"
-              placeholder="Stock"
-              :items="stockStatus"
+              v-model="selectedChecked"
+              placeholder="Checked"
+              :items="checkedOptions"
               clearable
               clear-icon="tabler-x"
+              @update:model-value="fetchTasks"
             />
           </VCol>
         </VRow>
@@ -348,10 +475,11 @@ const deleteProduct = async id => {
           <!-- 👉 Search  -->
           <AppTextField
             v-model="searchQuery"
-            placeholder="Search Product"
+            placeholder="Search Tasks"
             density="compact"
             style="inline-size: 200px;"
             class="me-3"
+            @input="fetchTasks"
           />
         </div>
 
@@ -373,9 +501,9 @@ const deleteProduct = async id => {
           <VBtn
             color="primary"
             prepend-icon="tabler-plus"
-            @click="isModalOpen = !isModalOpen"
+            @click="() => { mode = 'add'; selectedTask = {}; isDrawerOpen = true }"
           >
-            Add Product
+            Add New Task
           </VBtn>
         </div>
       </div>
@@ -388,50 +516,69 @@ const deleteProduct = async id => {
         v-model:page="page"
         :headers="headers"
         show-select
-        :items="products"
-        :items-length="totalProduct"
+        :items="dataTasks"
+        :items-length="totalTasks"
         class="text-no-wrap"
         @update:options="updateOptions"
       >
-        <!-- product  -->
-        <template #item.product="{ item }">
+        <!-- TASK  -->
+        <template #item.name="{ item }">
           <div class="d-flex align-center gap-x-2">
             <VAvatar
-              v-if="item.image"
               size="38"
               variant="tonal"
               rounded
-              :image="item.image"
-            />
+            >
+              <VImg :src="`/images/plans/${item.project_plan.subject}.png`" />
+            </VAvatar>
+           
             <div class="d-flex flex-column">
-              <span class="text-body-1 font-weight-medium">{{ item.productName }}</span>
-              <span class="text-sm text-disabled">{{ item.productBrand }}</span>
+              <span class="text-body-1 font-weight-medium">{{ item.name.substring(0, 30) }}</span>
+              <span class="text-sm text-disabled">{{ item.project_plan.theme }} by {{ item.admin_student.nickname }}</span>
             </div>
           </div>
         </template>
 
-        <!-- category -->
-        <template #item.category="{ item }">
+        <!-- MEDIA -->
+        <template #item.media="{ item }">
           <VAvatar
             size="30"
             variant="tonal"
-            :color="resolveCategory(item.category)?.color"
+            :color="resolveMedia(item.media)?.color"
             class="me-2"
           >
             <VIcon
-              :icon="resolveCategory(item.category)?.icon"
+              :icon="resolveMedia(item.media)?.icon"
               size="18"
             />
-          </VAvatar>
-          <span class="text-body-1 font-weight-medium">{{ item.category }}</span>
+          </VAvatar> 
+         
+          <span class="text-body-1 font-weight-medium">{{ item.media }}</span>
         </template>
 
-        <!-- stock -->
-        <template #item.stock="{ item }">
-          <VSwitch :model-value="item.stock" />
+        <!-- STARS -->
+        <template #item.rate="{ item }">
+          <VRating
+            v-model="item.rate"
+            size="x-small"
+            density="compact"
+            half-increments
+            :color="item.rate == 0 ? 'secondary' : 'warning'"
+            readonly
+          />
         </template>
 
-        <!-- status -->
+        <!-- SEMESTER -->
+        <template #item.semester="{ item }">
+          {{ item.semester }}
+        </template>
+
+        <!-- ID -->
+        <template #item.id="{ item }">
+          {{ item.id }}
+        </template>
+
+        <!-- STATUS -->
         <template #item.status="{ item }">
           <VChip
             v-bind="resolveStatus(item.status)"
@@ -443,7 +590,10 @@ const deleteProduct = async id => {
         <!-- Actions -->
         <template #item.actions="{ item }">
           <IconBtn>
-            <VIcon icon="tabler-edit" />
+            <VIcon
+              icon="tabler-edit"
+              @click="editTask(item)"
+            />
           </IconBtn>
 
           <IconBtn>
@@ -451,16 +601,19 @@ const deleteProduct = async id => {
             <VMenu activator="parent">
               <VList>
                 <VListItem
+                  v-if="currentUser?.admin_teacher_id > 1"
                   value="download"
-                  prepend-icon="tabler-download"
+                  prepend-icon="tabler-circle-check"
+                  @click="reviewTask(item)"
                 >
-                  Download
+                  Review
                 </VListItem>
 
                 <VListItem
+                  v-if="currentUser?.role >= 4"
                   value="delete"
                   prepend-icon="tabler-trash"
-                  @click="deleteProduct(item.id)"
+                  @click="deleteTask(item.id)"
                 >
                   Delete
                 </VListItem>
@@ -468,6 +621,7 @@ const deleteProduct = async id => {
                 <VListItem
                   value="duplicate"
                   prepend-icon="tabler-copy"
+                  @click="duplicateTask(item)"
                 >
                   Duplicate
                 </VListItem>
@@ -481,13 +635,13 @@ const deleteProduct = async id => {
 
           <div class="d-flex align-center justify-space-between flex-wrap gap-3 pa-5 pt-3">
             <p class="text-sm text-medium-emphasis mb-0">
-              {{ paginationMeta({ page, itemsPerPage }, totalProduct) }}
+              {{ paginationMeta({ page, itemsPerPage }, totalTasks) }}
             </p>
 
             <VPagination
               v-model="page"
-              :length="Math.min(Math.ceil(totalProduct / itemsPerPage), 5)"
-              :total-visible="$vuetify.display.xs ? 1 : Math.min(Math.ceil(totalProduct / itemsPerPage), 5)"
+              :length="Math.min(Math.ceil(totalTasks / itemsPerPage), 5)"
+              :total-visible="$vuetify.display.xs ? 1 : Math.min(Math.ceil(totalTasks / itemsPerPage), 5)"
             >
               <template #prev="slotProps">
                 <VBtn
@@ -516,7 +670,12 @@ const deleteProduct = async id => {
       </VDataTableServer>
     </VCard>
     
-    <ECommerceAddCategoryDrawer v-model:is-drawer-open="isModalOpen" />
+    <AddNewTaskDrawer
+      v-model:is-drawer-open="isDrawerOpen"
+      :mode="mode"
+      :task-data="selectedTask"
+      @task-data="addNewTask"
+    />
   </div>
 </template>
 

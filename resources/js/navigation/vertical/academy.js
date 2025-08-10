@@ -1,3 +1,5 @@
+const currentUser = useCookie('userData').value
+
 export default [
   { heading: 'Academy' },
   {
@@ -20,30 +22,31 @@ export default [
     to: 'academy-awards',
   },
   {
-    title: 'Course',
+    title: 'Courses',
     icon: { icon: 'tabler-book' },
     children: [
       { title: 'List', to: 'academy-course-list' },
       { title: 'Details', to: 'academy-course-details' },
-      {
-        title: 'Product',
+      ...currentUser?.access?.includes('Courses') ? [{
+        title: 'Collections',
         children: [
           { title: 'Courses', to: 'academy-product-courses' },
           { title: 'List', to: 'academy-product-list' },
           { title: 'Add', to: 'academy-product-add' },
         ],
-      },
+      }] : [],
     ],
   },
   {
     title: 'Assessment',
     icon: { icon: 'tabler-chart-bar' },
     children: [
-      { title: 'Subject', to: 'academy-assessment-subject' },
-      { title: 'Competence', to: 'academy-assessment-competence' },
-
-      { title: 'Scores', to: 'academy-assessment-scores' },
-      { title: 'Edit', to: { name: 'academy-assessment-scores-edit-id', params: { id: '5036' } } },
+      ...currentUser?.access?.includes('Assessment') ? [
+        { title: 'Subject', to: 'academy-assessment-subject' },
+        { title: 'Competence', to: 'academy-assessment-competence' },
+        { title: 'Scores', to: 'academy-assessment-scores' },
+        { title: 'Edit', to: { name: 'academy-assessment-scores-edit-id', params: { id: '5036' } } },
+      ] : [],
       { title: 'Details', to: { name: 'academy-assessment-details-id', params: { id: 478426 } } },
       { title: 'Report', to: { name: 'academy-assessment-report-id', params: { id: '5036' } } },
     ],

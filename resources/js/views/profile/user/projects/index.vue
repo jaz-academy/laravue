@@ -9,8 +9,6 @@ onMounted(() => {
   fetchProjectData()
 })
 
-console.log(plansTasks)
-
 function getDistinctTasks(tasks) {
   const groupedTasks = tasks.reduce((acc, task) => {
     if (!acc.has(task.admin_student_id)) {

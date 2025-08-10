@@ -1,3 +1,5 @@
+const currentUser = useCookie('userData').value
+
 export default [
   { heading: 'Financials' },
   {
@@ -13,9 +15,11 @@ export default [
         title: 'Items',
         children: [
           { title: 'List', to: 'financial-payment-list' },
-          { title: 'Add', to: 'financial-payment-add' },
-          { title: 'Edit', to: { name: 'financial-payment-edit-id', params: { id: '5036' } } },
           { title: 'Preview', to: { name: 'financial-payment-preview-id', params: { id: '5036' } } },
+          ...currentUser?.access?.includes('Payment') ? [
+            { title: 'Add', to: 'financial-payment-add' },
+            { title: 'Edit', to: { name: 'financial-payment-edit-id', params: { id: '5036' } } },
+          ] : [],
         ],
       },
       { title: 'Recap', to: { name: 'financial-payment-recap-id', params: { id: '5036' } } },
@@ -24,7 +28,7 @@ export default [
       // { title: 'Billing', to: 'financial-payment-billing' },
     ],
   },
-  {
+  ...currentUser?.access?.includes('Finance') ? [{
     title: 'Finance',
     icon: { icon: 'tabler-building-bank' },
     children: [
@@ -38,6 +42,6 @@ export default [
       },
       { title: 'Account', to: 'financial-finance-account' },
     ],
-  },
+  }] : [],
 ]
   

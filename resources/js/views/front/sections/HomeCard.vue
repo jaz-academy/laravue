@@ -5,6 +5,7 @@ import GDriveEmbed from './GDriveEmbed.vue'
 import InstagramEmbed from './InstagramEmbed.vue'
 
 const props = defineProps({
+  taskId: Number,
   taskName: String,
   description: String,
   subject: String,
@@ -19,6 +20,7 @@ const props = defineProps({
   review: String,
   accepted: Number,
   link: String,
+  date: String,
 })
 
 const dataStorageParticipant = localStorage.getItem('participant')
@@ -158,28 +160,39 @@ const comments = [
           md="5"
         >
           <div>
-            <div class="d-flex align-center">
-              <VAvatar
-                size="34"
-                variant="tonal"
-                color="primary"
-                class="me-3"
-              >
-                <VImg
-                  v-if="avatar"
-                  :src="avatar"
-                />
-                <span v-else>{{ avatarText(props.studentName) }}</span>
-              </VAvatar>
-              <RouterLink
-                :to="`/?search=${abbreviateName(props.studentName, 10, 1).toLowerCase()}`"
-                class="d-flex flex-column"
-              >
-                <h6 class="text-base text-primary">
-                  {{ abbreviateName(props.studentName, 30, 3) }}
-                </h6>
-                <span class="text-sm text-medium-emphasis">{{ props.email || props.nickname }}</span>
-              </RouterLink>
+            <div class="d-flex justify-space-between align-center mb-2">
+              <div class="d-flex align-center">
+                <VAvatar
+                  size="34"
+                  variant="tonal"
+                  color="primary"
+                  class="me-3"
+                >
+                  <VImg
+                    v-if="avatar"
+                    :src="avatar"
+                  />
+                  <span v-else>{{ avatarText(props.studentName) }}</span>
+                </VAvatar>
+                <RouterLink
+                  :to="`/?search=${abbreviateName(props.studentName, 10, 1).toLowerCase()}`"
+                  class="d-flex flex-column"
+                >
+                  <h6 class="text-base text-primary">
+                    {{ abbreviateName(props.studentName, 30, 3) }}
+                  </h6>
+                  <span class="text-sm text-medium-emphasis">{{ props.email || props.nickname }}</span>
+                </RouterLink>
+              </div>
+              <div class="d-flex flex-column text-end">
+                <small class="text-sm text-primary">
+                  {{ new Date(props.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) }}
+                </small>
+                <a
+                  :href="`/?search=${props.taskId}`"
+                  class="text-sm text-medium-emphasis"
+                >{{ props.taskId }}</a>
+              </div>
             </div>
             <hr class="my-custom-line">
             <RouterLink
@@ -191,12 +204,15 @@ const comments = [
               </p>
             </RouterLink>
             <p class="text-body-2 d-inline">
-              <RouterLink
-                :to="`/?search=${taskId}`"
+              <a
+                :href="props.link ? props.link : `/?search=${props.taskId}`"
                 class="text-primary"
+                target="_blank"
+                rel="noopener noreferrer"
               >
                 {{ props.taskName.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') }}
-              </RouterLink>
+              </a>
+
               <a
                 :href="link"
                 target="_blank"

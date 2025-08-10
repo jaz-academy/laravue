@@ -9,8 +9,6 @@ const userData = useCookie('userData')
 const userAbilityRules = useCookie('userAbilityRules').value[0]
 const accountPage = ref({})
 
-console.log(userData.value.admin_student_id)
-
 if (userData.value.admin_teacher_id >0) {
   accountPage.value = {
     name: 'profile-teacher-id-tab',

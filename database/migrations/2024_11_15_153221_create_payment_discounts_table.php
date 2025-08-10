@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('admin_student_id')->constrained()->cascadeOnDelete();
             $table->integer('year');
             $table->foreignId('finance_account_id')->nullable()->constrained()->cascadeOnDelete();
-            $table->foreignId('payment_billing_id')->nullable()->constrained()->cascadeOnDelete();
+            $table->string('billing');
             $table->integer('amount')->default(0);
             $table->string('note')->nullable();
             $table->string('admin')->nullable();

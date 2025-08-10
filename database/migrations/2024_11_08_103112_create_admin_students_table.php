@@ -46,7 +46,7 @@ return new class extends Migration
             $table->string('image', 255)->nullable();
             $table->string('payment_category', 255)->nullable();
             $table->integer('registered')->default(0);
-            $table->integer('graduation')->default(0);
+            $table->integer('graduation')->nullable();
             $table->string('next_school', 255)->nullable();
             $table->string('next_school_address', 255)->nullable();
             $table->text('note')->nullable();

@@ -11,11 +11,11 @@ export const fetchMemberData = async () => {
   let memberAPI
   let activitiesAPI
 
-  if (isStudent) {
-    memberAPI = `/students/${userData.admin_student_id}`
+  if (isStudent != null && isStudent != undefined) {
+    memberAPI = `/public/student/${userData.admin_student_id}`
     activitiesAPI = `/public/task-by-student/${userData.admin_student_id}`
   } else {
-    memberAPI = `/teacher/${userData.admin_teacher_id}`
+    memberAPI = `/public/teacher/${userData.admin_teacher_id}`
     activitiesAPI = `/public/task-by-teacher/${userData.admin_teacher_id}`
   }
 
@@ -24,6 +24,8 @@ export const fetchMemberData = async () => {
   if (memberError.value) {
     console.log('Member Error:', memberError.value)
   } else {
+    console.log('Member Data:', memberData.value)
+
     if (memberData.value) {
       member.value = memberData.value.data
     }
