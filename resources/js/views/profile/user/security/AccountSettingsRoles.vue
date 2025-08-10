@@ -32,23 +32,30 @@ const selectedAccess = ref(
 )
 
 const adminRolesOption = [
-  { text: 'Unverified', value: 0 },
-  { text: 'Restricted', value: 1 },
+  { text: 'Annonimous', value: 0 },
+  { text: 'Guest', value: 1 },
   { text: 'User', value: 2 },
-  { text: 'Administrator', value: 3 },
+  { text: 'Superuser', value: 3 },
   { text: 'Manager', value: 4 },
   { text: 'Programmer', value: 5 },
 ]
 
 const adminAccessOption = [
+  'Project',
+  'Award',
+  'Courses',
   'Assessment',
+  'Saving',
   'Payment',
   'Finance',
-  'Project',
-  'Reports',
 ]
 
 const updateUserRole = async () => {
+  if (userData.value?.role < 4) {
+    showAlert('You do not have permission to update roles', 'error')
+    
+    return
+  }
   console.log('Updating user role with:', JSON.stringify({
     role: parseInt(selectedRole.value),
     access: selectedAccess.value.length > 0

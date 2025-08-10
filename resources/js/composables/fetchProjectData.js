@@ -130,3 +130,43 @@ export const useBookmarkTasks = async id => {
     }
   }
 }
+
+
+export const fetchTasksList = async ({
+  admin_student_id = '',
+  search = '',
+  status = '',
+  media = '',
+  accepted = '',
+  perPage = 10,
+  page = 1,
+  sortBy = '',
+  orderBy = 'asc',
+}) => {
+  // Build query string
+  const params = new URLSearchParams({
+    admin_student_id,
+    search,
+    status,
+    media,
+    accepted,
+    perPage,
+    page,
+    sortBy,
+    orderBy,
+  })
+
+  const { data: taskData, error: taskError } = await useApi(`/public/tasks?${params.toString()}`)
+
+  if (taskError.value) {
+    console.error('Error fetching tasks:', taskError.value)
+    throw new Error(taskError.value)
+  }
+
+  return {
+    tasks: taskData.value?.data || [],
+    totalPages: taskData.value?.totalPages || 0,
+    totalTasks: taskData.value?.count || 0,
+    page: taskData.value?.page || 1,
+  }
+}

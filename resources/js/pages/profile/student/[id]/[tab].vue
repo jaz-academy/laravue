@@ -6,6 +6,7 @@ import AccountSettingsParents from '@/views/profile/student/account/AccountSetti
 import AccountSettingsRoles from '@/views/profile/user/security/AccountSettingsRoles.vue'
 import AccountSettingsSecurity from '@/views/profile/user/security/AccountSettingsSecurity.vue'
 
+const currentUser = useCookie('userData').value
 const route = useRoute('profile-student-id-tab')
 
 const activeTab = computed({
@@ -42,10 +43,10 @@ const fetchStudent = async () => {
   error.value = null
 
   try {
-    const response = await useApi(`/public/students/${studentId.value}`)
+    const response = await useApi(`/public/student/${studentId.value}`)
 
     student.value = response.data.value.data ?? null
-    console.log('Student data:', studentId.value, student.value)
+    console.log('Student data:', student.value)
   } catch (err) {
     error.value = err
     console.error('Failed to fetch student:', err)
@@ -88,6 +89,14 @@ const tabs = [
 definePage({ meta: { navActiveLink: 'profile-student-id-tab' } })
 
 const updateStudent = async (studentId, userData) => {
+  const isOwner = parseInt(studentId) === currentUser?.admin_student_id
+  const isAdmin = currentUser?.role >= 4
+
+  if (!isOwner && !isAdmin) {
+    showAlert('You are not authorized to update this student', 'error')
+    
+    return
+  }
   console.log('Updating student:', studentId, userData)
   try {
     const { data, response } = await useApi(`/students/${studentId}`, {

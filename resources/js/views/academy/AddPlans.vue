@@ -1,79 +1,107 @@
 <script setup>
-import { Image } from '@tiptap/extension-image'
-import { Link } from '@tiptap/extension-link'
-import { Placeholder } from '@tiptap/extension-placeholder'
-import { Underline } from '@tiptap/extension-underline'
-import { StarterKit } from '@tiptap/starter-kit'
-import {
-  EditorContent,
-  useEditor,
-} from '@tiptap/vue-3'
+import AppSelect from '@/@core/components/app-form-elements/AppSelect.vue'
+import { useApi } from '@/composables/useApi'
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 import { VForm } from 'vuetify/components/VForm'
 
 const props = defineProps({
-  isDrawerOpen: {
-    type: Boolean,
-    required: true,
-  },
+  isDrawerOpen: { type: Boolean, required: true },
+  mode: { type: String, default: 'add' },
+  planData: { type: Object, default: () => ({}) },
 })
 
-const emit = defineEmits(['update:isDrawerOpen'])
+const emit = defineEmits(['update:isDrawerOpen', 'planData'])
+const subjectsData = await useApi('/subjects')
+
+const subjectOptions = computed(() => {
+  const groupsSet = new Set()
+
+  subjectsData.data.value.data?.forEach(subject => {
+    if (subject && subject.group) {
+      groupsSet.add(subject.group)
+    }
+  })
+
+  return Array.from(groupsSet).map(group => ({
+    value: group,
+    title: group,
+  }))
+})
+
+const currentUser = useCookie('userData').value
+
+const refVForm = ref()
+const isFormValid = ref(false)
+
+const form = reactive({
+  subject: '',
+  theme: '',
+  description: '',
+  start_date: '',
+  end_date: '',
+  is_active: false,
+})
+
+watch(
+  () => [props.planData, props.mode],
+  () => {
+    if (props.mode === 'edit' && props.planData) {
+      Object.assign(form, {
+        subject: props.planData.subject || '',
+        theme: props.planData.theme || '',
+        description: props.planData.description || '',
+        start_date: props.planData.start_date || '',
+        end_date: props.planData.end_date || '',
+        is_active: props.planData.is_active ?? false,
+      })
+    } else {
+      Object.assign(form, {
+        subject: '',
+        theme: '',
+        description: '',
+        start_date: '',
+        end_date: '',
+        is_active: false,
+      })
+    }
+  },
+  { immediate: true },
+)
+
+watch(
+  () => props.isDrawerOpen,
+  open => {
+    if (!open) {
+      refVForm.value?.reset()
+      refVForm.value?.resetValidation()
+    }
+  },
+)
 
 const handleDrawerModelValueUpdate = val => {
   emit('update:isDrawerOpen', val)
 }
 
-const editor = useEditor({
-  content: '',
-  extensions: [
-    StarterKit,
-    Image,
-    Placeholder.configure({ placeholder: 'Write something here...' }),
-    Underline,
-    Link.configure({ openOnClick: false }),
-  ],
-})
-
-const setLink = () => {
-  const previousUrl = editor.value?.getAttributes('link').href
-
-  // eslint-disable-next-line no-alert
-  const url = window.prompt('URL', previousUrl)
-
-  // cancelled
-  if (url === null)
-    return
-
-  // empty
-  if (url === '') {
-    editor.value?.chain().focus().extendMarkRange('link').unsetLink().run()
-    
-    return
-  }
-
-  // update link
-  editor.value?.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
-}
-
-const addImage = () => {
-
-  // eslint-disable-next-line no-alert
-  const url = window.prompt('URL')
-  if (url)
-    editor.value?.chain().focus().setImage({ src: url }).run()
-}
-
-const refVForm = ref()
-const categoryTitle = ref()
-const categorySlug = ref()
-const categoryImg = ref()
-const parentCategory = ref()
-const parentStatus = ref()
-
 const resetForm = () => {
-  emit('update:isDrawerOpen', false)
   refVForm.value?.reset()
+  refVForm.value?.resetValidation()
+}
+
+const onSubmit = () => {
+  refVForm.value?.validate().then(({ valid }) => {
+    if (!valid) return
+
+    const payload = { ...form }
+    if (props.mode === 'edit') {
+      payload.id = props.planData.id
+      emit('planData', { action: 'update', data: payload })
+    } else {
+      emit('planData', { action: 'create', data: payload })
+    }
+
+    emit('update:isDrawerOpen', false)
+    nextTick(resetForm)
+  })
 }
 </script>
 
@@ -86,9 +114,8 @@ const resetForm = () => {
     class="category-navigation-drawer scrollable-content"
     @update:model-value="handleDrawerModelValueUpdate"
   >
-    <!-- 👉 Header -->
     <AppDrawerHeaderSection
-      title="Add Category"
+      :title="props.mode === 'edit' ? 'Edit Plan' : 'Add New Plan'"
       @cancel="$emit('update:isDrawerOpen', false)"
     />
 
@@ -99,136 +126,78 @@ const resetForm = () => {
         <VCardText>
           <VForm
             ref="refVForm"
-            @submit.prevent=""
+            v-model="isFormValid"
+            @submit.prevent="onSubmit"
           >
             <VRow>
               <VCol cols="12">
-                <AppTextField
-                  v-model="categoryTitle"
-                  label="Title"
+                <AppSelect
+                  v-model="form.subject"
+                  label="Subject"
                   :rules="[requiredValidator]"
-                  placeholder="Fashion"
+                  :items="subjectOptions"
+                  placeholder="Choose Project Subject"
                 />
               </VCol>
 
               <VCol cols="12">
                 <AppTextField
-                  v-model="categorySlug"
-                  label="Slug"
+                  v-model="form.theme"
+                  label="Theme"
                   :rules="[requiredValidator]"
-                  placeholder="Trends fashion"
+                  placeholder="Project Theme"
                 />
               </VCol>
 
               <VCol cols="12">
-                <VLabel>
-                  <span class="text-sm text-high-emphasis mb-1">Attachment</span>
-                </VLabel>
-                <VFileInput
-                  v-model="categoryImg"
-                  prepend-icon=""
-                  density="compact"
-                  :rules="[requiredValidator]"
-                  placeholder="No file chosen"
-                  clearable
-                >
-                  <template #prepend-inner>
-                    <div class="text-no-wrap pe-2 cursor-pointer">
-                      Choose Image
-                    </div>
-                    <VDivider vertical />
-                  </template>
-                </VFileInput>
+                <AppTextarea
+                  v-model="form.description"
+                  label="Description"
+                  placeholder="Write Description"
+                  auto-grow
+                />
+              </VCol>
+
+              <VCol cols="12">
+                <AppDateTimePicker
+                  v-model="form.start_date"
+                  label="Date"
+                  placeholder="Select date"
+                />
+              </VCol>
+
+              <VCol cols="12">
+                <AppDateTimePicker
+                  v-model="form.end_date"
+                  label="Deadline"
+                  placeholder="Select date"
+                />
               </VCol>
 
               <VCol cols="12">
                 <AppSelect
-                  v-model="parentCategory"
+                  v-model="form.is_active"
                   :rules="[requiredValidator]"
-                  label="Parent Category"
-                  placeholder="Select Parent Category"
-                  :items="['HouseHold', 'Management', 'Electronics', 'Office', 'Accessories']"
-                />
-              </VCol>
-
-              <VCol cols="12">
-                <p class="mb-2">
-                  Description
-                </p>
-                <div class="border rounded py-2 px-4">
-                  <EditorContent :editor="editor" />
-                  <div
-                    v-if="editor"
-                    class="d-flex justify-end flex-wrap gap-x-2"
-                  >
-                    <VIcon
-                      icon="tabler-bold"
-                      :color="editor.isActive('bold') ? 'primary' : ''"
-                      size="20"
-                      @click="editor.chain().focus().toggleBold().run()"
-                    />
-
-                    <VIcon
-                      :color="editor.isActive('underline') ? 'primary' : ''"
-                      icon="tabler-underline"
-                      size="20"
-                      @click="editor.commands.toggleUnderline()"
-                    />
-
-                    <VIcon
-                      :color="editor.isActive('italic') ? 'primary' : ''"
-                      icon="tabler-italic"
-                      size="20"
-                      @click="editor.chain().focus().toggleItalic().run()"
-                    />
-
-                    <VIcon
-                      :color="editor.isActive('bulletList') ? 'primary' : ''"
-                      icon="tabler-list"
-                      size="20"
-                      @click="editor.chain().focus().toggleBulletList().run()"
-                    />
-
-                    <VIcon
-                      :color="editor.isActive('orderedList') ? 'primary' : ''"
-                      icon="tabler-list-numbers"
-                      size="20"
-                      @click="editor.chain().focus().toggleOrderedList().run()"
-                    />
-
-                    <VIcon
-                      icon="tabler-link"
-                      size="20"
-                      @click="setLink"
-                    />
-
-                    <VIcon
-                      icon="tabler-photo"
-                      size="20"
-                      @click="addImage"
-                    />
-                  </div>
-                </div>
-              </VCol>
-
-              <VCol cols="12">
-                <AppSelect
-                  v-model="parentStatus"
-                  :rules="[requiredValidator]"
-                  placeholder="Select Category Status"
+                  placeholder="Select Status"
                   label="Status"
-                  :items="['Published', 'Inactive', 'Scheduled']"
+                  :items="[
+                    { title: 'Activated', value: 1 },
+                    { title: 'Deactivated', value: 0 }
+                  ]"
                 />
               </VCol>
 
-              <VCol cols="12">
+              <VCol
+                v-if="currentUser?.role >= 4"
+                cols="12"
+              >
                 <div class="d-flex justify-start">
                   <VBtn
                     type="submit"
                     color="primary"
                     class="me-4"
                   >
-                    Add
+                    {{ props.mode === 'edit' ? 'Update' : 'Add' }}
                   </VBtn>
                   <VBtn
                     color="error"
@@ -246,34 +215,3 @@ const resetForm = () => {
     </PerfectScrollbar>
   </VNavigationDrawer>
 </template>
-
-<style lang="scss">
-.category-navigation-drawer{
-  .ProseMirror {
-    padding: 0.5rem;
-    min-block-size: 15vh;
-
-    p {
-      margin-block-end: 0;
-    }
-
-    p.is-editor-empty:first-child::before {
-      block-size: 0;
-      color: #adb5bd;
-      content: attr(data-placeholder);
-      float: inline-start;
-      pointer-events: none;
-    }
-  }
-
-  .is-active {
-    border-color: rgba(var(--v-theme-primary), var(--v-border-opacity)) !important;
-    background-color: rgba(var(--v-theme-primary), var(--v-activated-opacity));
-    color: rgb(var(--v-theme-primary));
-  }
-
-  .ProseMirror-focused{
-    outline: none !important;
-  }
-}
-</style>

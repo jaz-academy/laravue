@@ -11,6 +11,8 @@ const history = ref([])
 const isLoading = ref(false) // Prevent multiple fetches
 const page = ref(2)
 
+console.log('uploadTask:', uploadTasks.value)
+
 onMounted(async () => {
   await fetchProjectData()
   taskData.value = uploadTasks.value?.data

@@ -41,7 +41,7 @@ onMounted(() => {
                 class="me-1"
               />
               <span class="text-body-1">
-                {{ member?.role }}
+                {{ member?.role || member?.note }}
               </span>
             </span>
 
@@ -63,7 +63,7 @@ onMounted(() => {
                 class="me-1"
               />
               <span class="text-body-1">
-                {{ member?.bird_date }}
+                {{ member?.birth_date }}
               </span>
             </span>
           </div>

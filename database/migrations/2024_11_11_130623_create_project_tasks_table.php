@@ -23,8 +23,8 @@ return new class extends Migration
             $table->string('media')->nullable();
             $table->text('embed')->nullable();
             $table->text('link')->nullable();
-            $table->tinyInteger('accepted')->default(0);
-            $table->integer('rate')->default(0);
+            $table->tinyInteger('accepted')->nullable()->default(0); // 0 for Not Accepted, 1 for Accepted
+            $table->decimal('rate', 2, 1)->nullable();
             $table->text('review')->nullable();
             $table->foreignId('admin_teacher_id')->nullable()->constrained()->cascadeOnDelete();
             $table->timestamps();

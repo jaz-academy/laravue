@@ -5,6 +5,8 @@ import { paginationMeta } from '@api-utils/paginationMeta'
 import { computed, onMounted, ref } from 'vue'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
+const currentUser = useCookie('userData').value
+
 onMounted (() => {
   fetchStudentData()
 })
@@ -80,6 +82,7 @@ const headers = [
   },
 ]
 
+// panggil data siswa
 const fetchUsers = async () => {
   const params = {
     q: searchQuery.value || '',
@@ -103,9 +106,11 @@ const fetchUsers = async () => {
   }
 }
 
+// data untuk tabel
 const users = computed(() => usersData.value?.users || [])
 const totalUsers = computed(() => usersData.value?.totalUsers || 0)
 
+// data option select
 const years = computed(() => {
   const userYears = usersData.value?.users?.map(user => user.registered) || []
   const uniqueYears = [...new Set(userYears.filter(year => typeof year === 'number'))]
@@ -159,71 +164,19 @@ const graduatedCount = computed(() => {
   }).length
 })
 
+// ✅ Dynamic: Count suspended students
 const suspendedCount = computed(() => {
   return students.value.filter(student => student.graduation === 0).length
 })
 
+// ✅ Dynamic: Percentage of students by graduation
 const countPercentageStudentByGraduated = angka => {
   if (students.value.length === 0) return 0
 
   return ((angka / students.value.length) * 100).toFixed(0)
 }
 
-console.log(graduatedCount.value, suspendedCount.value, countPercentageStudentByGraduated(graduatedCount.value), countPercentageStudentByGraduated(suspendedCount.value))
-
-
-const resolveUserStatusVariant = stat => {
-  if (!stat) return 'primary' // default color kalau null/undefined
-  const statLowerCase = stat.toLowerCase()
-  if (statLowerCase === 'active') return 'primary'
-  if (statLowerCase === 'graduated') return 'success'
-  if (statLowerCase === 'inactive') return 'warning'
-  
-  return 'primary'
-}
-
-const isAddNewStudentVisible = ref(false)
-
-const addNewStudent = async userData => {
-  console.log('Sending userData:', userData)
-  try {
-    const { data, response } = await useApi('/students', {
-      method: 'POST',
-      body: JSON.stringify(userData), // harus JSON
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-    })
-
-    if (response.value.ok) {
-      showAlert('Data berhasil ditambahkan', 'success')
-      console.log('Student created:', data)
-      fetchUsers()
-    }else {
-      showAlert(response.value.statusText || 'Gagal menambahkan data', 'error')
-    }
-    
-  } catch (error) {
-    console.error('Create student error:', error?.data?.errors || error)
-    showAlert(error.message || 'Gagal menambahkan data', 'error')
-  }
-}
-
-const deleteStudent = async id => {
-  try {
-    if (confirm('Apakah kamu yakin ingin menghapus data ini?')) {
-      console.log('Deleting student with ID:', id)
-      await useApi(`/students/${id}`, { method: 'DELETE' })
-      showAlert('Data berhasil dihapus', 'success')
-      fetchUsers() 
-    }
-  } catch (err) {
-    showAlert(err.message || 'Gagal menghapus data', 'error')
-    console.error(err)
-  }
-}
-
+// data untuk widget
 const widgetData = ref([
   {
     title: 'Male Active',
@@ -258,6 +211,61 @@ const widgetData = ref([
     iconColor: 'error',
   },
 ])
+
+// Resolusi status pengguna
+const resolveUserStatusVariant = stat => {
+  if (!stat) return 'primary' // default color kalau null/undefined
+  const statLowerCase = stat.toLowerCase()
+  if (statLowerCase === 'active') return 'primary'
+  if (statLowerCase === 'graduated') return 'success'
+  if (statLowerCase === 'inactive') return 'warning'
+  
+  return 'primary'
+}
+
+const isAddNewStudentVisible = ref(false)
+
+// create new student
+const addNewStudent = async userData => {
+  console.log('Sending userData:', userData)
+  try {
+    const { data, response } = await useApi('/students', {
+      method: 'POST',
+      body: JSON.stringify(userData), // harus JSON
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    })
+
+    if (response.value.ok) {
+      showAlert('Data berhasil ditambahkan', 'success')
+      console.log('Student created:', data)
+      fetchUsers()
+    }else {
+      showAlert(response.value.statusText || 'Gagal menambahkan data', 'error')
+    }
+    
+  } catch (error) {
+    console.error('Create student error:', error?.data?.errors || error)
+    showAlert(error.message || 'Gagal menambahkan data', 'error')
+  }
+}
+
+// destroy data siswa
+const deleteStudent = async id => {
+  try {
+    if (confirm('Apakah kamu yakin ingin menghapus data ini?')) {
+      console.log('Deleting student with ID:', id)
+      await useApi(`/students/${id}`, { method: 'DELETE' })
+      showAlert('Data berhasil dihapus', 'success')
+      fetchUsers() 
+    }
+  } catch (err) {
+    showAlert(err.message || 'Gagal menghapus data', 'error')
+    console.error(err)
+  }
+}
 </script>
 
 <template>
@@ -414,6 +422,7 @@ const widgetData = ref([
 
           <!-- 👉 Add user button -->
           <VBtn
+            v-if="currentUser?.role >= 4"
             prepend-icon="tabler-plus"
             @click="isAddNewStudentVisible = true"
           >
@@ -491,11 +500,17 @@ const widgetData = ref([
 
         <!-- Actions -->
         <template #item.actions="{ item }">
-          <IconBtn @click="deleteStudent(item.id)">
+          <IconBtn
+            v-if="currentUser?.role >= 4"
+            @click="deleteStudent(item.id)"
+          >
             <VIcon icon="tabler-trash" />
           </IconBtn>
 
-          <IconBtn :to="{ name: 'profile-student-id-tab', params: { id: item.id, tab: 'account' } }">
+          <IconBtn
+            :to="currentUser.admin_student_id === item.id ? { name: 'profile-student-id-tab', params: { id: item.id, tab: 'account' } } : undefined"
+            :disabled="currentUser.admin_student_id !== item.id"
+          >
             <VIcon icon="tabler-edit" />
           </IconBtn>
         </template>

@@ -13,7 +13,7 @@ class PlanController extends Controller
      */
     public function index()
     {
-        $plans = Plan::all();
+        $plans = Plan::orderBy('id', 'desc')->get();
 
         return response()->json([
             'count' => $plans->count(),

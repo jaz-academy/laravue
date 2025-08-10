@@ -47,10 +47,10 @@ Route::get('login', function () {
 
 Route::group(['prefix' => 'public'], function () {
   Route::get('students', [StudentController::class, 'index']);
-  Route::get('students/{id}', [StudentController::class, 'show']);
+  Route::get('student/{id}', [StudentController::class, 'show']);
   Route::get('students-show', [StudentController::class, 'showAll']);
   Route::get('teachers', [TeacherController::class, 'index']);
-  Route::get('teachers/{id}', [TeacherController::class, 'show']);
+  Route::get('teacher/{id}', [TeacherController::class, 'show']);
   Route::get('teachers-show', [TeacherController::class, 'showAll']);
   Route::get('home-tasks-with-all', [TaskController::class, 'homeTasksWithAll']);
   Route::get('upload-tasks-with-all', [TaskController::class, 'uploadTasksWithAll']);
@@ -98,6 +98,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
   Route::apiResource('courses', CourseController::class);
   Route::apiResource('awards', AwardController::class);
+  Route::get('awards-custom', [AwardController::class, 'custom']);
   Route::apiResource('subjects', SubjectController::class);
   Route::apiResource('competences', CompetenceController::class);
   Route::apiResource('scores', ScoreController::class);

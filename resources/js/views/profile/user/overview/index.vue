@@ -1,20 +1,12 @@
 <script setup>
-import { member } from '@/composables/fetchMemberData'
+import { fetchMemberData, member } from '@/composables/fetchMemberData'
 import About from './About.vue'
 import ActivityTimeline from './ActivityTimeline.vue'
 
-const router = useRoute('profile-user-tab')
-const profileTabData = ref()
-
-const fetchAboutData = async () => {
-  if (router.params.tab === 'overview') {
-    const data = await $fake('/pages/profile', { query: { tab: 'profile' } }).catch(err => console.log(err))
-
-    profileTabData.value = data
-  }
-}
-
-watch(router, fetchAboutData, { immediate: true })
+onMounted(() => {
+  fetchMemberData()
+  console.log('member: ', member)
+})
 </script>
 
 <template>

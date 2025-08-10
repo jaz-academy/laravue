@@ -5,6 +5,7 @@ import AccountSettingsOthers from '@/views/profile/teacher/account/AccountSettin
 import AccountSettingsRoles from '@/views/profile/user/security/AccountSettingsRoles.vue'
 import AccountSettingsSecurity from '@/views/profile/user/security/AccountSettingsSecurity.vue'
 
+const currentUser = useCookie('userData').value
 const route = useRoute('profile-teacher-id-tab')
 
 const activeTab = computed({
@@ -41,7 +42,7 @@ const fetchTeacher = async () => {
   error.value = null
 
   try {
-    const response = await useApi(`/public/teachers/${teacherId.value}`)
+    const response = await useApi(`/public/teacher/${teacherId.value}`)
 
     teacher.value = response.data.value.data ?? null
     console.log('teacher data:', teacherId.value, teacher.value)
@@ -82,6 +83,14 @@ const tabs = [
 definePage({ meta: { navActiveLink: 'profile-teacher-id-tab' } })
 
 const updateTeacher = async (teacherId, userData) => {
+  const isOwner = parseInt(teacherId) === currentUser?.admin_teacher_id
+  const isAdmin = currentUser?.role >= 4
+
+  if (!isOwner && !isAdmin) {
+    showAlert('You are not authorized to update this teacher', 'error')
+
+    return
+  }
   console.log('Updating Teacher:', teacherId, userData)
   try {
     const { data, response } = await useApi(`/teachers/${teacherId}`, {

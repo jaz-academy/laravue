@@ -400,6 +400,7 @@
     "fetchTeacherById": true,
     "fetchTeachers": true,
     "useUserData": true,
-    "fetchAllUsers": true
+    "fetchAllUsers": true,
+    "fetchTasksList": true
   }
 }

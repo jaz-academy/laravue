@@ -127,6 +127,7 @@ onUnmounted(() => {
       >
         <HomeCard
           class="card-post"
+          :task-id="task.id"
           :task-name="task.name"
           :description="task.description"
           :subject="task.project_plan.subject"
@@ -142,13 +143,30 @@ onUnmounted(() => {
           :teacher="task.admin_teacher ? { id: task.admin_teacher.id, name: task.admin_teacher.nickname } : 'Not Accepted'"
           :accepted="task.accepted"
           :link="task.link"
+          :date="task.date"
         />
       </div>
       <div
         ref="loadMoreTrigger"
         class="py-4 text-center text-gray-400"
       >
-        Loading more...
+        <div
+          v-if="loading"
+          class="flex justify-center items-center"
+        >
+          <VIcon
+            icon="mdi-loading"
+            spin
+            class="mr-2"
+          />
+          Loading...
+        </div>
+        <div
+          v-else-if="!hasMore"
+          class="text-gray-400"
+        >
+          No more tasks.
+        </div>
       </div>
     </div>
 

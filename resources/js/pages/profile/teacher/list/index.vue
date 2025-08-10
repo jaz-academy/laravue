@@ -5,6 +5,8 @@ import { paginationMeta } from '@api-utils/paginationMeta'
 import { computed, onMounted, ref } from 'vue'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
+const currentUser = useCookie('userData').value
+
 onMounted (() => {
   fetchTeacherData()
 })
@@ -143,7 +145,7 @@ const status = [
 const countTeacherByGender = gender => {
   return teachers.value.filter(teacher => {
     return (teacher.gender || '').toLowerCase() === gender.toLowerCase() &&
-           teacher.status === null
+           teacher.status === "Active"
   }).length
 }
 
@@ -154,27 +156,15 @@ const countPercentageTeacherByGender = gender => {
   return ((countTeacherByGender(gender) / teachers.value.length) * 100).toFixed(0)
 }
 
-// ✅ Dynamic: Percentage of teachers by status
-const graduatedCount = computed(() => {
-  return teachers.value.filter(teacher => {
-    const grad = teacher.status || ''
-
-    return String(grad).startsWith('2')
-  }).length
-})
-
 const suspendedCount = computed(() => {
-  return teachers.value.filter(teacher => teacher.status === 0).length
+  return teachers.value.filter(teacher => teacher.status === "Suspend").length
 })
 
-const countPercentageTeacherByGraduated = angka => {
+const countPercentageTeacherByStatus = angka => {
   if (teachers.value.length === 0) return 0
 
   return ((angka / teachers.value.length) * 100).toFixed(0)
 }
-
-console.log(graduatedCount.value, suspendedCount.value, countPercentageTeacherByGraduated(graduatedCount.value), countPercentageTeacherByGraduated(suspendedCount.value))
-
 
 const resolveUserStatusVariant = stat => {
   if (!stat) return 'primary' // default color kalau null/undefined
@@ -182,7 +172,7 @@ const resolveUserStatusVariant = stat => {
   if (statLowerCase === 'active') return 'primary'
   if (statLowerCase === 'passive') return 'warning'
   if (statLowerCase === 'on duty') return 'success'
-  if (statLowerCase === 'suspend') return 'danger'
+  if (statLowerCase === 'suspend') return 'error'
   
   return 'primary'
 }
@@ -248,17 +238,9 @@ const widgetData = ref([
     iconColor: 'warning',
   },
   {
-    title: 'Graduated',
-    value: graduatedCount.value,
-    change: countPercentageTeacherByGraduated(graduatedCount.value),
-    desc: 'Graduated Teachers',
-    icon: 'tabler-user-check',
-    iconColor: 'success',
-  },
-  {
     title: 'Suspended',
     value: suspendedCount.value,
-    change: countPercentageTeacherByGraduated(suspendedCount.value),
+    change: countPercentageTeacherByStatus(suspendedCount.value),
     desc: 'Suspended Teachers',
     icon: 'tabler-user-exclamation',
     iconColor: 'error',
@@ -277,7 +259,7 @@ const widgetData = ref([
         >
           <VCol
             cols="12"
-            md="3"
+            md="4"
             sm="6"
           >
             <VCard>
@@ -420,6 +402,7 @@ const widgetData = ref([
 
           <!-- 👉 Add user button -->
           <VBtn
+            v-if="currentUser?.role >= 4"
             prepend-icon="tabler-plus"
             @click="isAddNewTeacherVisible = true"
           >
@@ -497,11 +480,17 @@ const widgetData = ref([
 
         <!-- Actions -->
         <template #item.actions="{ item }">
-          <IconBtn @click="deleteTeacher(item.id)">
+          <IconBtn
+            v-if="currentUser?.role >= 4"
+            @click="deleteTeacher(item.id)"
+          >
             <VIcon icon="tabler-trash" />
           </IconBtn>
 
-          <IconBtn :to="{ name: 'profile-teacher-id-tab', params: { id: item.id, tab: 'account' } }">
+          <IconBtn 
+            :to="currentUser.admin_teacher_id === item.id || currentUser?.role >= 4 ? { name: 'profile-teacher-id-tab', params: { id: item.id, tab: 'account' } } : undefined"
+            :disabled="currentUser.admin_teacher_id !== item.id || currentUser?.role < 4"
+          >
             <VIcon icon="tabler-edit" />
           </IconBtn>
         </template>

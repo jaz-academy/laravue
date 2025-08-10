@@ -258,7 +258,7 @@ const uploadAvatar = async () => {
                 <AppTextField
                   v-model="accountDataLocal.address"
                   label="Address"
-                  placeholder="Jln. Sirot No. 123"
+                  placeholder="Jln. Sirot No 1 RT 2/3 Kp. Mustaqim"
                 />
               </VCol>
 
@@ -270,7 +270,7 @@ const uploadAvatar = async () => {
                 <AppTextField
                   v-model="accountDataLocal.hamlet"
                   label="Hamlet"
-                  placeholder="Dusun Mustaqim"
+                  placeholder="Desa Ma'wa"
                 />
               </VCol>
 
@@ -282,7 +282,7 @@ const uploadAvatar = async () => {
                 <AppTextField
                   v-model="accountDataLocal.village"
                   label="Village"
-                  placeholder="Desa / Kec. Jannah"
+                  placeholder="Kec. Jannah"
                 />
               </VCol>
 
@@ -328,17 +328,17 @@ const uploadAvatar = async () => {
 
           <VCardText class="pt-2 mt-6">
             <VRow>
-              <!-- 👉 skill -->
+              <!-- 👉 role -->
               <VCol
                 cols="12"
                 md="12"
               >
                 <AppSelect
-                  v-model="accountDataLocal.note"
-                  label="Skills"
-                  placeholder="Select Skills"
+                  v-model="accountDataLocal.role"
+                  label="Role"
+                  placeholder="Select Role"
                   multiple
-                  :items="['Design', 'Editing', 'Copywriting', 'Photography', 'HTML', 'CSS', 'JavaScript', 'React', 'NodeJS', 'MongoDB', 'MySQL', 'Python']"
+                  :items="['CEO', 'COO', 'CMO', 'Musyrif', 'Murobbi', 'Mentor', 'ICT', 'Tsaqofah', 'Alquran', 'English', 'Arabic']"
                 />
               </VCol>
 
