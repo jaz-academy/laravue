@@ -9,10 +9,10 @@ jobs:
       uses: actions/checkout@v4
     
     - name: 📂 Sync files
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.0
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.6
       with:
-        server: ftp.jazacademy.id
-        username: abukafa@jazacademy.id
-        password: "nM~[VFWppgAiLoVy"
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
         protocol: ftp
         server-dir: /laravue
