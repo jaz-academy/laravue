@@ -13,6 +13,6 @@ jobs:
       with:
         server: ftp.jazacademy.id
         username: abukafa@jazacademy.id
-        password: nM~[VFWppgAiLoVy
+        password: "nM~[VFWppgAiLoVy"
         protocol: ftp
         server-dir: /laravue
