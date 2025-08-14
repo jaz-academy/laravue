@@ -12,6 +12,10 @@ export default [
         title: 'Projects',
         to: 'home-projects',
       },
+      {
+        title: 'Finance',
+        to: 'home-finance',
+      },
     ],
     badgeContent: '3',
     badgeClass: 'bg-global-primary',

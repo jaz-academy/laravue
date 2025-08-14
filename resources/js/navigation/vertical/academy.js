@@ -26,13 +26,14 @@ export default [
     icon: { icon: 'tabler-book' },
     children: [
       { title: 'List', to: 'academy-course-list' },
-      { title: 'Details', to: 'academy-course-details' },
+      { title: 'Details', to: { 
+        name: 'academy-course-details', 
+        query: { name: 'ICT - Pengantar Hardware', id: 52 }, 
+      } },
       ...currentUser?.access?.includes('Courses') ? [{
         title: 'Collections',
         children: [
-          { title: 'Courses', to: 'academy-product-courses' },
           { title: 'List', to: 'academy-product-list' },
-          { title: 'Add', to: 'academy-product-add' },
         ],
       }] : [],
     ],

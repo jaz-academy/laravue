@@ -368,7 +368,7 @@ const comments = [
 
             <!-- COMMENT -->
             <div 
-              class="flex-grow-1 overflow-auto"
+              class="flex-grow-1 overflow-auto d-none"
               style="max-block-size: 100%;"
             >
               <VList
@@ -430,5 +430,35 @@ const comments = [
 
 .action-icons {
   cursor: pointer;
+}
+
+@media (min-width: 1920px) {
+  .posting-card {
+    max-inline-size: calc(1440px - 32px);
+  }
+}
+
+@media (min-width: 1280px) and (max-width: 1919px) {
+  .posting-card {
+    max-inline-size: calc(1200px - 32px);
+  }
+}
+
+@media (min-width: 960px) and (max-width: 1279px) {
+  .posting-card {
+    max-inline-size: calc(900px - 32px);
+  }
+}
+
+@media (min-width: 600px) and (max-width: 959px) {
+  .posting-card {
+    max-inline-size: calc(100% - 64px);
+  }
+}
+
+@media (max-width: 600px) {
+  .posting-card {
+    max-inline-size: calc(100% - 32px);
+  }
 }
 </style>

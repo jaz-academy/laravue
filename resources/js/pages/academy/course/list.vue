@@ -57,7 +57,7 @@ const searchQuery = ref('')
 
     <AcademyMyCourses :search-query="searchQuery" />
 
-    <div class="mb-6">
+    <div class="mb-6 d-none">
       <VRow>
         <VCol
           cols="12"
@@ -144,7 +144,7 @@ const searchQuery = ref('')
       </VRow>
     </div>
 
-    <VCard>
+    <VCard class="d-none">
       <VCardText>
         <VRow>
           <VCol

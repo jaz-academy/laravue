@@ -1,79 +1,108 @@
 <script setup>
-import { Image } from '@tiptap/extension-image'
-import { Link } from '@tiptap/extension-link'
-import { Placeholder } from '@tiptap/extension-placeholder'
-import { Underline } from '@tiptap/extension-underline'
-import { StarterKit } from '@tiptap/starter-kit'
-import {
-  EditorContent,
-  useEditor,
-} from '@tiptap/vue-3'
+import AppTextField from '@/@core/components/app-form-elements/AppTextField.vue'
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 import { VForm } from 'vuetify/components/VForm'
 
 const props = defineProps({
-  isDrawerOpen: {
-    type: Boolean,
-    required: true,
-  },
+  isDrawerOpen: { type: Boolean, required: true },
+  mode: { type: String, default: 'add' },
+  courseData: { type: Object, default: () => ({}) },
 })
 
-const emit = defineEmits(['update:isDrawerOpen'])
+const emit = defineEmits(['update:isDrawerOpen', 'courseData'])
+const subjectsData = await useApi('/subjects')
+
+const subjectsDataOptions = computed(() => {
+  const groups = [...new Set(subjectsData?.data.value.data?.map(s => s.group))]
+  
+  return groups.map(g => ({ value: g, label: g }))
+})
+
+console.log("subjectsData", subjectsDataOptions)
+
+const currentUser = useCookie('userData').value
+
+const refVForm = ref()
+const isFormValid = ref(false)
+
+const form = reactive({
+  name: '',
+  subject: '',
+  note: '',
+  author: '',
+  title: '',
+  section: '',
+  description: '',
+  video_url: '',
+  video_duration: '',
+})
+
+watch(
+  () => [props.courseData, props.mode],
+  () => {
+    if ((props.mode === 'edit' || props.mode === 'duplicate') && props.courseData) {
+      Object.assign(form, {
+        name: props.courseData.name || '',
+        subject: props.courseData.subject || '',
+        note: props.courseData.note || '',
+        author: props.courseData.author || '',
+        title: props.courseData.title || '',
+        section: props.courseData.section || '',
+        description: props.courseData.description || '',
+        video_url: props.courseData.video_url || '',
+        video_duration: props.courseData.video_duration || '',
+      })
+    } else {
+      Object.assign(form, {
+        name: '',
+        subject: '',
+        note: '',
+        author: '',
+        title: '',
+        section: '',
+        description: '',
+        video_url: '',
+        video_duration: '',
+      })
+    }
+  },
+  { immediate: true },
+)
+
+watch(
+  () => props.isDrawerOpen,
+  open => {
+    if (!open) {
+      refVForm.value?.reset()
+      refVForm.value?.resetValidation()
+    }
+  },
+)
 
 const handleDrawerModelValueUpdate = val => {
   emit('update:isDrawerOpen', val)
 }
 
-const editor = useEditor({
-  content: '',
-  extensions: [
-    StarterKit,
-    Image,
-    Placeholder.configure({ placeholder: 'Write something here...' }),
-    Underline,
-    Link.configure({ openOnClick: false }),
-  ],
-})
-
-const setLink = () => {
-  const previousUrl = editor.value?.getAttributes('link').href
-
-  // eslint-disable-next-line no-alert
-  const url = window.prompt('URL', previousUrl)
-
-  // cancelled
-  if (url === null)
-    return
-
-  // empty
-  if (url === '') {
-    editor.value?.chain().focus().extendMarkRange('link').unsetLink().run()
-    
-    return
-  }
-
-  // update link
-  editor.value?.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
-}
-
-const addImage = () => {
-
-  // eslint-disable-next-line no-alert
-  const url = window.prompt('URL')
-  if (url)
-    editor.value?.chain().focus().setImage({ src: url }).run()
-}
-
-const refVForm = ref()
-const categoryTitle = ref()
-const categorySlug = ref()
-const categoryImg = ref()
-const parentCategory = ref()
-const parentStatus = ref()
-
 const resetForm = () => {
   emit('update:isDrawerOpen', false)
   refVForm.value?.reset()
+}
+
+const onSubmit = () => {
+  refVForm.value?.validate().then(({ valid }) => {
+    if (!valid) return
+
+    const payload = { ...form }
+    if (props.mode === 'edit') {
+      payload.id = props.courseData.id
+      emit('courseData', { action: 'update', data: payload })
+    } else {
+      emit('courseData', { action: 'create', data: payload })
+    }
+
+    emit('update:isDrawerOpen', false)
+    nextTick(resetForm)
+  })
 }
 </script>
 
@@ -88,7 +117,7 @@ const resetForm = () => {
   >
     <!-- 👉 Header -->
     <AppDrawerHeaderSection
-      title="Add Category"
+      :title="props.mode === 'edit' ? 'Edit Courses' : props.mode === 'duplicate' ? 'Duplicate Courses' : 'Add New Courses'"
       @cancel="$emit('update:isDrawerOpen', false)"
     />
 
@@ -99,136 +128,104 @@ const resetForm = () => {
         <VCardText>
           <VForm
             ref="refVForm"
-            @submit.prevent=""
+            v-model="isFormValid"
+            @submit.prevent="onSubmit"
           >
             <VRow>
               <VCol cols="12">
                 <AppTextField
-                  v-model="categoryTitle"
-                  label="Title"
+                  v-model="form.name"
+                  label="Name"
+                  placeholder="Enter course name"
+                />
+              </VCol>
+
+              <VCol cols="12">
+                <AppSelect
+                  v-model="form.subject"
+                  label="Subject"
                   :rules="[requiredValidator]"
-                  placeholder="Fashion"
+                  :items="subjectsDataOptions"
+                  item-title="label"
+                  item-value="value"
+                  placeholder="Choose Project Subject"
                 />
               </VCol>
 
               <VCol cols="12">
                 <AppTextField
-                  v-model="categorySlug"
-                  label="Slug"
+                  v-model="form.note"
+                  label="Write Note"
                   :rules="[requiredValidator]"
-                  placeholder="Trends fashion"
+                  placeholder="Courses Note"
                 />
               </VCol>
 
               <VCol cols="12">
-                <VLabel>
-                  <span class="text-sm text-high-emphasis mb-1">Attachment</span>
-                </VLabel>
-                <VFileInput
-                  v-model="categoryImg"
-                  prepend-icon=""
-                  density="compact"
+                <AppTextField
+                  v-model="form.author"
+                  label="Write Author"
                   :rules="[requiredValidator]"
-                  placeholder="No file chosen"
-                  clearable
-                >
-                  <template #prepend-inner>
-                    <div class="text-no-wrap pe-2 cursor-pointer">
-                      Choose Image
-                    </div>
-                    <VDivider vertical />
-                  </template>
-                </VFileInput>
-              </VCol>
-
-              <VCol cols="12">
-                <AppSelect
-                  v-model="parentCategory"
-                  :rules="[requiredValidator]"
-                  label="Parent Category"
-                  placeholder="Select Parent Category"
-                  :items="['HouseHold', 'Management', 'Electronics', 'Office', 'Accessories']"
+                  placeholder="Courses Author"
                 />
               </VCol>
 
               <VCol cols="12">
-                <p class="mb-2">
-                  Description
-                </p>
-                <div class="border rounded py-2 px-4">
-                  <EditorContent :editor="editor" />
-                  <div
-                    v-if="editor"
-                    class="d-flex justify-end flex-wrap gap-x-2"
-                  >
-                    <VIcon
-                      icon="tabler-bold"
-                      :color="editor.isActive('bold') ? 'primary' : ''"
-                      size="20"
-                      @click="editor.chain().focus().toggleBold().run()"
-                    />
-
-                    <VIcon
-                      :color="editor.isActive('underline') ? 'primary' : ''"
-                      icon="tabler-underline"
-                      size="20"
-                      @click="editor.commands.toggleUnderline()"
-                    />
-
-                    <VIcon
-                      :color="editor.isActive('italic') ? 'primary' : ''"
-                      icon="tabler-italic"
-                      size="20"
-                      @click="editor.chain().focus().toggleItalic().run()"
-                    />
-
-                    <VIcon
-                      :color="editor.isActive('bulletList') ? 'primary' : ''"
-                      icon="tabler-list"
-                      size="20"
-                      @click="editor.chain().focus().toggleBulletList().run()"
-                    />
-
-                    <VIcon
-                      :color="editor.isActive('orderedList') ? 'primary' : ''"
-                      icon="tabler-list-numbers"
-                      size="20"
-                      @click="editor.chain().focus().toggleOrderedList().run()"
-                    />
-
-                    <VIcon
-                      icon="tabler-link"
-                      size="20"
-                      @click="setLink"
-                    />
-
-                    <VIcon
-                      icon="tabler-photo"
-                      size="20"
-                      @click="addImage"
-                    />
-                  </div>
-                </div>
-              </VCol>
-
-              <VCol cols="12">
-                <AppSelect
-                  v-model="parentStatus"
+                <AppTextField
+                  v-model="form.section"
+                  label="Write Section"
                   :rules="[requiredValidator]"
-                  placeholder="Select Category Status"
-                  label="Status"
-                  :items="['Published', 'Inactive', 'Scheduled']"
+                  placeholder="Courses Section"
                 />
               </VCol>
 
               <VCol cols="12">
+                <AppTextField
+                  v-model="form.title"
+                  label="Write Title"
+                  :rules="[requiredValidator]"
+                  placeholder="Courses Title"
+                />
+              </VCol>
+
+              <VCol cols="12">
+                <AppTextarea
+                  v-model="form.description"
+                  label="Description"
+                  placeholder="Write Description"
+                  auto-grow
+                />
+              </VCol>
+
+              <VCol cols="12">
+                <AppTextarea
+                  v-model="form.video_url"
+                  label="Video URL"
+                  placeholder="Write Video URL"
+                  auto-grow
+                />
+              </VCol>
+
+              <VCol cols="12">
+                <AppTextField
+                  v-model="form.video_duration"
+                  label="Write Video Duration"
+                  :rules="[requiredValidator]"
+                  placeholder="Courses Video Duration"
+                />
+              </VCol>
+
+              <VCol
+                v-if="currentUser?.role >= 4"
+                cols="12"
+              >
                 <div class="d-flex justify-start">
                   <VBtn
                     type="submit"
                     color="primary"
                     class="me-4"
                   >
-                    Add
+                    {{ props.mode === 'edit' ? 'Update' : 'Add' }}
                   </VBtn>
                   <VBtn
                     color="error"

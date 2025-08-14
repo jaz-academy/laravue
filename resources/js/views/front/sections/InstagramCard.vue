@@ -41,9 +41,6 @@ const teacherOptions = computed(() =>
   })),
 )
 
-
-// console.log('user : ', participant.role);
-
 const handleRatingCollumn = value => {
   if (value === 'Yes') {
     ratingCol.value = true
@@ -158,28 +155,39 @@ const comments = [
           md="6"
         >
           <div>
-            <div class="d-flex align-center">
-              <VAvatar
-                size="34"
-                variant="tonal"
-                color="primary"
-                class="me-3"
-              >
-                <VImg
-                  v-if="avatar1"
-                  :src="avatar1"
-                />
-                <span v-else>{{ avatarText(props.studentName) }}</span>
-              </VAvatar>
-              <RouterLink
-                :to="`/?search=${abbreviateName(props.studentName, 10, 1).toLowerCase()}`"
-                class="d-flex flex-column"
-              >
-                <h6 class="text-base text-primary">
-                  {{ abbreviateName(props.studentName, 30, 3) }}
-                </h6>
-                <span class="text-sm text-medium-emphasis">{{ props.email || props.nickname }}</span>
-              </RouterLink>
+            <div class="d-flex justify-space-between align-center mb-2">
+              <div class="d-flex align-center">
+                <VAvatar
+                  size="34"
+                  variant="tonal"
+                  color="primary"
+                  class="me-3"
+                >
+                  <VImg
+                    v-if="avatar1"
+                    :src="avatar1"
+                  />
+                  <span v-else>{{ avatarText(props.studentName) }}</span>
+                </VAvatar>
+                <RouterLink
+                  :to="`/?search=${abbreviateName(props.studentName, 10, 1).toLowerCase()}`"
+                  class="d-flex flex-column"
+                >
+                  <h6 class="text-base text-primary">
+                    {{ abbreviateName(props.studentName, 30, 3) }}
+                  </h6>
+                  <span class="text-sm text-medium-emphasis">{{ props.email || props.nickname }}</span>
+                </RouterLink>
+              </div>
+              <div class="d-flex flex-column text-end">
+                <small class="text-sm text-primary">
+                  {{ new Date(props.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) }}
+                </small>
+                <a
+                  :href="`/?search=${props.taskId}`"
+                  class="text-sm text-medium-emphasis"
+                >{{ props.taskId }}</a>
+              </div>
             </div>
             <hr class="my-custom-line">
             <RouterLink
@@ -341,7 +349,7 @@ const comments = [
 
             <!-- COMMENT -->
             <div 
-              class="flex-grow-1 overflow-auto"
+              class="flex-grow-1 overflow-auto d-none"
               style="max-block-size: 100%;"
             >
               <VList

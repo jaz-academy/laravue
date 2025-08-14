@@ -1,10 +1,41 @@
 <script setup>
 import { useApi } from '@/composables/useApi'
-import ECommerceAddCategoryDrawer from '@/views/academy/AddAwards.vue'
+import AddAwardsDrawer from '@/views/academy/AddAwards.vue'
 import { paginationMeta } from '@api-utils/paginationMeta'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
 const currentUser = useCookie('userData').value
+
+// 👉 Alert
+const isAlertVisible = ref(false)
+const alertMessage = ref('')
+const alertColor = ref('primary')
+
+const showAlert = (message, color = 'primary') => {
+  alertMessage.value = message
+  alertColor.value = color
+  isAlertVisible.value = true
+  setTimeout(() => {
+    isAlertVisible.value = false
+  }, 10000)
+}
+
+// switchable drawer modal input & edit
+const isDrawerOpen = ref(false)
+const mode = ref('add')
+const selectedAward = ref({})
+
+const editAward = award => {
+  selectedAward.value = { ...award }
+  mode.value = 'edit'
+  isDrawerOpen.value = true
+}
+
+const duplicateAward = award => {
+  selectedAward.value = { ...award }
+  mode.value = 'duplicate'
+  isDrawerOpen.value = true
+}
 
 // Awards data table header
 const headers = [
@@ -44,7 +75,6 @@ const selectedStudentId = ref()
 const selectedSubjectId = ref()
 const selectedSemester = ref()
 const searchQuery = ref('')
-const isModalOpen = ref(false)
 
 const resolveSubject = subject => {
   if (subject === 'Tahfidzh')
@@ -234,9 +264,67 @@ const {
 const awards = computed(() => awardsData.value.data)
 const totalAwards = computed(() => awardsData.value.count)
 
+// menambah award baru
+const addNewAward = async ({ action, data }) => {
+  if (currentUser?.role < 4) {
+    showAlert('You do not have permission to modify plans', 'error')
+
+    return
+  }
+
+  const sanitizedData = {
+    ...data,
+    rate: data.rate === '' ? 0 : Number(data.rate),
+    admin_student_id: data.admin_student_id === '' ? null : Number(data.admin_student_id),
+    academy_subject_id: data.academy_subject_id === '' ? null : Number(data.academy_subject_id),
+    admin_teacher_id: data.admin_teacher_id === '' ? null : Number(data.admin_teacher_id),
+  }
+
+  console.log('Sending awardData:', sanitizedData, 'action:', action)
+  try {
+    let url = '/awards'
+    let method = 'POST'
+    if (action === 'update' && data.id) {
+      url = `/awards/${data.id}`
+      method = 'PUT'
+    }
+
+    const { data: resData, response } = await useApi(url, {
+      method,
+      body: JSON.stringify(sanitizedData),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    })
+
+    if (response.value.ok) {
+      const msg = action === 'create' ? 'Data berhasil ditambahkan' : 'Data berhasil diperbarui'
+
+      showAlert(msg, 'success')
+      console.log('Award response:', resData)
+      fetchAwards()
+    } else {
+      showAlert(response.value.statusText || 'Gagal menyimpan data', 'error')
+    }
+  } catch (error) {
+    console.error('Award save error:', error?.data?.errors || error)
+    showAlert(error.message || 'Gagal menyimpan data', 'error')
+  }
+}
+
 const deleteAward = async id => {
-  await $fake(`/awards/${ id }`, { method: 'DELETE' })
-  fetchAwards()
+  try {
+    if (confirm('Apakah kamu yakin ingin menghapus data ini?')) {
+      console.log('Deleting award with ID:', id)
+      await useApi(`/awards/${id}`, { method: 'DELETE' })
+      showAlert('Data berhasil dihapus', 'success')
+      fetchAwards()
+    }
+  } catch (err) {
+    showAlert(err.message || 'Gagal menghapus data', 'error')
+    console.error(err)
+  }
 }
 </script>
 
@@ -312,6 +400,16 @@ const deleteAward = async id => {
         </VRow>
       </VCardText>
     </VCard>
+
+    <VAlert
+      v-model="isAlertVisible"
+      closable
+      close-label="Close Alert"
+      class="mb-6"
+      :color="alertColor"
+    >
+      {{ alertMessage }}
+    </VAlert>
 
     <!-- 👉 awards -->
     <VCard
@@ -394,10 +492,10 @@ const deleteAward = async id => {
           </VBtn>
 
           <VBtn
-            v-if="currentUser?.access.includes('Award')"
+            v-if="currentUser?.access?.includes('Awards')"
             color="primary"
             prepend-icon="tabler-plus"
-            @click="isModalOpen = !isModalOpen"
+            @click="() => { mode = 'add'; selectedAward = {}; isDrawerOpen = true }"
           >
             Add Academy Award
           </VBtn>
@@ -469,7 +567,10 @@ const deleteAward = async id => {
         <!-- Actions -->
         <template #item.actions="{ item }">
           <IconBtn>
-            <VIcon icon="tabler-edit" />
+            <VIcon
+              icon="tabler-edit"
+              @click="editAward(item)"
+            />
           </IconBtn>
 
           <IconBtn v-if="currentUser?.role >= 4">
@@ -479,7 +580,7 @@ const deleteAward = async id => {
                 <VListItem
                   value="delete"
                   prepend-icon="tabler-trash"
-                  @click="deleteProduct(item.id)"
+                  @click="deleteAward(item.id)"
                 >
                   Delete
                 </VListItem>
@@ -487,6 +588,7 @@ const deleteAward = async id => {
                 <VListItem
                   value="duplicate"
                   prepend-icon="tabler-copy"
+                  @click="duplicateAward(item)"
                 >
                   Duplicate
                 </VListItem>
@@ -535,7 +637,12 @@ const deleteAward = async id => {
       </VDataTableServer>
     </VCard>
     
-    <ECommerceAddCategoryDrawer v-model:is-drawer-open="isModalOpen" />
+    <AddAwardsDrawer
+      v-model:is-drawer-open="isDrawerOpen"
+      :mode="mode"
+      :award-data="selectedAward"
+      @award-data="addNewAward"
+    />
   </div>
 </template>
 

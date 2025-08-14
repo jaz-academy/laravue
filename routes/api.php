@@ -97,6 +97,9 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
   Route::apiResource('tasks', TaskController::class);
 
   Route::apiResource('courses', CourseController::class);
+  Route::get('courses-distinct', [CourseController::class, 'distinct']);
+  Route::get('courses-by-name/{name}', [CourseController::class, 'byName']);
+  Route::get('courses-custom', [CourseController::class, 'custom']);
   Route::apiResource('awards', AwardController::class);
   Route::get('awards-custom', [AwardController::class, 'custom']);
   Route::apiResource('subjects', SubjectController::class);

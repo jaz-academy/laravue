@@ -21,6 +21,10 @@ class AwardController extends Controller
             'data' => $awards
         ]);
     }
+
+    /**
+     * Display a custom listing of the resource.
+     */
     public function custom(Request $request)
     {
         $itemsPerPage = (int) $request->get('itemsPerPage', 10);
@@ -135,19 +139,7 @@ class AwardController extends Controller
      */
     public function update(Request $request, AcademyAward $award)
     {
-        $fields = $request->validate([
-            'date' => 'required|string|max:255',
-            'admin_student_id' => 'required|integer',
-            'semester' => 'required|integer',
-            'subject' => 'required|string|max:255',
-            'item' => 'required|string|max:255',
-            'rate' => 'required|integer',
-            'result' => 'required|string|max:255',
-            'mentor' => 'required|string|max:255',
-            'remark' => 'required|string|max:255',
-        ]);
-
-        $award->update($fields);
+        $award->update($request->all());
 
         return response()->json([
             'message' => 'Award updated Successfully.',

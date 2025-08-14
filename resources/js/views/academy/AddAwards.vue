@@ -1,79 +1,101 @@
 <script setup>
-import { Image } from '@tiptap/extension-image'
-import { Link } from '@tiptap/extension-link'
-import { Placeholder } from '@tiptap/extension-placeholder'
-import { Underline } from '@tiptap/extension-underline'
-import { StarterKit } from '@tiptap/starter-kit'
-import {
-  EditorContent,
-  useEditor,
-} from '@tiptap/vue-3'
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 import { VForm } from 'vuetify/components/VForm'
 
 const props = defineProps({
-  isDrawerOpen: {
-    type: Boolean,
-    required: true,
-  },
+  isDrawerOpen: { type: Boolean, required: true },
+  mode: { type: String, default: 'add' },
+  awardData: { type: Object, default: () => ({}) },
 })
 
-const emit = defineEmits(['update:isDrawerOpen'])
+const emit = defineEmits(['update:isDrawerOpen', 'awardData'])
+const subjectsData = await useApi('/subjects')
+const studentsData = await useApi('/students')
+const teachersData = await useApi('/teachers')
+
+const currentUser = useCookie('userData').value
+
+const refVForm = ref()
+const isFormValid = ref(false)
+
+const form = reactive({
+  date: '',
+  admin_student_id: '',
+  semester: '',
+  academy_subject_id: '',
+  item: '',
+  rate: '',
+  result: '',
+  admin_teacher_id: '',
+  remark: '',
+})
+
+watch(
+  () => [props.awardData, props.mode],
+  () => {
+    if ((props.mode === 'edit' || props.mode === 'duplicate') && props.awardData) {
+      Object.assign(form, {
+        date: props.awardData.date || '',
+        admin_student_id: props.awardData.admin_student_id || '',
+        semester: props.awardData.semester || '',
+        academy_subject_id: props.awardData.academy_subject_id || '',
+        item: props.awardData.item || '',
+        rate: props.awardData.rate || '',
+        result: props.awardData.result || '',
+        admin_teacher_id: props.awardData.admin_teacher_id || '',
+        remark: props.awardData.remark || '',
+      })
+    } else {
+      Object.assign(form, {
+        date: '',
+        admin_student_id: '',
+        semester: '',
+        academy_subject_id: '',
+        item: '',
+        rate: '',
+        result: '',
+        admin_teacher_id: '',
+        remark: '',
+      })
+    }
+  },
+  { immediate: true },
+)
+
+watch(
+  () => props.isDrawerOpen,
+  open => {
+    if (!open) {
+      refVForm.value?.reset()
+      refVForm.value?.resetValidation()
+    }
+  },
+)
 
 const handleDrawerModelValueUpdate = val => {
   emit('update:isDrawerOpen', val)
 }
 
-const editor = useEditor({
-  content: '',
-  extensions: [
-    StarterKit,
-    Image,
-    Placeholder.configure({ placeholder: 'Write something here...' }),
-    Underline,
-    Link.configure({ openOnClick: false }),
-  ],
-})
-
-const setLink = () => {
-  const previousUrl = editor.value?.getAttributes('link').href
-
-  // eslint-disable-next-line no-alert
-  const url = window.prompt('URL', previousUrl)
-
-  // cancelled
-  if (url === null)
-    return
-
-  // empty
-  if (url === '') {
-    editor.value?.chain().focus().extendMarkRange('link').unsetLink().run()
-    
-    return
-  }
-
-  // update link
-  editor.value?.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
-}
-
-const addImage = () => {
-
-  // eslint-disable-next-line no-alert
-  const url = window.prompt('URL')
-  if (url)
-    editor.value?.chain().focus().setImage({ src: url }).run()
-}
-
-const refVForm = ref()
-const categoryTitle = ref()
-const categorySlug = ref()
-const categoryImg = ref()
-const parentCategory = ref()
-const parentStatus = ref()
-
 const resetForm = () => {
   emit('update:isDrawerOpen', false)
   refVForm.value?.reset()
+}
+
+const onSubmit = () => {
+  refVForm.value?.validate().then(({ valid }) => {
+    if (!valid) return
+
+    const payload = { ...form }
+    if (props.mode === 'edit') {
+      payload.id = props.awardData.id
+      emit('awardData', { action: 'update', data: payload })
+    } else {
+      emit('awardData', { action: 'create', data: payload })
+    }
+
+    emit('update:isDrawerOpen', false)
+    nextTick(resetForm)
+  })
 }
 </script>
 
@@ -88,7 +110,7 @@ const resetForm = () => {
   >
     <!-- 👉 Header -->
     <AppDrawerHeaderSection
-      title="Add Category"
+      :title="props.mode === 'edit' ? 'Edit Awards' : props.mode === 'duplicate' ? 'Duplicate Awards' : 'Add New Awards'"
       @cancel="$emit('update:isDrawerOpen', false)"
     />
 
@@ -99,136 +121,112 @@ const resetForm = () => {
         <VCardText>
           <VForm
             ref="refVForm"
-            @submit.prevent=""
+            v-model="isFormValid"
+            @submit.prevent="onSubmit"
           >
             <VRow>
               <VCol cols="12">
-                <AppTextField
-                  v-model="categoryTitle"
-                  label="Title"
-                  :rules="[requiredValidator]"
-                  placeholder="Fashion"
+                <AppDateTimePicker
+                  v-model="form.date"
+                  label="Date"
+                  placeholder="Select date"
                 />
-              </VCol>
-
-              <VCol cols="12">
-                <AppTextField
-                  v-model="categorySlug"
-                  label="Slug"
-                  :rules="[requiredValidator]"
-                  placeholder="Trends fashion"
-                />
-              </VCol>
-
-              <VCol cols="12">
-                <VLabel>
-                  <span class="text-sm text-high-emphasis mb-1">Attachment</span>
-                </VLabel>
-                <VFileInput
-                  v-model="categoryImg"
-                  prepend-icon=""
-                  density="compact"
-                  :rules="[requiredValidator]"
-                  placeholder="No file chosen"
-                  clearable
-                >
-                  <template #prepend-inner>
-                    <div class="text-no-wrap pe-2 cursor-pointer">
-                      Choose Image
-                    </div>
-                    <VDivider vertical />
-                  </template>
-                </VFileInput>
               </VCol>
 
               <VCol cols="12">
                 <AppSelect
-                  v-model="parentCategory"
+                  v-model="form.admin_student_id"
+                  label="Student"
                   :rules="[requiredValidator]"
-                  label="Parent Category"
-                  placeholder="Select Parent Category"
-                  :items="['HouseHold', 'Management', 'Electronics', 'Office', 'Accessories']"
+                  :items="studentsData.data.value.data"
+                  item-title="name"
+                  item-value="id"
+                  placeholder="Choose Project Student"
                 />
               </VCol>
-
+              
               <VCol cols="12">
-                <p class="mb-2">
-                  Description
-                </p>
-                <div class="border rounded py-2 px-4">
-                  <EditorContent :editor="editor" />
-                  <div
-                    v-if="editor"
-                    class="d-flex justify-end flex-wrap gap-x-2"
-                  >
-                    <VIcon
-                      icon="tabler-bold"
-                      :color="editor.isActive('bold') ? 'primary' : ''"
-                      size="20"
-                      @click="editor.chain().focus().toggleBold().run()"
-                    />
-
-                    <VIcon
-                      :color="editor.isActive('underline') ? 'primary' : ''"
-                      icon="tabler-underline"
-                      size="20"
-                      @click="editor.commands.toggleUnderline()"
-                    />
-
-                    <VIcon
-                      :color="editor.isActive('italic') ? 'primary' : ''"
-                      icon="tabler-italic"
-                      size="20"
-                      @click="editor.chain().focus().toggleItalic().run()"
-                    />
-
-                    <VIcon
-                      :color="editor.isActive('bulletList') ? 'primary' : ''"
-                      icon="tabler-list"
-                      size="20"
-                      @click="editor.chain().focus().toggleBulletList().run()"
-                    />
-
-                    <VIcon
-                      :color="editor.isActive('orderedList') ? 'primary' : ''"
-                      icon="tabler-list-numbers"
-                      size="20"
-                      @click="editor.chain().focus().toggleOrderedList().run()"
-                    />
-
-                    <VIcon
-                      icon="tabler-link"
-                      size="20"
-                      @click="setLink"
-                    />
-
-                    <VIcon
-                      icon="tabler-photo"
-                      size="20"
-                      @click="addImage"
-                    />
-                  </div>
-                </div>
+                <AppSelect
+                  v-model="form.semester"
+                  placeholder="Select Semester"
+                  label="Semester"
+                  :rules="[requiredValidator]"
+                  :items="[1, 2, 3, 4, 5, 6]"
+                />
               </VCol>
 
               <VCol cols="12">
                 <AppSelect
-                  v-model="parentStatus"
+                  v-model="form.academy_subject_id"
+                  label="Subject"
                   :rules="[requiredValidator]"
-                  placeholder="Select Category Status"
-                  label="Status"
-                  :items="['Published', 'Inactive', 'Scheduled']"
+                  :items="subjectsData.data.value.data"
+                  item-title="name"
+                  item-value="id"
+                  placeholder="Choose Project Subject"
                 />
               </VCol>
 
               <VCol cols="12">
+                <AppTextField
+                  v-model="form.item"
+                  label="Write Title"
+                  :rules="[requiredValidator]"
+                  placeholder="Awards Title"
+                />
+              </VCol>
+              
+              <VCol cols="12">
+                <AppSelect
+                  v-model="form.rate"
+                  placeholder="Select Rate"
+                  label="Rate"
+                  :rules="[requiredValidator]"
+                  :items="[1, 2, 3, 4, 5]"
+                />
+              </VCol>
+
+              <VCol cols="12">
+                <AppTextField
+                  v-model="form.result"
+                  label="Write Result"
+                  :rules="[requiredValidator]"
+                  placeholder="Awards Result"
+                />
+              </VCol>
+
+              <VCol cols="12">
+                <AppSelect
+                  v-model="form.admin_teacher_id"
+                  label="Teacher"
+                  :rules="[requiredValidator]"
+                  :items="teachersData.data.value.data"
+                  item-title="nickname"
+                  item-value="id"
+                  placeholder="Choose Project Teacher"
+                />
+              </VCol>
+
+              <VCol cols="12">
+                <AppTextField
+                  v-model="form.remark"
+                  label="Write Remark"
+                  :rules="[requiredValidator]"
+                  placeholder="Awards Remark"
+                />
+              </VCol>
+
+              <VCol
+                v-if="currentUser?.role >= 4"
+                cols="12"
+              >
                 <div class="d-flex justify-start">
                   <VBtn
                     type="submit"
                     color="primary"
                     class="me-4"
                   >
-                    Add
+                    {{ props.mode === 'edit' ? 'Update' : 'Add' }}
                   </VBtn>
                   <VBtn
                     color="error"

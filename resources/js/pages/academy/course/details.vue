@@ -1,10 +1,77 @@
 <script setup>
+import { useApi } from '@/composables/useApi'
+import avatar from '@images/avatars/no-profile.png'
 import { VideoPlayer } from '@videojs-player/vue'
 import 'video.js/dist/video-js.css'
+import 'videojs-youtube'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 
-const { data } = await useFake('/apps/academy/course-details')
-const courseDetails = computed(() => data.value)
+const route = useRoute()
+const itemData = ref(null)
+const courseDetails = ref([])
 const panelStatus = ref(0)
+
+const loadCourseById = async id => {
+  const { data: CourseData } = await useApi(`/courses/${id}`)
+
+  itemData.value = CourseData.value.data
+}
+
+console.log("itemData: ", itemData)
+
+const loadCourseByName = async name => {
+  const { data } = await useApi(`/courses-by-name/${encodeURIComponent(name)}`)
+
+  courseDetails.value = data.value.data
+}
+
+const refreshData = () => {
+  if (route.query.id) loadCourseById(route.query.id)
+  if (route.query.name) loadCourseByName(route.query.name)
+}
+
+// pertama kali
+onMounted(refreshData)
+
+// saat query berubah
+watch(() => route.query, refreshData, { deep: true })
+
+const distinctSections = computed(() => {
+  return [...new Set(courseDetails.value?.map(item => item.section))]
+})
+
+const filteredBySection = sectionName => {
+  return courseDetails.value
+    .filter(item => item.section === sectionName)
+    .sort((a, b) => {
+      const numA = parseInt(a.title, 10)
+      const numB = parseInt(b.title, 10)
+      
+      return numA - numB
+    })
+}
+
+// Checkbox langsung cek berdasarkan id route
+const isPlayed = topicId => Number(route.query.id) === Number(topicId)
+
+// Deteksi source video (YouTube / MP4)
+const videoSource = computed(() => {
+  if (!itemData.value?.video_url) return null
+  const url = itemData.value.video_url
+
+  if (url.includes('youtube.com') || url.includes('youtu.be')) {
+    return {
+      src: url,
+      type: 'video/youtube',
+    }
+  } else {
+    return {
+      src: url,
+      type: 'video/mp4',
+    }
+  }
+})
 </script>
 
 <template>
@@ -18,29 +85,26 @@ const panelStatus = ref(0)
         >
           <VCardItem class="pa-0 mb-2">
             <VCardTitle class="mb-2">
-              {{ courseDetails?.title }}
+              {{ itemData?.title }}
             </VCardTitle>
-            <VCardSubtitle>Prof.<span class="font-weight-medium text-high-emphasis ms-1"> {{ courseDetails?.instructor }}</span></VCardSubtitle>
+            <VCardSubtitle>Vendor<span class="font-weight-medium text-high-emphasis ms-1"> {{ itemData?.author }}</span></VCardSubtitle>
             <template #append>
               <div class="d-flex gap-2 align-center">
                 <VChip
                   variant="tonal"
-                  color="error"
+                  color="primary"
                   label
                 >
-                  UI/UX
+                  {{ itemData?.subject }}
                 </VChip>
                 <IconBtn>
-                  <VIcon
-                    icon="tabler-share"
-                    size="26"
-                  />
-                </IconBtn>
-                <IconBtn>
-                  <VIcon
-                    icon="tabler-bookmarks"
-                    size="26"
-                  />
+                  <RouterLink to="/academy/course/list">
+                    <VIcon
+                      icon="tabler-arrow-back"
+                      size="26"
+                      class="text-high-emphasis text-primary"
+                    />
+                  </RouterLink>
                 </IconBtn>
               </div>
             </template>
@@ -52,8 +116,9 @@ const panelStatus = ref(0)
           >
             <div class="px-2 pt-2">
               <VideoPlayer
-                src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4"
-                poster="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.jpg"
+                v-if="videoSource"
+                :key="videoSource.src"
+                :options="{ techOrder: videoSource.type === 'video/youtube' ? ['youtube'] : ['html5'], sources: [videoSource] }"
                 controls
                 plays-inline
                 :height="$vuetify.display.mdAndUp ? 440 : 250"
@@ -65,92 +130,30 @@ const panelStatus = ref(0)
                 About this course
               </h5>
               <p class="text-body-1">
-                {{ courseDetails?.about }}
+                {{ itemData?.note }}
               </p>
-              <VDivider class="my-6" />
-              <h5 class="text-h5 mb-3">
-                By the numbers
-              </h5>
-              <div class="d-flex gap-x-12 gap-y-5 flex-wrap">
-                <div>
-                  <VList class="card-list">
-                    <VListItem>
-                      <template #prepend>
-                        <VIcon icon="tabler-checks" />
-                      </template>
-                      <VListItemTitle class="text-body-1">
-                        Skill Level: {{ courseDetails?.skillLevel }}
-                      </VListItemTitle>
-                    </VListItem>
-                    <VListItem>
-                      <template #prepend>
-                        <VIcon icon="tabler-user" />
-                      </template>
-                      <VListItemTitle class="text-body-1">
-                        Students: {{ courseDetails?.totalStudents }}
-                      </VListItemTitle>
-                    </VListItem>
-                    <VListItem>
-                      <template #prepend>
-                        <VIcon icon="tabler-flag" />
-                      </template>
-                      <VListItemTitle class="text-body-1">
-                        Languages: {{ courseDetails?.language }}
-                      </VListItemTitle>
-                    </VListItem>
-                    <VListItem>
-                      <template #prepend>
-                        <VIcon icon="tabler-file-text" />
-                      </template>
-                      <VListItemTitle class="text-body-1">
-                        Captions: {{ courseDetails?.isCaptions }}
-                      </VListItemTitle>
-                    </VListItem>
-                  </VList>
-                </div>
-                <div>
-                  <VList class="card-list">
-                    <VListItem>
-                      <template #prepend>
-                        <VIcon icon="tabler-pencil" />
-                      </template>
-                      <VListItemTitle class="text-body-1">
-                        Lectures: {{ courseDetails?.totalLectures }}
-                      </VListItemTitle>
-                    </VListItem>
-                    <VListItem>
-                      <template #prepend>
-                        <VIcon icon="tabler-clock" />
-                      </template>
-                      <VListItemTitle class="text-body-1">
-                        Video: {{ courseDetails?.length }}
-                      </VListItemTitle>
-                    </VListItem>
-                  </VList>
-                </div>
-              </div>
               <VDivider class="my-6" />
               <h5 class="text-h5 mb-3">
                 Description
               </h5>
               <!-- eslint-disable-next-line vue/no-v-html -->
-              <div v-html="courseDetails?.description" />
+              <div v-html="itemData?.description" />
               <VDivider class="my-6" />
               <h5 class="text-h5 mb-2">
                 Instructor
               </h5>
               <div class="d-flex align-center">
                 <VAvatar
-                  :image="courseDetails?.instructorAvatar"
+                  :image="avatar"
                   size="38"
                   class="me-3"
                 />
                 <div>
                   <div class="text-body-1 font-weight-medium">
-                    {{ courseDetails?.instructor }}
+                    {{ itemData?.author }}
                   </div>
                   <div class="text-sm text-disabled">
-                    {{ courseDetails?.instructorPosition }}
+                    Online Platform Mentor
                   </div>
                 </div>
               </div>
@@ -170,7 +173,7 @@ const panelStatus = ref(0)
               class="expansion-panels-width-border"
             >
               <template
-                v-for="(section, index) in courseDetails?.content"
+                v-for="(item, index) in distinctSections"
                 :key="index"
               >
                 <VExpansionPanel
@@ -180,32 +183,32 @@ const panelStatus = ref(0)
                   <template #title>
                     <div>
                       <h5 class="text-h5 mb-1">
-                        {{ section.title }}
+                        {{ item }}
                       </h5>
-                      <div class="text-medium-emphasis font-weight-normal">
-                        {{ section.status }} | {{ section.time }}
-                      </div>
                     </div>
                   </template>
                   <template #text>
                     <VList class="card-list px-2">
                       <VListItem
-                        v-for="(topic, id) in section.topics"
-                        :key="id"
+                        v-for="topic in filteredBySection(item)"
+                        :key="topic.id"
                         class="py-4"
                       >
                         <template #prepend>
                           <VCheckbox
                             class="me-3"
-                            :model-value="topic.isCompleted"
+                            :model-value="isPlayed(topic.id)"
+                            readonly="true"
                           />
                         </template>
                         <VListItemTitle class="text-high-emphasis font-weight-medium mb-1">
-                          {{ topic.title }}
+                          <RouterLink
+                            :to="`/academy/course/details?name=${topic.name}&id=${topic.id}`"
+                            class="text-secondary"
+                          >
+                            {{ topic.title }}
+                          </RouterLink>
                         </VListItemTitle>
-                        <VListItemSubtitle>
-                          <span class="text-disabled text-base">{{ topic.time }}</span>
-                        </VListItemSubtitle>
                       </VListItem>
                     </VList>
                   </template>

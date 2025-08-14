@@ -34,12 +34,15 @@ function calculateStars(tasks, studentId) {
 
 // Computed property to sort students by averageRate
 const sortedStudents = computed(() => {
-  return students.value.slice().sort((a, b) => {
-    const aRate = calculateStars(tasks.value, a.id).averageRate
-    const bRate = calculateStars(tasks.value, b.id).averageRate
-    
-    return bRate - aRate
-  })
+  return students.value
+    .filter(student => student.graduation === null)
+    .slice()
+    .sort((a, b) => {
+      const aRate = calculateStars(tasks.value, a.id).averageRate
+      const bRate = calculateStars(tasks.value, b.id).averageRate
+
+      return bRate - aRate
+    })
 })
 </script>
 

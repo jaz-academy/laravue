@@ -1,135 +1,56 @@
 <script setup>
+import { useApi } from '@/composables/useApi'
+import AddCoursesDrawer from '@/views/academy/AddCourses.vue'
 import { paginationMeta } from '@api-utils/paginationMeta'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
-const widgetData = ref([
-  {
-    title: 'In-Store Sales',
-    value: '$5,345.43',
-    icon: 'tabler-home',
-    desc: '5k orders',
-    change: 5.7,
-  },
-  {
-    title: 'Website Sales',
-    value: '$674,347.12',
-    icon: 'tabler-device-laptop',
-    desc: '21k orders',
-    change: 12.4,
-  },
-  {
-    title: 'Discount',
-    value: '$14,235.12',
-    icon: 'tabler-gift',
-    desc: '6k orders',
-  },
-  {
-    title: 'Affiliate',
-    value: '$8,345.23',
-    icon: 'tabler-wallet',
-    desc: '150 orders',
-    change: -3.5,
-  },
-])
+const currentUser = useCookie('userData').value
 
-const headers = [
-  {
-    title: 'Product',
-    key: 'product',
-  },
-  {
-    title: 'Category',
-    key: 'category',
-  },
-  {
-    title: 'Stock',
-    key: 'stock',
-    sortable: false,
-  },
-  {
-    title: 'SKU',
-    key: 'sku',
-  },
-  {
-    title: 'Price',
-    key: 'price',
-  },
-  {
-    title: 'QTY',
-    key: 'qty',
-  },
-  {
-    title: 'Status',
-    key: 'status',
-  },
-  {
-    title: 'Actions',
-    key: 'actions',
-    sortable: false,
-  },
-]
+// 👉 Alert
+const isAlertVisible = ref(false)
+const alertMessage = ref('')
+const alertColor = ref('primary')
 
-const selectedStatus = ref()
-const selectedCategory = ref()
-const selectedStock = ref()
+const showAlert = (message, color = 'primary') => {
+  alertMessage.value = message
+  alertColor.value = color
+  isAlertVisible.value = true
+  setTimeout(() => {
+    isAlertVisible.value = false
+  }, 10000)
+}
+
+const allCourses = useApi('/courses')
+
+const subject = ref('')
+const name = ref('')
+const section = ref('')
+
+const subjectOptions = computed(() => {
+  return [...new Set(allCourses.data.value.data.map(c => c.subject))].sort()
+})
+
+const nameOptions = computed(() => {
+  return [...new Set(
+    allCourses.data.value.data
+      .filter(c => !subject.value || c.subject === subject.value)
+      .map(c => c.name),
+  )].sort()
+})
+
+const sectionOptions = computed(() => {
+  return [...new Set(
+    allCourses.data.value.data
+      .filter(c => !name.value || c.name === name.value)
+      .map(c => c.section),
+  )].sort()
+})
+
 const searchQuery = ref('')
-
-const status = ref([
-  {
-    title: 'Scheduled',
-    value: 'Scheduled',
-  },
-  {
-    title: 'Publish',
-    value: 'Published',
-  },
-  {
-    title: 'Inactive',
-    value: 'Inactive',
-  },
-])
-
-const categories = ref([
-  {
-    title: 'Accessories',
-    value: 'Accessories',
-  },
-  {
-    title: 'Home Decor',
-    value: 'Home Decor',
-  },
-  {
-    title: 'Electronics',
-    value: 'Electronics',
-  },
-  {
-    title: 'Shoes',
-    value: 'Shoes',
-  },
-  {
-    title: 'Office',
-    value: 'Office',
-  },
-  {
-    title: 'Games',
-    value: 'Games',
-  },
-])
-
-const stockStatus = ref([
-  {
-    title: 'In Stock',
-    value: true,
-  },
-  {
-    title: 'Out of Stock',
-    value: false,
-  },
-])
+const page = ref(1)
+const itemsPerPage = ref(10)
 
 // Data table options
-const itemsPerPage = ref(10)
-const page = ref(1)
 const sortBy = ref()
 const orderBy = ref()
 
@@ -139,199 +60,237 @@ const updateOptions = options => {
   orderBy.value = options.sortBy[0]?.order
 }
 
-const resolveCategory = category => {
-  if (category === 'Accessories')
-    return {
-      color: 'error',
-      icon: 'tabler-device-watch',
-    }
-  if (category === 'Home Decor')
-    return {
-      color: 'info',
-      icon: 'tabler-home',
-    }
-  if (category === 'Electronics')
-    return {
-      color: 'primary',
-      icon: 'tabler-device-imac',
-    }
-  if (category === 'Shoes')
-    return {
-      color: 'success',
-      icon: 'tabler-shoe',
-    }
-  if (category === 'Office')
-    return {
-      color: 'warning',
-      icon: 'tabler-briefcase',
-    }
-  if (category === 'Games')
-    return {
-      color: 'primary',
-      icon: 'tabler-device-gamepad-2',
-    }
-}
-
-const resolveStatus = statusMsg => {
-  if (statusMsg === 'Scheduled')
-    return {
-      text: 'Scheduled',
-      color: 'warning',
-    }
-  if (statusMsg === 'Published')
-    return {
-      text: 'Publish',
-      color: 'success',
-    }
-  if (statusMsg === 'Inactive')
-    return {
-      text: 'Inactive',
-      color: 'error',
-    }
-}
-
+// Courses API filterable & sortable
 const {
-  data: productsData,
-  execute: fetchProducts,
-} = await useFake(createUrl('/apps/ecommerce/products', {
+  data: coursesData,
+  execute: fetchCourses,
+} = await useApi(createUrl('/courses-custom', {
   query: {
-    q: searchQuery,
-    stock: selectedStock,
-    category: selectedCategory,
-    status: selectedStatus,
-    page,
-    itemsPerPage,
-    sortBy,
-    orderBy,
+    q: () => searchQuery.value,
+    page: () => page.value,
+    itemsPerPage: () => itemsPerPage.value,
+    subject: () => subject.value,
+    name: () => name.value,
+    section: () => section.value,
+    sortBy: sortBy.value || '',
+    orderBy: orderBy.value || '',
   },
 }))
 
-const products = computed(() => productsData.value.products)
-const totalProduct = computed(() => productsData.value.total)
+console.log("coursesData:", coursesData)
 
-const deleteProduct = async id => {
-  await $fake(`apps/ecommerce/products/${ id }`, { method: 'DELETE' })
-  fetchProducts()
+// courses data table
+const courses = computed(() => coursesData.value.data)
+const totalCourses = computed(() => coursesData.value.count)
+
+// switchable drawer modal input & edit
+const isDrawerOpen = ref(false)
+const mode = ref('add')
+const selectedCourse = ref({})
+
+const editCourse = Course => {
+  selectedCourse.value = { ...Course }
+  mode.value = 'edit'
+  isDrawerOpen.value = true
+}
+
+const duplicateCourse = Course => {
+  selectedCourse.value = { ...Course }
+  mode.value = 'duplicate'
+  isDrawerOpen.value = true
+}
+
+// Courses data table header
+const headers = [
+  {
+    title: 'Course',
+    key: 'title',
+  },
+  {
+    title: 'Subject',
+    key: 'subject',
+  },
+  {
+    title: 'Author',
+    key: 'author',
+  },
+  {
+    title: 'Actions',
+    key: 'actions',
+    sortable: false,
+  },
+]
+
+const resolveSubject = subject => {
+  if (subject === 'Tahfidzh')
+    return {
+      color: 'success',
+      icon: 'tabler-book-2',
+    }
+  if (subject === 'Graphic Design')
+    return {
+      color: 'primary',
+      icon: 'tabler-brand-adobe-illustrator',
+    }
+  if (subject === 'Video Editing')
+    return {
+      color: 'primary',
+      icon: 'tabler-brand-adobe-premier',
+    }
+  if (subject === 'Python Programming')
+    return {
+      color: 'info',
+      icon: 'tabler-brand-python',
+    }
+  if (subject === 'JavaScript Programming')
+    return {
+      color: 'info',
+      icon: 'tabler-brand-react',
+    }
+  if (subject === 'Web Development')
+    return {
+      color: 'info',
+      icon: 'tabler-device-imac',
+    }
+  if (subject === 'Mobile Development')
+    return {
+      color: 'info',
+      icon: 'tabler-device-mobile',
+    }
+  if (subject === 'Google Workspace')
+    return {
+      color: 'warning',
+      icon: 'tabler-brand-google',
+    }
+  if (subject === 'Game Development')
+    return {
+      color: 'info',
+      icon: 'tabler-device-gamepad-2',
+    }
+  else
+    return {
+      color: 'secondary',
+      icon: 'tabler-world',
+    }
+}
+
+// menambah Course baru
+const addNewCourse = async ({ action, data }) => {
+  if (currentUser?.role < 4) {
+    showAlert('You do not have permission to modify plans', 'error')
+
+    return
+  }
+
+  const sanitizedData = {
+    ...data,
+  }
+
+  console.log('Sending CourseData:', sanitizedData, 'action:', action)
+  try {
+    let url = '/courses'
+    let method = 'POST'
+    if (action === 'update' && data.id) {
+      url = `/courses/${data.id}`
+      method = 'PUT'
+    }
+
+    const { data: resData, response } = await useApi(url, {
+      method,
+      body: JSON.stringify(sanitizedData),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    })
+
+    if (response.value.ok) {
+      const msg = action === 'create' ? 'Data berhasil ditambahkan' : 'Data berhasil diperbarui'
+
+      showAlert(msg, 'success')
+      console.log('Course response:', resData)
+      fetchCourses()
+    } else {
+      showAlert(response.value.statusText || 'Gagal menyimpan data', 'error')
+    }
+  } catch (error) {
+    console.error('Course save error:', error?.data?.errors || error)
+    showAlert(error.message || 'Gagal menyimpan data', 'error')
+  }
+}
+
+const deleteCourse = async id => {
+  try {
+    if (confirm('Apakah kamu yakin ingin menghapus data ini?')) {
+      console.log('Deleting Course with ID:', id)
+      await useApi(`/courses/${id}`, { method: 'DELETE' })
+      showAlert('Data berhasil dihapus', 'success')
+      fetchCourses()
+    }
+  } catch (err) {
+    showAlert(err.message || 'Gagal menghapus data', 'error')
+    console.error(err)
+  }
 }
 </script>
 
 <template>
   <div>
-    <!-- 👉 widgets -->
-    <VCard class="mb-6">
-      <VCardText>
-        <VRow>
-          <template
-            v-for="(data, id) in widgetData"
-            :key="id"
-          >
-            <VCol
-              cols="12"
-              sm="6"
-              md="3"
-              class="px-6"
-            >
-              <div
-                class="d-flex justify-space-between"
-                :class="$vuetify.display.xs
-                  ? 'product-widget'
-                  : $vuetify.display.sm
-                    ? id < 2 ? 'product-widget' : ''
-                    : ''"
-              >
-                <div class="d-flex flex-column gap-y-1">
-                  <div class="text-body-1 font-weight-medium text-capitalize">
-                    {{ data.title }}
-                  </div>
+    <!-- 👉 alert -->
+    <VAlert
+      v-model="isAlertVisible"
+      closable
+      close-label="Close Alert"
+      class="mb-6"
+      :color="alertColor"
+    >
+      {{ alertMessage }}
+    </VAlert>
 
-                  <h4 class="text-h4 my-1">
-                    {{ data.value }}
-                  </h4>
-
-                  <div class="d-flex">
-                    <div class="me-2 text-disabled text-no-wrap">
-                      {{ data.desc }}
-                    </div>
-
-                    <VChip
-                      v-if="data.change"
-                      label
-                      :color="data.change > 0 ? 'success' : 'error'"
-                    >
-                      {{ prefixWithPlus(data.change) }}%
-                    </VChip>
-                  </div>
-                </div>
-
-                <VAvatar
-                  variant="tonal"
-                  rounded
-                  size="38"
-                >
-                  <VIcon
-                    :icon="data.icon"
-                    size="28"
-                  />
-                </VAvatar>
-              </div>
-            </VCol>
-            <VDivider
-              v-if="$vuetify.display.mdAndUp ? id !== widgetData.length - 1
-                : $vuetify.display.smAndUp ? id % 2 === 0
-                  : false"
-              vertical
-              inset
-              length="95"
-            />
-          </template>
-        </VRow>
-      </VCardText>
-    </VCard>
-
-    <!-- 👉 products -->
+    <!-- 👉 Courses -->
     <VCard
       title="Filters"
       class="mb-6"
     >
       <VCardText>
         <VRow>
-          <!-- 👉 Select Status -->
+          <!-- 👉 Select Subject -->
           <VCol
             cols="12"
             sm="4"
           >
             <AppSelect
-              v-model="selectedStatus"
-              placeholder="Status"
-              :items="status"
+              v-model="subject"
+              placeholder="Subject"
+              :items="subjectOptions"
               clearable
               clear-icon="tabler-x"
             />
           </VCol>
 
-          <!-- 👉 Select Category -->
+          <!-- 👉 Select Course Name -->
           <VCol
             cols="12"
             sm="4"
           >
             <AppSelect
-              v-model="selectedCategory"
-              placeholder="Category"
-              :items="categories"
+              v-model="name"
+              placeholder="Name"
+              :items="nameOptions"
               clearable
               clear-icon="tabler-x"
             />
           </VCol>
 
-          <!-- 👉 Select Stock Status -->
+          <!-- 👉 Select Section -->
           <VCol
             cols="12"
             sm="4"
           >
             <AppSelect
-              v-model="selectedStock"
-              placeholder="Stock"
-              :items="stockStatus"
+              v-model="section"
+              placeholder="Section"
+              :items="sectionOptions"
               clearable
               clear-icon="tabler-x"
             />
@@ -346,7 +305,7 @@ const deleteProduct = async id => {
           <!-- 👉 Search  -->
           <AppTextField
             v-model="searchQuery"
-            placeholder="Search Product"
+            placeholder="Search Course"
             density="compact"
             style="inline-size: 200px;"
             class="me-3"
@@ -369,11 +328,12 @@ const deleteProduct = async id => {
           </VBtn>
 
           <VBtn
+            v-if="currentUser?.access?.includes('Courses')"
             color="primary"
             prepend-icon="tabler-plus"
-            @click="$router.push('/academy/product/add')"
+            @click="() => { mode = 'add'; selectedCourse = {}; isDrawerOpen = true }"
           >
-            Add Product
+            Add Course
           </VBtn>
         </div>
       </div>
@@ -386,79 +346,59 @@ const deleteProduct = async id => {
         v-model:page="page"
         :headers="headers"
         show-select
-        :items="products"
-        :items-length="totalProduct"
+        :items="courses"
+        :items-length="totalCourses"
         class="text-no-wrap"
         @update:options="updateOptions"
       >
-        <!-- product  -->
-        <template #item.product="{ item }">
+        <!-- title  -->
+        <template #item.title="{ item }">
           <div class="d-flex align-center gap-x-2">
-            <VAvatar
-              v-if="item.image"
-              size="38"
-              variant="tonal"
-              rounded
-              :image="item.image"
-            />
             <div class="d-flex flex-column">
-              <span class="text-body-1 font-weight-medium">{{ item.productName }}</span>
-              <span class="text-sm text-disabled">{{ item.productBrand }}</span>
+              <span class="text-body-1 font-weight-medium">{{ item.title }}</span>
+              <span class="text-sm text-disabled"><span class="text-primary">{{ item.name }} : </span> {{ item.section }}</span>
             </div>
           </div>
         </template>
 
-        <!-- category -->
-        <template #item.category="{ item }">
+        <!-- Subject -->
+        <template #item.subject="{ item }">
           <VAvatar
             size="30"
             variant="tonal"
-            :color="resolveCategory(item.category)?.color"
+            :color="resolveSubject(item.subject).color"
             class="me-2"
           >
             <VIcon
-              :icon="resolveCategory(item.category)?.icon"
+              :icon="resolveSubject(item.subject).icon"
               size="18"
             />
           </VAvatar>
-          <span class="text-body-1 font-weight-medium">{{ item.category }}</span>
+          <span class="text-body-1 font-weight-medium">{{ item.subject }}</span>
         </template>
 
-        <!-- stock -->
-        <template #item.stock="{ item }">
-          <VSwitch :model-value="item.stock" />
-        </template>
-
-        <!-- status -->
-        <template #item.status="{ item }">
-          <VChip
-            v-bind="resolveStatus(item.status)"
-            density="default"
-            label
-          />
+        <!-- author -->
+        <template #item.author="{ item }">
+          {{ item.author }}
         </template>
 
         <!-- Actions -->
         <template #item.actions="{ item }">
           <IconBtn>
-            <VIcon icon="tabler-edit" />
+            <VIcon
+              icon="tabler-edit"
+              @click="editCourse(item)"
+            />
           </IconBtn>
 
-          <IconBtn>
+          <IconBtn v-if="currentUser?.role >= 4">
             <VIcon icon="tabler-dots-vertical" />
             <VMenu activator="parent">
               <VList>
                 <VListItem
-                  value="download"
-                  prepend-icon="tabler-download"
-                >
-                  Download
-                </VListItem>
-
-                <VListItem
                   value="delete"
                   prepend-icon="tabler-trash"
-                  @click="deleteProduct(item.id)"
+                  @click="deleteCourse(item.id)"
                 >
                   Delete
                 </VListItem>
@@ -466,6 +406,7 @@ const deleteProduct = async id => {
                 <VListItem
                   value="duplicate"
                   prepend-icon="tabler-copy"
+                  @click="duplicateCourse(item)"
                 >
                   Duplicate
                 </VListItem>
@@ -479,13 +420,13 @@ const deleteProduct = async id => {
 
           <div class="d-flex align-center justify-space-between flex-wrap gap-3 pa-5 pt-3">
             <p class="text-sm text-medium-emphasis mb-0">
-              {{ paginationMeta({ page, itemsPerPage }, totalProduct) }}
+              {{ paginationMeta({ page, itemsPerPage }, totalCourses) }}
             </p>
 
             <VPagination
               v-model="page"
-              :length="Math.min(Math.ceil(totalProduct / itemsPerPage), 5)"
-              :total-visible="$vuetify.display.xs ? 1 : Math.min(Math.ceil(totalProduct / itemsPerPage), 5)"
+              :length="Math.min(Math.ceil(totalCourses / itemsPerPage), 5)"
+              :total-visible="$vuetify.display.xs ? 1 : Math.min(Math.ceil(totalCourses / itemsPerPage), 5)"
             >
               <template #prev="slotProps">
                 <VBtn
@@ -513,6 +454,13 @@ const deleteProduct = async id => {
         </template>
       </VDataTableServer>
     </VCard>
+    
+    <AddCoursesDrawer
+      v-model:is-drawer-open="isDrawerOpen"
+      :mode="mode"
+      :course-data="selectedCourse"
+      @course-data="addNewCourse"
+    />
   </div>
 </template>
 

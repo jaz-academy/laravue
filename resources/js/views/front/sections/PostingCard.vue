@@ -346,7 +346,7 @@ const comments = [
 
             <!-- COMMENT -->
             <div 
-              class="flex-grow-1 overflow-auto"
+              class="flex-grow-1 overflow-auto d-none"
               style="max-block-size: 100%;"
             >
               <VList

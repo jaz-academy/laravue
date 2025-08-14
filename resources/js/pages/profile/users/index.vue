@@ -69,7 +69,7 @@ const headers = [
 
 const adminAccessOption = [
   'Project',
-  'Award',
+  'Awards',
   'Courses',
   'Assessment',
   'Saving',

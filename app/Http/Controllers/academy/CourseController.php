@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers\academy;
 
-use App\Http\Controllers\Controller;
-use App\Models\AcademyCourse;
 use Illuminate\Http\Request;
+use App\Models\AcademyCourse;
+use App\Http\Controllers\Controller;
+use Illuminate\Pagination\Paginator;
 
 class CourseController extends Controller
 {
@@ -18,6 +19,111 @@ class CourseController extends Controller
         return response()->json([
             'count' => $courses->count(),
             'data' => $courses
+        ]);
+    }
+
+    /**
+     * Display a custom listing of the resource.
+     */
+    public function custom(Request $request)
+    {
+        $itemsPerPage = (int) $request->get('itemsPerPage', 10);
+        $page = (int) ($request->get('page', 1));
+        $sortBy = $request->get('sortBy', '');
+        $orderBy = $request->get('orderBy', 'asc');
+        $search = $request->get('q', '');
+        $name = $request->get('name');
+        $subject = $request->get('subject');
+        $section = $request->get('section');
+
+        // 💥 Override page resolver
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page > 0 ? $page : 1;
+        });
+
+        $query = AcademyCourse::query();
+
+        // Search
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('title', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter by name
+        if ($name) {
+            $query->where('name', $name);
+        }
+
+        // Filter by subject
+        if ($subject) {
+            $query->where('subject', $subject);
+        }
+
+        // Filter by section
+        if ($section) {
+            $query->where('section', $section);
+        }
+
+        // Sorting
+        if ($sortBy) {
+            $query->orderBy($sortBy, $orderBy);
+        } else {
+            $query->orderBy('id', 'desc'); // default sorting
+        }
+
+        $courses = $query->paginate($itemsPerPage);
+
+        return response()->json([
+            'count' => $courses->total(),
+            'data' => $courses->items(),
+            'totalPages' => $courses->lastPage(),
+            'page' => $courses->currentPage(),
+        ]);
+    }
+
+    /**
+     * Display a distinct listing of the resource.
+     */
+    public function distinct(Request $request)
+    {
+        $itemsPerPage = (int) $request->get('itemsPerPage', 10);
+        $page = (int) ($request->get('page', 1));
+        $search = $request->get('q', '');
+        $subject = $request->get('subject');
+
+        // 💥 Override page resolver
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page > 0 ? $page : 1;
+        });
+
+        $query = AcademyCourse::select('name', 'subject', 'note', 'author')
+            ->selectRaw('MIN(id) as first_id')
+            ->selectRaw('COUNT(*) as course_count')
+            ->selectRaw('SUM(CAST(video_duration AS UNSIGNED)) as total_video_duration')
+            ->groupBy('name', 'note', 'subject', 'author');
+
+        // Search
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('note', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter by subject
+        if ($subject) {
+            $query->where('subject', $subject);
+        }
+
+        $courses = $query->paginate($itemsPerPage);
+
+        return response()->json([
+            'count' => $courses->total(),
+            'data' => $courses->items(),
+            'totalPages' => $courses->lastPage(),
+            'page' => $courses->currentPage(),
         ]);
     }
 
@@ -45,6 +151,28 @@ class CourseController extends Controller
             'data' => $course
         ]);
     }
+
+    public function byName($name)
+    {
+        if (!$name) {
+            return response()->json(['message' => 'Course name is required'], 400);
+        }
+
+        $course = AcademyCourse::where('name', $name)
+            ->orderBy('section')
+            ->orderBy('title')
+            ->get();
+
+        if ($course->isEmpty()) {
+            return response()->json(['message' => 'Course not found'], 404);
+        }
+
+        return response()->json([
+            'message' => 'Course found',
+            'data' => $course
+        ]);
+    }
+
 
     /**
      * Display the specified resource.

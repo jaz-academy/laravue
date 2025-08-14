@@ -1,11 +1,9 @@
 <script setup>
 import ApexChartAreaChart from '@/views/home/academy/ApexChartAreaChart.vue'
 import CrmActiveProject from '@/views/home/academy/CrmActiveProject.vue'
-import CrmActivityTimeline from '@/views/home/academy/CrmActivityTimeline.vue'
 import CrmAnalyticsSales from '@/views/home/academy/CrmAnalyticsSales.vue'
 import CrmBrowserStates from '@/views/home/academy/CrmBrowserStates.vue'
 import CrmEarningReportsYearlyOverview from '@/views/home/academy/CrmEarningReportsYearlyOverview.vue'
-import CrmRecentTransactions from '@/views/home/academy/CrmRecentTransactions.vue'
 import CrmSalesAreaCharts from '@/views/home/academy/CrmSalesAreaCharts.vue'
 import CrmSessionsBarWithGapCharts from '@/views/home/academy/CrmSessionsBarWithGapCharts.vue'
 
@@ -132,22 +130,6 @@ const simpleStatisticsDemoCards = [
       md="6"
     >
       <CrmActiveProject />
-    </VCol>
-
-    <!-- 👉 Recent Transactions -->
-    <VCol
-      cols="12"
-      md="6"
-    >
-      <CrmRecentTransactions />
-    </VCol>
-
-    <!-- 👉 Active timeline -->
-    <VCol
-      cols="12"
-      md="6"
-    >
-      <CrmActivityTimeline />
     </VCol>
   </VRow>
 </template>

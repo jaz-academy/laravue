@@ -1,4 +1,12 @@
 <script setup>
+import tutorImg1 from '@images/pages/app-academy-tutor-1.png'
+import tutorImg2 from '@images/pages/app-academy-tutor-2.png'
+import tutorImg3 from '@images/pages/app-academy-tutor-3.png'
+import tutorImg4 from '@images/pages/app-academy-tutor-4.png'
+import tutorImg5 from '@images/pages/app-academy-tutor-5.png'
+import tutorImg6 from '@images/pages/app-academy-tutor-6.png'
+import { rand } from '@vueuse/core'
+
 const props = defineProps({
   searchQuery: {
     type: String,
@@ -6,45 +14,45 @@ const props = defineProps({
   },
 })
 
-const itemsPerPage = ref(6)
-const page = ref(1)
-const sortBy = ref()
-const orderBy = ref()
-const hideCompleted = ref(false)
-const label = ref('All Courses')
+const tutorImgs = [tutorImg1, tutorImg2, tutorImg3, tutorImg4, tutorImg5, tutorImg6]
 
-const { data: coursesData } = await useFake(createUrl('/apps/academy/courses', {
+const subject = ref('')
+const page = ref(1)
+const itemsPerPage = ref(6)
+
+// Courses API filterable & sortable
+const {
+  data: coursesData,
+  execute: fetchCourses,
+} = await useApi(createUrl('/courses-distinct', {
   query: {
     q: () => props.searchQuery,
-    hideCompleted,
-    label,
-    itemsPerPage,
-    page,
-    sortBy,
-    orderBy,
+    subject: () => subject.value,
+    page: () => page.value,
+    itemsPerPage: () => itemsPerPage.value,
   },
 }))
 
-const courses = computed(() => coursesData.value.courses)
-const totalCourse = computed(() => coursesData.value.total)
+console.log("coursesData:", coursesData)
 
-watch([
-  hideCompleted,
-  label,
-], () => {
-  page.value = 1
+// courses data table
+const courses = computed(() => coursesData.value.data)
+const totalCourses = computed(() => coursesData.value.count)
+
+const subjectSelected = computed(() => {
+  return [...new Set(coursesData.value.data.map(course => course.subject))].sort()
 })
 
 const resolveChipColor = tags => {
-  if (tags === 'Web')
+  if (tags === 'Informatika')
     return 'primary'
-  if (tags === 'Art')
+  if (tags === 'Multimedia')
     return 'success'
-  if (tags === 'UI/UX')
+  if (tags === 'Productivity')
     return 'error'
-  if (tags === 'Psychology')
+  if (tags === 'Entrepreneur')
     return 'warning'
-  if (tags === 'Design')
+  else
     return 'info'
 }
 </script>
@@ -59,27 +67,18 @@ const resolveChipColor = tags => {
             My Courses
           </h5>
           <div class="text-body-1">
-            Total 6 course you have purchased
+            Total {{ totalCourses }} course you have purchased
           </div>
         </div>
 
         <div class="d-flex flex-wrap align-center gap-4">
           <VSelect
-            v-model="label"
-            :items="[
-              { title: 'Web', value: 'web' },
-              { title: 'Art', value: 'art' },
-              { title: 'UI/UX', value: 'ui/ux' },
-              { title: 'Psychology', value: 'psychology' },
-              { title: 'Design', value: 'design' },
-              { title: 'All Courses', value: 'All Courses' },
-            ]"
+            v-model="subject"
+            :items="subjectSelected"
             density="compact"
+            clearable
+            clear-icon="tabler-x"
             style="min-inline-size: 250px;"
-          />
-          <VSwitch
-            v-model="hideCompleted"
-            label="Hide Completed"
           />
         </div>
       </div>
@@ -88,7 +87,7 @@ const resolveChipColor = tags => {
       <div class="mb-6">
         <VRow>
           <template
-            v-for="course in courses"
+            v-for="(course, index) in courses"
             :key="course.id"
           >
             <VCol
@@ -102,7 +101,7 @@ const resolveChipColor = tags => {
               >
                 <div class="pa-2">
                   <VImg
-                    :src="course.tutorImg"
+                    :src="tutorImgs[index % tutorImgs.length]"
                     class="cursor-pointer"
                     @click="() => $router.push({ name: 'academy-course-list' })"
                   />
@@ -111,22 +110,21 @@ const resolveChipColor = tags => {
                   <div class="d-flex justify-space-between align-center mb-4">
                     <VChip
                       variant="tonal"
-                      :color="resolveChipColor(course.tags)"
+                      :color="resolveChipColor(course.subject)"
                       label
                     >
-                      {{ course.tags }}
+                      {{ course.subject }}
                     </VChip>
                     <div class="d-flex">
                       <span class="text-body-1 font-weight-medium align-center">
-                        {{ course.rating }}
+                        {{ rand(4.0, 5.0) }}
                       </span>
                       <VIcon
                         icon="tabler-star-filled"
                         color="warning"
-                        class="me-2"
+                        class="mx-2"
                         size="20"
                       />
-                      <span class="text-body-1 text-disabled font-weight-medium">({{ course.ratingCount }})</span>
                     </div>
                   </div>
                   <h5 class="text-h5 mb-1">
@@ -134,47 +132,26 @@ const resolveChipColor = tags => {
                       :to="{ name: 'academy-course-list' }"
                       class="course-title"
                     >
-                      {{ course.courseTitle }}
+                      {{ course.name }}
                     </RouterLink>
                   </h5>
                   <p>
-                    {{ course.desc }}
+                    {{ course.note }}
                   </p>
-                  <div
-                    v-if="course.completedTasks !== course.totalTasks"
-                    class="d-flex align-center mb-4"
-                  >
+                  <div class="d-flex align-center mb-4">
                     <VIcon
-                      icon="tabler-clock"
+                      icon="tabler-video"
                       size="20"
                       class="me-1"
                     />
-                    <span class="text-body-1 my-auto"> {{ course.time }}</span>
+                    <span class="text-body-1 my-auto"> {{ course.course_count }} Videos</span>
                   </div>
-                  <div
-                    v-else
-                    class="mb-2"
-                  >
-                    <VIcon
-                      icon="tabler-checks"
-                      color="success"
-                      class="me-1"
-                    />
-                    <span class="text-success text-body-1">Completed</span>
-                  </div>
-                  <VProgressLinear
-                    :model-value="(course.completedTasks / course.totalTasks) * 100"
-                    rounded
-                    color="primary"
-                    height="8"
-                    class="mb-6"
-                  />
                   <div class="d-flex flex-wrap gap-4">
                     <VBtn
                       variant="tonal"
                       color="secondary"
                       class="flex-grow-1"
-                      :to="{ name: 'academy-course-details' }"
+                      :to="`/academy/course/details?name=${course.name}&id=${course.first_id}`"
                     >
                       <template #prepend>
                         <VIcon
@@ -185,12 +162,11 @@ const resolveChipColor = tags => {
                       Start Over
                     </VBtn>
                     <VBtn
-                      v-if="course.completedTasks !== course.totalTasks"
                       variant="tonal"
                       class="flex-grow-1"
-                      :to="{ name: 'academy-course-details' }"
+                      :to="`/academy/course/details?name=${course.name}&id=${course.first_id}`"
                     >
-                      <template #append>
+                      <template #prepend>
                         <VIcon
                           icon="tabler-arrow-right"
                           class="flip-in-rtl"
@@ -207,7 +183,7 @@ const resolveChipColor = tags => {
       </div>
       <VPagination
         v-model="page"
-        :length="Math.ceil(totalCourse / itemsPerPage)"
+        :length="Math.ceil(totalCourses / itemsPerPage)"
       >
         <template #prev="slotProps">
           <VBtn

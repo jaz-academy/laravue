@@ -11,7 +11,7 @@ const history = ref([])
 const isLoading = ref(false) // Prevent multiple fetches
 const page = ref(2)
 
-console.log('instagramTasks:', instagramTasks.value);
+console.log('instagramTasks:', instagramTasks.value)
 
 onMounted(async () => {
   await fetchProjectData()
@@ -30,6 +30,7 @@ const handleScroll = async () => {
 
   if (scrollPosition >= threshold && !isLoading.value) {
     isLoading.value = true
+
     const moreTasks = await fetchMoreInstagramTasks(page.value++)
     
     if (moreTasks.data?.length) {
@@ -65,9 +66,6 @@ function updateHistory() {
       ]),
   ]
 }
-
-
-
 
 // Debugging
 watch(taskData, newValue => {
@@ -154,6 +152,7 @@ useIntersectionObserver([
               <InstagramCard
                 :task-id="task.id"
                 :task-name="task.name"
+                :task-date="task.date"
                 :description="task.description"
                 :subject="task.project_plan.subject"
                 :theme="task.project_plan.theme"
