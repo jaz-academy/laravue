@@ -124,7 +124,14 @@ const moreList = [
                   color="info"
                   :size="32"
                 >
-                  <VImg :src="avatar" />
+                  <VImg
+                    v-if="task.admin_student.image"
+                    :src="`/storage/${task.admin_student.image}`"
+                  />
+                  <VImg
+                    v-else
+                    :src="avatar"
+                  />
                   <VTooltip
                     location="top"
                     activator="parent"

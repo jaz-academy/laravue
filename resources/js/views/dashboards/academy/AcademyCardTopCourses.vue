@@ -1,60 +1,67 @@
 <script setup>
-const coursesData = [
-  {
-    title: 'Videography Basic Design Course',
-    views: '1.2k',
-    icon: 'tabler-brand-zoom',
-    color: 'primary',
-  },
-  {
-    title: 'Basic Front-end Development Course',
-    views: '834',
-    icon: 'tabler-code',
-    color: 'info',
-  },
-  {
-    title: 'Basic Fundamentals of Photography',
-    views: '3.7k',
-    icon: 'tabler-camera',
-    color: 'success',
-  },
-  {
-    title: 'Advance Dribble Base Visual Design',
-    views: '2.5k',
-    icon: 'tabler-brand-dribbble',
-    color: 'warning',
-  },
-  {
-    title: 'Your First Singing Lesson',
-    views: '948',
-    icon: 'tabler-microphone',
-    color: 'error',
-  },
-]
+import { properCase } from '@/@core/utils/helpers'
+import { computed } from 'vue'
+
+
+const props = defineProps({
+  topTen: Array,
+})  
+
+const colors = ['primary', 'secondary', 'success', 'warning', 'info', 'danger']
+
+const topTasks = computed(() => {
+  const tasks = props.topTen || []
+  const studentMap = {}
+
+  tasks.forEach(task => {
+    const id = task.admin_student_id
+    if (!studentMap[id]) studentMap[id] = []
+    studentMap[id].push(task)
+  })
+
+  const orderedIds = [...new Set(tasks.map(t => t.admin_student_id))]
+  const result = []
+
+  orderedIds.forEach(id => {
+    const sortedTasks = studentMap[id].sort((a, b) => b.id - a.id)
+
+    result.push(...sortedTasks)
+  })
+
+  return result.map(task => ({
+    title: task.name,
+    name: task.admin_student.name,
+    icon: 'tabler-stars',
+    color: colors[task.admin_student.id % colors.length],
+  }))
+})
 </script>
 
 <template>
   <VCard>
-    <VCardItem title="Top Courses">
+    <VCardItem
+      title="Top 10 Tasks"
+      subtitle="Based on latest submissions"
+    >
       <template #append>
         <MoreBtn />
       </template>
     </VCardItem>
 
     <VCardText>
-      <VList class="card-list">
+      <VList class="card-list scrollable-card">
         <VListItem
-          v-for="(course, index) in coursesData"
+          v-for="(value, index) in topTasks"
           :key="index"
         >
           <template #prepend>
             <VAvatar
               rounded
               variant="tonal"
-              :color="course.color"
+              :color="value.color"
             >
               <VIcon
-                :icon="course.icon"
+                :icon="value.icon"
                 size="24"
               />
             </VAvatar>
@@ -63,15 +70,20 @@ const coursesData = [
           <VListItemTitle class="me-4">
             <div class="d-flex flex-column">
               <div class="font-weight-medium text-truncate">
-                {{ course.title }}
+                <RouterLink
+                  :to="value.link"
+                  :class="`text-${value.color}`"
+                >
+                  {{ properCase(value.title) }}
+                </RouterLink>
               </div>
               <div>
                 <VChip
                   variant="tonal"
-                  color="secondary"
+                  :color="value.color"
                   label
                 >
-                  {{ course.views }} Views
+                  {{ value.name }}
                 </VChip>
               </div>
             </div>
@@ -81,3 +93,15 @@ const coursesData = [
     </VCardText>
   </VCard>
 </template>
+
+<style scoped>
+.scrollable-card {
+  block-size: 320px;
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  overflow-y: auto;
+}
+
+.scrollable-card::-webkit-scrollbar { 
+  display: none;  /* Safari and Chrome */
+}
+</style>

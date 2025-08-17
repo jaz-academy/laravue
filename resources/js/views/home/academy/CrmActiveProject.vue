@@ -6,50 +6,36 @@ import reactLogo from '@images/icons/brands/react-logo.png'
 import sketchLogo from '@images/icons/brands/sketch-logo.png'
 import vuejsLogo from '@images/icons/brands/vuejs-logo.png'
 
-const activeProjects = [
-  {
-    avatarImg: laravelLogo,
-    title: 'Laravel',
-    subtitle: 'Ecommerce',
-    stats: '65',
-    progressColor: 'error',
-  },
-  {
-    avatarImg: figmaLogo,
-    title: 'Figma',
-    subtitle: 'App UI Kit',
-    stats: '86',
-    progressColor: 'primary',
-  },
-  {
-    avatarImg: vuejsLogo,
-    title: 'VueJs',
-    subtitle: 'Calendar App',
-    stats: '90',
-    progressColor: 'success',
-  },
-  {
-    avatarImg: reactLogo,
-    title: 'React',
-    subtitle: 'Dashboard',
-    stats: '37',
-    progressColor: 'info',
-  },
-  {
-    avatarImg: bootstrapLogo,
-    title: 'Bootstrap',
-    subtitle: 'Website',
-    stats: '22',
-    progressColor: 'primary',
-  },
-  {
-    avatarImg: sketchLogo,
-    title: 'Sketch',
-    subtitle: 'Website Design',
-    stats: '29',
-    progressColor: 'warning',
-  },
+const props = defineProps({
+  bahasa: Array,
+  dirosah: Array,
+})
+
+const logos = [
+  bootstrapLogo,
+  figmaLogo,
+  laravelLogo,
+  reactLogo,
+  sketchLogo,
+  vuejsLogo,
 ]
+
+const subjects = computed(() => [
+  ...Object.entries(props.bahasa || {}).map(([key, value], i) => ({
+    avatarImg: logos[i % logos.length],
+    title: key.substring(key.indexOf('-') + 1),
+    subtitle: key.substring(0, key.indexOf('-')),
+    stats: value,
+    progressColor: value >= 90 ? 'success' : (value >= 75 ? 'primary' : 'error'),
+  })),
+  ...Object.entries(props.dirosah || {}).map(([key, value], i) => ({
+    avatarImg: logos[i + 3 % logos.length],
+    title: key.substring(key.indexOf('-') + 1),
+    subtitle: key.substring(0, key.indexOf('-')),
+    stats: value,
+    progressColor: value >= 90 ? 'success' : (value >= 75 ? 'primary' : 'error'),
+  })),
+])
 
 const moreList = [
   {
@@ -69,8 +55,8 @@ const moreList = [
 
 <template>
   <VCard
-    title="Active Projects"
-    subtitle="Average 72% completed"
+    title="Dirosah"
+    subtitle="Languages & Lessons"
   >
     <template #append>
       <div class="mt-n4 me-n2">
@@ -81,7 +67,7 @@ const moreList = [
     <VCardText>
       <VList class="card-list">
         <VListItem
-          v-for="project in activeProjects"
+          v-for="project in subjects"
           :key="project.title"
         >
           <template #prepend>
@@ -103,8 +89,8 @@ const moreList = [
           <template #append>
             <div class="d-flex align-center">
               <div
-                class="me-2"
-                style="inline-size: 10rem;"
+                class="me-4"
+                style="inline-size: 15rem;"
               >
                 <VProgressLinear
                   :model-value="project.stats"
@@ -114,7 +100,7 @@ const moreList = [
                   rounded
                 />
               </div>
-              <span class="text-disabled">{{ project.stats }}%</span>
+              <span :class="`text-${project.progressColor}`">{{ project.stats }}</span>
             </div>
           </template>
         </VListItem>

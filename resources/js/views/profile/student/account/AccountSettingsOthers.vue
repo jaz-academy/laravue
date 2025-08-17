@@ -4,6 +4,7 @@ const { student } = defineProps({
 })
 
 const emit = defineEmits(['userData'])
+const userData = useCookie('userData')
 const accountDataLocal = ref({})
 const refForm = ref()
 
@@ -22,12 +23,14 @@ const resetForm = () => {
 }
 
 const onSubmit = () => {
-  refForm.value?.validate().then(({ valid }) => {
-    if (valid) {
-      console.log('SUBMIT PAYLOAD', accountDataLocal.value)
-      emit('userData', { ...accountDataLocal.value })
-    }
-  })
+  if (userData.value?.role >= 4) {
+    refForm.value?.validate().then(({ valid }) => {
+      if (valid) {
+        console.log('SUBMIT PAYLOAD', accountDataLocal.value)
+        emit('userData', { ...accountDataLocal.value })
+      }
+    })
+  }
 }
 </script>
 
@@ -136,8 +139,9 @@ const onSubmit = () => {
 
     <!-- 👉 Actions Button -->
     <VCol
+      v-if="userData.value?.role >= 4"
       cols="12"
-      class="d-flex flex-wrap gap-4 mt-4 d-none"
+      class="d-flex flex-wrap gap-4 mt-4"
     >
       <VBtn type="submit">
         Save changes

@@ -5,45 +5,39 @@ import firefox from '@images/logos/firefox.png'
 import internetExplorer from '@images/logos/internet-explorer.png'
 import operaMini from '@images/logos/opera-mini.png'
 import safari from '@images/logos/safari.png'
+import { computed } from 'vue'
 
-const browserStates = [
-  {
-    avatarImg: chrome,
-    title: 'Google Chrome',
-    stats: '90.4',
-    progress: 'secondary',
-  },
-  {
-    avatarImg: safari,
-    title: 'Apple Safari',
-    stats: '70.6',
-    progress: 'success',
-  },
-  {
-    avatarImg: firefox,
-    title: 'Mozilla Firefox',
-    stats: '35.5',
-    progress: 'primary',
-  },
-  {
-    avatarImg: operaMini,
-    title: 'Opera Mini',
-    stats: '80.0',
-    progress: 'error',
-  },
-  {
-    avatarImg: internetExplorer,
-    title: 'Internet Explorer',
-    stats: '62.2',
-    progress: 'info',
-  },
-  {
-    avatarImg: brave,
-    title: 'Brave',
-    stats: '46.3',
-    progress: 'warning',
-  },
+const props = defineProps({
+  informatics: { type: Array, default: () => [] },
+  multimedias: { type: Array, default: () => [] },
+})
+
+console.log("informatics: ", props.informatics)
+console.log("multimedias: ", props.multimedias)
+
+const logos = [
+  brave,
+  chrome,
+  firefox,
+  internetExplorer,
+  operaMini,
+  safari,
 ]
+
+const subjects = computed(() => [
+  ...Object.entries(props.informatics || {}).map(([key, value], i) => ({
+    avatarImg: logos[i % logos.length],
+    title: key,
+    stats: value,
+    progress: value >= 90 ? 'success' : (value >= 75 ? 'primary' : 'error'),
+  })),
+  ...Object.entries(props.multimedias || {}).map(([key, value], i) => ({
+    avatarImg: logos[i % logos.length],
+    title: key,
+    stats: value,
+    progress: value >= 90 ? 'success' : (value >= 75 ? 'primary' : 'error'),
+  })),
+])
 
 const moreList = [
   {
@@ -63,8 +57,8 @@ const moreList = [
 
 <template>
   <VCard
-    title="Browser States"
-    subtitle="Counter April 2022"
+    title="Informatics"
+    subtitle="Multimedia & Programming"
   >
     <template #append>
       <div class="mt-n4 me-n2">
@@ -75,7 +69,7 @@ const moreList = [
     <VCardText>
       <VList class="card-list">
         <VListItem
-          v-for="state in browserStates"
+          v-for="state in subjects"
           :key="state.title"
         >
           <template #prepend>
@@ -89,11 +83,14 @@ const moreList = [
           </VListItemTitle>
 
           <template #append>
-            <span class="font-weight-medium text-medium-emphasis me-3">{{ state.stats }}%</span>
+            <span
+              class="font-weight-medium text-medium-emphasis me-3"
+              :class="`text-${state.progress}`"
+            >{{ state.stats }}</span>
             <VProgressCircular
               :model-value="state.stats"
               :color="state.progress"
-              width="3"
+              width="4"
               size="28"
             />
           </template>

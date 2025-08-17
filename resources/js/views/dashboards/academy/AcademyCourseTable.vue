@@ -1,6 +1,41 @@
 <script setup>
+import { properCase, rateColor, takePic } from '@/@core/utils/helpers'
 import { paginationMeta } from '@api-utils/paginationMeta'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
+
+const props = defineProps({
+  socialMediaTasks: Array,
+  students: Array,
+})
+
+const socialMediaData = computed(() => {
+  const taskMap = {}
+
+  props.socialMediaTasks.forEach(task => {
+    taskMap[task.admin_student_id] = task
+  })
+
+  return Object.values(props.students).map(student => {
+    const task = taskMap[student.id]
+
+    console.log("task", task)
+
+    return {
+      title: task?.name || 'No Task',
+      link: task?.link || '#',
+      theme: task?.project_plan?.theme || 'Weekly Vlog',
+      subject: task?.project_plan?.subject || 'Social Media',
+      teacher: task?.admin_teacher?.nickname || 'Unknown',
+      rate: task?.rate || 0,
+      media: task?.media || '',
+      date: formatDate(task?.date) || '',
+      name: student.name,
+      image: student.image || '',
+      progress: task?.rate ? task.rate * 20 : 0,
+      color: rateColor(task?.rate),
+    }
+  })
+})
 
 const searchQuery = ref('')
 
@@ -18,37 +53,67 @@ const updateOptions = options => {
 
 const headers = [
   {
-    title: 'Course Name',
-    key: 'courseName',
+    title: 'Title Task',
+    key: 'name',
   },
   {
-    title: 'Time',
-    key: 'time',
-    sortable: false,
+    title: 'Date',
+    key: 'date',
   },
   {
-    title: 'Progress',
-    key: 'progress',
+    title: 'Stars',
+    key: 'rate',
   },
   {
-    title: 'Status',
-    key: 'status',
+    title: 'Mentor',
+    key: 'admin_teacher.nickname',
+  },
+  {
+    title: 'View',
+    key: 'link',
     sortable: false,
   },
 ]
 
-const { data: courseData } = await useFake(createUrl('/apps/academy/courses', {
-  query: {
-    q: searchQuery,
-    itemsPerPage,
-    page,
-    sortBy,
-    orderBy,
-  },
-}))
+const filteredTasks = computed(() => {
+  let data = [...socialMediaData.value]
 
-const courses = computed(() => courseData.value.courses)
-const totalCourse = computed(() => courseData.value.total)
+  // Search
+  if (searchQuery.value) {
+    const q = searchQuery.value.toLowerCase()
+
+    data = data.filter(
+      item =>
+        item.title.toLowerCase().includes(q) ||
+        item.name.toLowerCase().includes(q) ||
+        item.teacher.toLowerCase().includes(q),
+    )
+  }
+
+  // Sort
+  if (sortBy.value) {
+    data.sort((a, b) => {
+      const aVal = a[sortBy.value]
+      const bVal = b[sortBy.value]
+
+      if (aVal === undefined) return 1
+      if (bVal === undefined) return -1
+
+      if (orderBy.value === 'desc') return aVal < bVal ? 1 : -1
+      
+      return aVal > bVal ? 1 : -1
+    })
+  }
+
+  return data
+})
+
+const paginatedTasks = computed(() => {
+  const start = (page.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  
+  return filteredTasks.value.slice(start, end)
+})
 </script>
 
 <template>
@@ -56,7 +121,7 @@ const totalCourse = computed(() => courseData.value.total)
     <VCardText>
       <div class="d-flex flex-wrap justify-space-between align-center gap-4">
         <h5 class="text-h5 font-weight-medium">
-          Courses you are taking
+          Weekly Posts
         </h5>
         <div>
           <AppTextField
@@ -71,29 +136,24 @@ const totalCourse = computed(() => courseData.value.total)
     <VDataTableServer
       v-model:items-per-page="itemsPerPage"
       v-model:page="page"
-      :items-per-page-options="[
-        { value: 5, title: '5' },
-        { value: 10, title: '10' },
-        { value: 20, title: '20' },
-        { value: -1, title: '$vuetify.dataFooter.itemsPerPageAll' },
-      ]"
+      :items-per-page-options="[5,10,20,-1]"
       :headers="headers"
-      :items="courses"
-      :items-length="totalCourse"
+      :items-length="filteredTasks.length"
+      :items="paginatedTasks"
       show-select
       class="text-no-wrap"
       @update:options="updateOptions"
     >
       <!-- Course Name -->
-      <template #item.courseName="{ item }">
+      <template #item.name="{ item }">
         <div class="d-flex align-center gap-x-4 py-2">
           <VAvatar
             variant="tonal"
             size="40"
             rounded
-            :color="item.color"
+            :color="rateColor(item.rate)"
           >
-            <VIcon :icon="item.logo" />
+            <VIcon :icon="rateNumberIcon(item.rate)" />
           </VAvatar>
 
           <div>
@@ -102,82 +162,81 @@ const totalCourse = computed(() => courseData.value.total)
                 :to="{ name: 'academy-course-details' }"
                 class="text-link"
               >
-                {{ item.courseTitle }}
+                {{ properCase(item.title).substring(0, 30) }}
               </RouterLink>
             </div>
             <div class="d-flex align-center">
               <VAvatar
                 size="22"
-                :image="item.image"
+                :image="takePic(item.image)"
               />
               <span class="text-base ms-2">
-                {{ item.user }}
+                {{ item.name }}
               </span>
             </div>
           </div>
         </div>
       </template>
 
-      <template #item.time="{ item }">
+      <template #item.date="{ item }">
         <span class="text-base text-high-emphasis font-weight-medium">
-          {{ item.time }}
+          {{ item.media }}
         </span>
+        <div>
+          {{ item.date }}
+        </div>
       </template>
 
-      <!-- Progress -->
-      <template #item.progress="{ item }">
-        <div
-          class="d-flex align-center gap-x-4 mb-2"
-          style="inline-size: 15.625rem;"
-        >
-          <div class="text-no-wrap font-weight-medium text-high-emphasis">
-            {{ Math.floor((item.completedTasks / item.totalTasks) * 100) }}%
-          </div>
-          <div class="w-100">
-            <VProgressLinear
-              color="primary"
-              height="8"
-              :model-value="Math.floor((item.completedTasks / item.totalTasks) * 100)"
-              rounded
+      <!-- rate -->
+      <template #item.rate="{ item }">
+        <div class="d-flex align-center gap-x-4 mb-2">
+          <VRating v-model="item.rate">
+            <template #item="slotProps">
+              <VIcon
+                v-bind="slotProps"
+                :size="25"
+                :color="slotProps.isFilled ? rateColor(item.rate) : 'secondary'"
+                class="me-3"
+                :icon="slotProps.isFilled ? 'tabler-mood-smile-beam' : 'tabler-mood-sad'"
+              />
+            </template>
+          </VRating>
+        </div>
+      </template>
+
+      <!-- admin_teacher.nickname -->
+      <template #item.admin_teacher.nickname="{ item }">
+        <div class="d-flex justify-space-between gap-x-4">
+          <div>
+            <VIcon
+              icon="tabler-user"
+              :color="item.teacher == 'Unknown' ? 'secondary' : 'primary'"
+              size="24"
+              class="me-2"
             />
-          </div>
-          <div class="text-disabled">
-            {{ item.completedTasks }}/{{ item.totalTasks }}
+            <span :class="`text-${item.teacher == 'Unknown' ? 'secondary' : 'primary'}`">
+              {{ item.teacher }}
+            </span>
           </div>
         </div>
       </template>
 
       <!-- Status -->
-      <template #item.status="{ item }">
+      <template #item.link="{ item }">
         <div class="d-flex justify-space-between gap-x-4">
           <div>
-            <VIcon
-              icon="tabler-users"
-              color="primary"
-              size="24"
-              class="me-2"
-            />
-            <span class="text-body-1">
-              {{ item.userCount }}
-            </span>
-          </div>
-          <div>
-            <VIcon
-              icon="tabler-book"
-              color="info"
-              size="24"
-              class="me-2"
-            />
-            <span class="text-body-1">{{ item.note }}</span>
-          </div>
-          <div>
-            <VIcon
-              icon="tabler-brand-zoom"
-              color="error"
-              size="24"
-              class="me-2"
-            />
-            <span class="text-body-1">{{ item.view }}</span>
+            <a
+              :href="item.link"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <VIcon
+                icon="tabler-brand-zoom"
+                color="error"
+                size="24"
+                class="me-2"
+              />
+            </a>
           </div>
         </div>
       </template>
@@ -188,13 +247,13 @@ const totalCourse = computed(() => courseData.value.total)
 
         <div class="d-flex align-center justify-sm-space-between justify-center flex-wrap gap-3 pa-5 pt-3">
           <p class="text-sm text-disabled mb-0">
-            {{ paginationMeta({ page, itemsPerPage }, totalCourse) }}
+            {{ paginationMeta({ page, itemsPerPage }, filteredTasks.length) }}
           </p>
 
           <VPagination
             v-model="page"
-            :length="Math.ceil(totalCourse / itemsPerPage)"
-            :total-visible="$vuetify.display.xs ? 1 : Math.min(Math.ceil(totalCourse / itemsPerPage), 5)"
+            :length="Math.ceil(filteredTasks.length / itemsPerPage)"
+            :total-visible="$vuetify.display.xs ? 1 : Math.min(Math.ceil(filteredTasks.length / itemsPerPage), 5)"
           >
             <template #prev="slotProps">
               <VBtn

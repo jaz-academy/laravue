@@ -1,6 +1,14 @@
 <script setup>
-import { useTheme } from 'vuetify'
 import { hexToRgb } from '@layouts/utils'
+import { useTheme } from 'vuetify'
+
+const props = defineProps({
+  bulan: Array,
+  qrAdab: Array,
+  qrTahfidz: Array,
+  qrTajwid: Array,
+  qrTahsin: Array,
+})
 
 const vuetifyTheme = useTheme()
 const currentTab = ref(0)
@@ -16,8 +24,8 @@ const chartConfigs = computed(() => {
   
   return [
     {
-      title: 'Orders',
-      icon: 'tabler-shopping-cart',
+      title: 'Adab',
+      icon: 'tabler-user-heart',
       chartOptions: {
         chart: {
           parentHeightOffset: 0,
@@ -45,18 +53,15 @@ const chartConfigs = computed(() => {
         colors: [
           labelPrimaryColor,
           labelPrimaryColor,
+          labelPrimaryColor,
+          labelPrimaryColor,
+          labelPrimaryColor,
           `rgba(${ hexToRgb(currentTheme.primary) },1)`,
-          labelPrimaryColor,
-          labelPrimaryColor,
-          labelPrimaryColor,
-          labelPrimaryColor,
-          labelPrimaryColor,
-          labelPrimaryColor,
         ],
         dataLabels: {
           enabled: true,
           formatter(val) {
-            return `${ val }k`
+            return `${ val }`
           },
           offsetY: -25,
           style: {
@@ -69,17 +74,7 @@ const chartConfigs = computed(() => {
         legend: { show: false },
         tooltip: { enabled: false },
         xaxis: {
-          categories: [
-            'Jan',
-            'Feb',
-            'Mar',
-            'Apr',
-            'May',
-            'Jun',
-            'Jul',
-            'Aug',
-            'Sep',
-          ],
+          categories: props.bulan,
           axisBorder: {
             show: true,
             color: borderColor,
@@ -97,7 +92,7 @@ const chartConfigs = computed(() => {
           labels: {
             offsetX: -15,
             formatter(val) {
-              return `${ Number.parseInt(String(val / 1)) }k`
+              return `${ Number.parseInt(String(val / 1)) }`
             },
             style: {
               fontSize: '13px',
@@ -136,22 +131,12 @@ const chartConfigs = computed(() => {
         ],
       },
       series: [{
-        data: [
-          28,
-          10,
-          45,
-          38,
-          15,
-          30,
-          35,
-          30,
-          8,
-        ],
+        data: props.qrAdab,
       }],
     },
     {
-      title: 'Sales',
-      icon: 'tabler-chart-bar',
+      title: 'Tahfidz',
+      icon: 'tabler-notebook',
       chartOptions: {
         chart: {
           parentHeightOffset: 0,
@@ -182,15 +167,12 @@ const chartConfigs = computed(() => {
           labelPrimaryColor,
           labelPrimaryColor,
           labelPrimaryColor,
-          labelPrimaryColor,
           currentTheme.primary,
-          labelPrimaryColor,
-          labelPrimaryColor,
         ],
         dataLabels: {
           enabled: true,
           formatter(val) {
-            return `${ val }k`
+            return `${ val }`
           },
           offsetY: -25,
           style: {
@@ -203,17 +185,7 @@ const chartConfigs = computed(() => {
         legend: { show: false },
         tooltip: { enabled: false },
         xaxis: {
-          categories: [
-            'Jan',
-            'Feb',
-            'Mar',
-            'Apr',
-            'May',
-            'Jun',
-            'Jul',
-            'Aug',
-            'Sep',
-          ],
+          categories: props.bulan,
           axisBorder: {
             show: true,
             color: borderColor,
@@ -231,7 +203,7 @@ const chartConfigs = computed(() => {
           labels: {
             offsetX: -15,
             formatter(val) {
-              return `${ Number.parseInt(String(val / 1)) }k`
+              return `${ Number.parseInt(String(val / 1)) }`
             },
             style: {
               fontSize: '13px',
@@ -265,22 +237,12 @@ const chartConfigs = computed(() => {
         ],
       },
       series: [{
-        data: [
-          35,
-          25,
-          15,
-          40,
-          42,
-          25,
-          48,
-          8,
-          30,
-        ],
+        data: props.qrTahfidz,
       }],
     },
     {
-      title: 'Profit',
-      icon: 'tabler-currency-dollar',
+      title: 'Tajwid',
+      icon: 'tabler-pencil-star',
       chartOptions: {
         chart: {
           parentHeightOffset: 0,
@@ -310,16 +272,13 @@ const chartConfigs = computed(() => {
           labelPrimaryColor,
           labelPrimaryColor,
           labelPrimaryColor,
+          labelPrimaryColor,
           currentTheme.primary,
-          labelPrimaryColor,
-          labelPrimaryColor,
-          labelPrimaryColor,
-          labelPrimaryColor,
         ],
         dataLabels: {
           enabled: true,
           formatter(val) {
-            return `${ val }k`
+            return `${ val }`
           },
           offsetY: -25,
           style: {
@@ -332,17 +291,7 @@ const chartConfigs = computed(() => {
         legend: { show: false },
         tooltip: { enabled: false },
         xaxis: {
-          categories: [
-            'Jan',
-            'Feb',
-            'Mar',
-            'Apr',
-            'May',
-            'Jun',
-            'Jul',
-            'Aug',
-            'Sep',
-          ],
+          categories: props.bulan,
           axisBorder: {
             show: true,
             color: borderColor,
@@ -360,7 +309,7 @@ const chartConfigs = computed(() => {
           labels: {
             offsetX: -15,
             formatter(val) {
-              return `${ Number.parseInt(String(val / 1)) }k`
+              return `${ Number.parseInt(String(val / 1)) }`
             },
             style: {
               fontSize: '13px',
@@ -394,21 +343,11 @@ const chartConfigs = computed(() => {
         ],
       },
       series: [{
-        data: [
-          10,
-          22,
-          27,
-          33,
-          42,
-          32,
-          27,
-          22,
-          8,
-        ],
+        data: props.qrTajwid,
       }],
     },
     {
-      title: 'Income',
+      title: 'Fashahah',
       icon: 'tabler-chart-pie-2',
       chartOptions: {
         chart: {
@@ -440,15 +379,12 @@ const chartConfigs = computed(() => {
           labelPrimaryColor,
           labelPrimaryColor,
           labelPrimaryColor,
-          labelPrimaryColor,
-          labelPrimaryColor,
-          labelPrimaryColor,
           currentTheme.primary,
         ],
         dataLabels: {
           enabled: true,
           formatter(val) {
-            return `${ val }k`
+            return `${ val }`
           },
           offsetY: -25,
           style: {
@@ -461,17 +397,7 @@ const chartConfigs = computed(() => {
         legend: { show: false },
         tooltip: { enabled: false },
         xaxis: {
-          categories: [
-            'Jan',
-            'Feb',
-            'Mar',
-            'Apr',
-            'May',
-            'Jun',
-            'Jul',
-            'Aug',
-            'Sep',
-          ],
+          categories: props.bulan,
           axisBorder: {
             show: true,
             color: borderColor,
@@ -489,7 +415,7 @@ const chartConfigs = computed(() => {
           labels: {
             offsetX: -15,
             formatter(val) {
-              return `${ Number.parseInt(String(val / 1)) }k`
+              return `${ Number.parseInt(String(val / 1)) }`
             },
             style: {
               fontSize: '13px',
@@ -523,17 +449,7 @@ const chartConfigs = computed(() => {
         ],
       },
       series: [{
-        data: [
-          5,
-          9,
-          12,
-          18,
-          20,
-          25,
-          30,
-          36,
-          48,
-        ],
+        data: props.qrTahsin,
       }],
     },
   ]
@@ -542,8 +458,8 @@ const chartConfigs = computed(() => {
 
 <template>
   <VCard
-    title="Earning Reports"
-    subtitle="Yearly Earnings Overview"
+    title="Alquran Details"
+    subtitle="Last Semester Overview"
   >
     <template #append>
       <div class="mt-n4 me-n2">

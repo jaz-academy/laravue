@@ -1,8 +1,7 @@
 <script setup>
 import { fetchTeacherData, teachers } from '@/composables/fetchTeacherData'
 import InstagramEmbed from '@/views/front/sections/InstagramEmbed.vue'
-import avatar1 from '@images/avatars/avatar-1.png'
-import avatar2 from '@images/avatars/avatar-2.png'
+import avatar from '@images/avatars/no-profile.png'
 
 const props = defineProps({
   taskId: Number,
@@ -17,8 +16,11 @@ const props = defineProps({
   nickname: String,
   email: String,
   teacher: Object,
+  studentImg: String,
+  teacherImg: String,
   accepted: Number,
   review: String,
+  date: String,
 })
 
 const dataStorageParticipant = localStorage.getItem('participant')
@@ -113,7 +115,7 @@ onBeforeUnmount(() => {
 
 const comments = [
   {
-    prependAvatar: avatar1,
+    prependAvatar: avatar,
     title: 'Brunch this weekend?',
     subtitle: '<span class="text-primary">Ali Connors</span> &mdash; I\'ll be in your neighborhood doing errands this weekend. Do you want to hang out?',
   },
@@ -122,7 +124,7 @@ const comments = [
     inset: true,
   },
   {
-    prependAvatar: avatar2,
+    prependAvatar: avatar,
     title: 'Summer BBQ',
     subtitle: '<span class="text-primary">to Alex, Scott, Jennifer</span> &mdash; Wish I could come, but I\'m out of town this weekend.',
   },
@@ -164,10 +166,14 @@ const comments = [
                   class="me-3"
                 >
                   <VImg
-                    v-if="avatar1"
-                    :src="avatar1"
+                    v-if="props.studentImg"
+                    :src="`/storage/${props.studentImg}`"
+                    cover
                   />
-                  <span v-else>{{ avatarText(props.studentName) }}</span>
+                  <VImg
+                    v-else
+                    :src="avatar"
+                  />
                 </VAvatar>
                 <RouterLink
                   :to="`/?search=${abbreviateName(props.studentName, 10, 1).toLowerCase()}`"
@@ -181,7 +187,7 @@ const comments = [
               </div>
               <div class="d-flex flex-column text-end">
                 <small class="text-sm text-primary">
-                  {{ new Date(props.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) }}
+                  {{ new Date(props.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) }}
                 </small>
                 <a
                   :href="`/?search=${props.taskId}`"
@@ -209,12 +215,26 @@ const comments = [
             </p>
             <div class="d-flex align-center mt-4">
               <VAvatar
-                size="34"
+                :size="props.accepted ? undefined : 34"
+                :color="props.accepted ? undefined : warning"
                 variant="tonal"
                 class="me-3"
-                :color="props.accepted ? 'primary' : 'warning'"
               >
-                <span>{{ props.accepted ? avatarText(mentor.name) : '' }}</span>
+                <template v-if="props.accepted">
+                  <VImg
+                    v-if="props.teacherImg"
+                    :src="`/storage/${props.teacherImg}`"
+                    cover
+                  />
+                  <VImg
+                    v-else
+                    :src="avatar"
+                  />
+                </template>
+
+                <template v-else>
+                  <span>{{ avatarText(mentor.name) }}</span>
+                </template>
               </VAvatar>
               <div class="d-flex flex-column">
                 <div class="d-flex flex-column">

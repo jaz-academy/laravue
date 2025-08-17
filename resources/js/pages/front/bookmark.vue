@@ -71,6 +71,8 @@ const handleLoginStatus = async () => {
           :nickname="mark.project_task?.admin_student?.nickname"
           :email="mark.project_task?.admin_student?.email"
           :teacher="mark.project_task?.admin_teacher ? { id: mark.project_task?.admin_teacher.id, name: mark.project_task?.admin_teacher.nickname } : 'Not Accepted'"
+          :student-img="mark.project_task?.admin_student?.image"
+          :teacher-img="mark.project_task?.admin_teacher?.image"
           :accepted="mark.project_task?.accepted"
           :review="mark.project_task?.review || null"
         />

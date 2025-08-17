@@ -13,24 +13,17 @@ onMounted(() => {
 
 const tasks = allTasks
 
-function countTasksForStudent(tasks, studentId) {
-  return tasks.filter(task => task.admin_student_id === studentId).length
-}
+const getTaskCount = studentId => computed(() => 
+  tasks.value.filter(t => t.admin_student_id === studentId).length,
+)
 
-function calculateStars(tasks, studentId) {
-  const studentTasks = tasks.filter(task => task.admin_student_id === studentId)
-
-  const totalRate = studentTasks.reduce((sum, task) => {
-    const rate = parseFloat(task.rate) || 0  // konversi string ke float, fallback ke 0 jika null/undefined
-    
-    return sum + rate
-  }, 0)
-
-  const averageRate = studentTasks.length > 0 ? totalRate / studentTasks.length : 0
-
-  return { totalRate, averageRate }
-}
-
+const getStars = studentId => computed(() => {
+  const studentTasks = tasks.value.filter(t => t.admin_student_id === studentId)
+  const totalRate = studentTasks.reduce((sum, t) => sum + (parseFloat(t.rate) || 0), 0)
+  const avgRate = studentTasks.length ? totalRate / studentTasks.length : 0
+  
+  return { totalRate, avgRate }
+})
 
 // Computed property to sort students by averageRate
 const sortedStudents = computed(() => {
@@ -38,8 +31,8 @@ const sortedStudents = computed(() => {
     .filter(student => student.graduation === null)
     .slice()
     .sort((a, b) => {
-      const aRate = calculateStars(tasks.value, a.id).averageRate
-      const bRate = calculateStars(tasks.value, b.id).averageRate
+      const aRate = getStars(a.id).value.avgRate
+      const bRate = getStars(b.id).value.avgRate
 
       return bRate - aRate
     })
@@ -72,6 +65,12 @@ const sortedStudents = computed(() => {
         <VCardItem>
           <VCardTitle class="d-flex flex-column align-center justify-center gap-y-5">
             <VAvatar
+              v-if="student?.image"
+              size="100"
+              :image="`/storage/${student.image}`"
+            />
+            <VAvatar
+              v-else
               size="100"
               :image="avatar"
             />
@@ -89,7 +88,7 @@ const sortedStudents = computed(() => {
 
         <VCardText class="text-center">
           <VRating
-            v-model="calculateStars(tasks, student.id).averageRate"
+            v-model="getStars(student.id).value.avgRate"
             half-increments
             hover
           />
@@ -99,19 +98,19 @@ const sortedStudents = computed(() => {
           <div class="d-flex justify-space-around">
             <div class="text-center">
               <h4 class="text-h4">
-                {{ countTasksForStudent(tasks, student.id) }}
+                {{ getTaskCount(student.id).value }}
               </h4>
               <span class="text-body-1">Tasks</span>
             </div>
             <div class="text-center">
               <h4 class="text-h4">
-                {{ calculateStars(tasks, student.id).totalRate }}
+                {{ getStars(student.id).value.totalRate }}
               </h4>
               <span class="text-body-1">Stars</span>
             </div>
             <div class="text-center">
               <h4 class="text-h4">
-                {{ calculateStars(tasks, student.id).averageRate.toFixed(2) }}
+                {{ getStars(student.id).value.avgRate.toFixed(2) }}
               </h4>
               <span class="text-body-1">Average</span>
             </div>

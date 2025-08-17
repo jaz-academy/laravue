@@ -1,33 +1,26 @@
 <script setup>
-import { useTheme } from 'vuetify'
 import { hexToRgb } from '@layouts/utils'
+import { computed } from 'vue'
+import { useTheme } from 'vuetify'
+
+const props = defineProps({
+  bulan: Array,
+  pemahaman: Array,
+  sikap: Array,
+})
 
 const vuetifyTheme = useTheme()
 
-const series = [
+const series = computed(() => [
   {
-    name: 'Sales',
-    data: [
-      32,
-      27,
-      27,
-      30,
-      25,
-      25,
-    ],
+    name: 'Pemahaman',
+    data: props.pemahaman,
   },
   {
-    name: 'Visits',
-    data: [
-      25,
-      35,
-      20,
-      20,
-      20,
-      20,
-    ],
+    name: 'Sikap',
+    data: props.sikap,
   },
-]
+])
 
 const chartOptions = computed(() => {
   const currentTheme = vuetifyTheme.current.value.colors
@@ -88,14 +81,7 @@ const chartOptions = computed(() => {
       },
     },
     xaxis: {
-      categories: [
-        'Jan',
-        'Feb',
-        'Mar',
-        'Apr',
-        'May',
-        'Jun',
-      ],
+      categories: props.bulan,
       labels: {
         show: true,
         style: {
@@ -115,7 +101,7 @@ const chartOptions = computed(() => {
     yaxis: {
       show: false,
       min: 0,
-      max: 40,
+      max: 100,
       tickAmount: 4,
     },
     responsive: [{
@@ -129,8 +115,8 @@ const chartOptions = computed(() => {
 <template>
   <VCard>
     <VCardItem class="pb-0">
-      <VCardTitle>Sales</VCardTitle>
-      <VCardSubtitle>Last 6 Months</VCardSubtitle>
+      <VCardTitle>Tsaqofah</VCardTitle>
+      <VCardSubtitle>Syakhsiyah Islamiyah</VCardSubtitle>
 
       <template #append>
         <div class="mt-n4 me-n2">

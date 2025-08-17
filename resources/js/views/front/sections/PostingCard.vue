@@ -1,6 +1,5 @@
 <script setup>
-import avatar1 from '@images/avatars/avatar-1.png'
-import avatar2 from '@images/avatars/avatar-2.png'
+import avatar from '@images/avatars/no-profile.png'
 import GDriveEmbed from './GDriveEmbed.vue'
 import InstagramEmbed from './InstagramEmbed.vue'
 
@@ -17,6 +16,8 @@ const props = defineProps({
   nickname: String,
   email: String,
   teacher: Object,
+  studentImg: String,
+  teacherImg: String,
   accepted: Number,
   review: String,
 })
@@ -113,7 +114,7 @@ onBeforeUnmount(() => {
 
 const comments = [
   {
-    prependAvatar: avatar1,
+    prependAvatar: avatar,
     title: 'Brunch this weekend?',
     subtitle: '<span class="text-primary">Ali Connors</span> &mdash; I\'ll be in your neighborhood doing errands this weekend. Do you want to hang out?',
   },
@@ -122,7 +123,7 @@ const comments = [
     inset: true,
   },
   {
-    prependAvatar: avatar2,
+    prependAvatar: avatar,
     title: 'Summer BBQ',
     subtitle: '<span class="text-primary">to Alex, Scott, Jennifer</span> &mdash; Wish I could come, but I\'m out of town this weekend.',
   },
@@ -166,10 +167,14 @@ const comments = [
                 class="me-3"
               >
                 <VImg
-                  v-if="avatar"
+                  v-if="props.studentImg"
+                  :src="`/storage/${props.studentImg}`"
+                  cover
+                />
+                <VImg
+                  v-else
                   :src="avatar"
                 />
-                <span v-else>{{ avatarText(props.studentName) }}</span>
               </VAvatar>
               <div class="d-flex flex-column">
                 <h6 class="text-base">
@@ -208,7 +213,15 @@ const comments = [
                 class="me-3"
                 :color="props.accepted ? 'primary' : 'warning'"
               >
-                <span>{{ props.accepted ? avatarText(mentor.name) : '' }}</span>
+                <VImg
+                  v-if="props.teacherImg"
+                  :src="`/storage/${props.teacherImg}`"
+                  cover
+                />
+                <VImg
+                  v-else
+                  :src="avatar"
+                />
               </VAvatar>
               <div class="d-flex flex-column">
                 <div class="d-flex flex-column">

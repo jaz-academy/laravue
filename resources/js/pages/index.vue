@@ -31,7 +31,7 @@ const loadTasks = async () => {
 
   loading.value = true
 
-  const { data } = await useApi(`/public/tasks?page=${page.value}&perPage=${perPage.value}&search=${search.value}`)
+  const { data } = await useApi(`/public/tasks?page=${page.value}&perPage=${perPage.value}&search=${search.value}&rates=5`)
   const newTasks = data.value?.data || []
 
   if (newTasks.length) {
@@ -141,6 +141,8 @@ onUnmounted(() => {
           :mentor="task.admin_teacher?.nickname || 'Not Accepted'"
           :review="task?.review || null"
           :teacher="task.admin_teacher ? { id: task.admin_teacher.id, name: task.admin_teacher.nickname } : 'Not Accepted'"
+          :student-img="task.admin_student?.image"
+          :teacher-img="task.admin_teacher?.image"
           :accepted="task.accepted"
           :link="task.link"
           :date="task.date"

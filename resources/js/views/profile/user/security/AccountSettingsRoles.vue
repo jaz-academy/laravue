@@ -188,7 +188,7 @@ const updateUserRole = async () => {
     </VCardText>
     <VDivider />
 
-    <VCardText>
+    <VCardText v-if="userData.value?.role >= 4">
       <VForm @submit.prevent="updateUserRole">
         <VRow>
           <VCol

@@ -401,6 +401,11 @@
     "fetchTeachers": true,
     "useUserData": true,
     "fetchAllUsers": true,
-    "fetchTasksList": true
+    "fetchTasksList": true,
+    "properCase": true,
+    "rateColor": true,
+    "takePic": true,
+    "rateNumberIcon": true,
+    "humanDate": true
   }
 }

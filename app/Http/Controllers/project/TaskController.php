@@ -22,6 +22,7 @@ class TaskController extends Controller
         $media = $request->get('media', ''); // default media
         $accepted = $request->get('accepted', ''); // default accepted
         $admin_student_id = $request->get('admin_student_id', ''); // default admin_student_id
+        $rates = $request->get('rates', ''); // default rates
 
         $query = Task::with('projectPlan', 'adminStudent', 'adminTeacher');
 
@@ -57,6 +58,8 @@ class TaskController extends Controller
                         $q2->where('theme', 'like', '%' . $queryInput . '%');
                     });
             });
+        } else if ($rates) {
+            $query->where('rate', $rates);
         }
 
         // Sorting

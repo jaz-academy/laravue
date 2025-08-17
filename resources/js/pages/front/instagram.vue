@@ -163,8 +163,11 @@ useIntersectionObserver([
                 :nickname="task.admin_student.nickname"
                 :email="task.admin_student.email"
                 :teacher="task.admin_teacher ? { id: task.admin_teacher.id, name: task.admin_teacher.nickname } : 'Not Accepted'"
+                :student-img="task.admin_student?.image"
+                :teacher-img="task.admin_teacher?.image"
                 :accepted="task.accepted"
                 :review="task?.review || null"
+                :date="task.date"
               />
             </div>
           </div>

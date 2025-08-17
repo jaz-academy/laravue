@@ -18,11 +18,13 @@ export const avatarText = value => {
 }
 
 // queryString builder
-export const buildQuery = (params) => {
+export const buildQuery = params => {
   const query = Object.entries(params)
     .filter(([_, v]) => v !== undefined && v !== '')
     .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
     .join('&')
+
+  
   return query ? `?${query}` : ''
 }
 

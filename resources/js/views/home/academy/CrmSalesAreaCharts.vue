@@ -1,17 +1,18 @@
 <script setup>
 import { useTheme } from 'vuetify'
 
+const props = defineProps({
+  tahsin: Array,
+})
+
+const lastValue = props.tahsin[props.tahsin.length - 1] || 0
+const lastPerformance = (((props.tahsin[props.tahsin.length - 1] || 0) - (props.tahsin[props.tahsin.length - 2] || 0)) / (props.tahsin[props.tahsin.length - 2] || 1) * 100).toFixed(2) || 0
 const vuetifyTheme = useTheme()
 const currentTheme = vuetifyTheme.current.value.colors
 
 const series = [{
   name: 'Subscribers',
-  data: [
-    200,
-    55,
-    400,
-    250,
-  ],
+  data: props.tahsin,
 }]
 
 const chartOptions = {
@@ -64,10 +65,10 @@ const chartOptions = {
   <VCard>
     <VCardText class="pb-2">
       <h5 class="text-h5">
-        Sales
+        Alquran
       </h5>
       <p class="mb-0 text-sm text-disabled">
-        Last Year
+        Last Semester
       </p>
     </VCardText>
 
@@ -80,10 +81,13 @@ const chartOptions = {
     <VCardText class="pt-0">
       <div class="d-flex align-center justify-space-between mt-3">
         <h4 class="text-h4">
-          175k
+          {{ lastValue }}
         </h4>
-        <p class="mb-0 text-sm text-error">
-          -16.2%
+        <p
+          class="mb-0 text-sm"
+          :class="lastPerformance < 0 ? 'text-error' : 'text-success'"
+        >
+          {{ lastPerformance }}%
         </p>
       </div>
     </VCardText>

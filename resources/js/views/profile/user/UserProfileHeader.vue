@@ -20,6 +20,14 @@ onMounted(() => {
     <VCardText class="d-flex align-bottom flex-sm-row flex-column justify-center gap-x-5">
       <div class="d-flex h-0">
         <VAvatar
+          v-if="member?.image"
+          rounded
+          size="120"
+          :image="`/storage/${member.image}`"
+          class="user-profile-avatar mx-auto"
+        />
+        <VAvatar
+          v-else
           rounded
           size="120"
           :image="avatar"

@@ -1,5 +1,5 @@
 <script setup>
-import { abbreviateName, avatarText } from '@/@core/utils/formatters'
+import { abbreviateName } from '@/@core/utils/formatters'
 import avatar from '@images/avatars/no-profile.png'
 import GDriveEmbed from './GDriveEmbed.vue'
 import InstagramEmbed from './InstagramEmbed.vue'
@@ -18,6 +18,8 @@ const props = defineProps({
   email: String,
   teacher: Object,
   review: String,
+  studentImg: String,
+  teacherImg: String,
   accepted: Number,
   link: String,
   date: String,
@@ -169,10 +171,14 @@ const comments = [
                   class="me-3"
                 >
                   <VImg
-                    v-if="avatar"
+                    v-if="props.studentImg"
+                    :src="`/storage/${props.studentImg}`"
+                    cover
+                  />
+                  <VImg
+                    v-else
                     :src="avatar"
                   />
-                  <span v-else>{{ avatarText(props.studentName) }}</span>
                 </VAvatar>
                 <RouterLink
                   :to="`/?search=${abbreviateName(props.studentName, 10, 1).toLowerCase()}`"
@@ -186,7 +192,7 @@ const comments = [
               </div>
               <div class="d-flex flex-column text-end">
                 <small class="text-sm text-primary">
-                  {{ new Date(props.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) }}
+                  {{ new Date(props.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) }}
                 </small>
                 <a
                   :href="`/?search=${props.taskId}`"
@@ -230,10 +236,14 @@ const comments = [
                 :color="props.accepted ? 'primary' : 'warning'"
               >
                 <VImg
-                  v-if="avatar"
+                  v-if="props.teacherImg"
+                  :src="`/storage/${props.teacherImg}`"
+                  cover
+                />
+                <VImg
+                  v-else
                   :src="avatar"
                 />
-                <span v-else>{{ avatarText(mentor.name) }}</span>
               </VAvatar>
               <div class="d-flex flex-column">
                 <div class="font-weight-medium text-link ps-1">

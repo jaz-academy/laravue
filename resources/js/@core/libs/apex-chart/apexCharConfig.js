@@ -392,7 +392,7 @@ export const getDonutChartConfig = themeColors => {
     ],
   }
 }
-export const getAreaChartSplineConfig = themeColors => {
+export const getAreaChartSplineConfig = (themeColors, bulan) => {
   const areaColors = {
     series3: '#e0cffe',
     series2: '#b992fe',
@@ -452,21 +452,7 @@ export const getAreaChartSplineConfig = themeColors => {
       labels: {
         style: { colors: themeDisabledTextColor, fontSize: '0.8125rem' },
       },
-      categories: [
-        '7/12',
-        '8/12',
-        '9/12',
-        '10/12',
-        '11/12',
-        '12/12',
-        '13/12',
-        '14/12',
-        '15/12',
-        '16/12',
-        '17/12',
-        '18/12',
-        '19/12',
-      ],
+      categories: bulan,
     },
   }
 }

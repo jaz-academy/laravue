@@ -1,16 +1,17 @@
 <script setup>
-import { humanDate, properCase } from '@/@core/utils/helpers'
+import { properCase, rateColor } from '@/@core/utils/helpers'
 import { computed } from 'vue'
 
 const props = defineProps({
-  literasiTasks: Array,
+  lastProjectTasks: Array,
+  lastProject: Array,
   students: Array,
 })
 
-const literasiData = computed(() => {
+const lastProjectData = computed(() => {
   const taskMap = {}
 
-  props.literasiTasks.forEach(task => {
+  props.lastProjectTasks.forEach(task => {
     taskMap[task.admin_student_id] = task
   })
 
@@ -34,8 +35,8 @@ const literasiData = computed(() => {
 <template>
   <VCard>
     <VCardItem
-      :title="literasiTasks[0].project_plan?.theme || 'Literasi Tasks'"
-      :subtitle="`Last Project: ${literasiTasks[0].project_plan?.subject}` || 'Literasi Project'"
+      :title="lastProject.theme"
+      :subtitle="`Last Project: ${lastProject.subject}`"
     >
       <template #append>
         <MoreBtn />
@@ -44,7 +45,7 @@ const literasiData = computed(() => {
     <VCardText>
       <VList class="card-list scrollable-card">
         <VListItem
-          v-for="data in literasiData"
+          v-for="data in lastProjectData"
           :key="data.title"
         >
           <template #prepend>

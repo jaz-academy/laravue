@@ -2,14 +2,23 @@
 import { hexToRgb } from '@layouts/utils'
 import { useTheme } from 'vuetify'
 
+const props = defineProps({
+  inggris: { type: Number, default: 0 },
+  arab: { type: Number, default: 0 },
+})
+
 const vuetifyTheme = useTheme()
 
-const series = [
-  45,
-  58,
-  30,
-  50,
-]
+const delta = computed(() => {
+  const total = props.inggris + props.arab
+  
+  return props.inggris && props.arab ? ((props.inggris - props.arab) / total) * 100 : 0
+})
+
+const series = computed(() => [
+  props.inggris,
+  props.arab,
+])
 
 const chartOptions = computed(() => {
   const currentTheme = vuetifyTheme.current.value.colors
@@ -20,9 +29,7 @@ const chartOptions = computed(() => {
   const chartColors = {
     donut: {
       series1: currentTheme.success,
-      series2: '#28c76fb3',
-      series3: '#28c76f80',
-      series4: labelSuccessColor,
+      series2: labelSuccessColor,
     },
   }
   
@@ -32,16 +39,12 @@ const chartOptions = computed(() => {
       type: 'donut',
     },
     labels: [
-      'Electronic',
-      'Sports',
-      'Decor',
-      'Fashion',
+      'English',
+      'Arabic',
     ],
     colors: [
       chartColors.donut.series1,
       chartColors.donut.series2,
-      chartColors.donut.series3,
-      chartColors.donut.series4,
     ],
     stroke: { width: 0 },
     dataLabels: {
@@ -85,10 +88,10 @@ const chartOptions = computed(() => {
               showAlways: true,
               color: currentTheme.success,
               fontSize: '.8125rem',
-              label: 'Total',
+              label: '%',
               fontFamily: 'Public Sans',
               formatter() {
-                return '184'
+                return delta.value.toFixed(1)
               },
             },
           },
@@ -101,38 +104,22 @@ const chartOptions = computed(() => {
 
 <template>
   <VCard>
-    <VCardText class="d-flex justify-space-between">
-      <div class="d-flex flex-column">
-        <div class="mb-auto">
-          <h6 class="text-h5 text-no-wrap">
-            Generated Leads
-          </h6>
-          <span class="text-sm">Monthly Report</span>
-        </div>
-
-        <div>
-          <h5 class="text-h3 mb-1">
-            4,350
-          </h5>
-          <div>
-            <VIcon
-              icon="tabler-chevron-up"
-              size="16"
-              color="success"
-              class="me-2"
-            />
-            <span class="text-success">15.8% </span>
-          </div>
-        </div>
-      </div>
+    <VCardText>
       <div>
-        <VueApexCharts
-          :options="chartOptions"
-          :series="series"
-          :height="147"
-          :width="130"
-        />
+        <h5 class="text-h5">
+          Language
+        </h5>
+        <p class="mb-0 text-sm text-disabled">
+          Bilingual
+        </p>
       </div>
+
+      <VueApexCharts
+        :options="chartOptions"
+        :series="series"
+        :height="147 * 0.75"
+        :width="130 * 0.75"
+      />
     </VCardText>
   </VCard>
 </template>
