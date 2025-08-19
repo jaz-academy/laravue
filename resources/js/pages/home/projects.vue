@@ -1,9 +1,9 @@
 <script setup>
-import AcademyAssignmentProgress from '@/views/dashboards/academy/AcademyAssignmentProgress.vue'
-import AcademyCardPopularInstructors from '@/views/dashboards/academy/AcademyCardPopularInstructors.vue'
-import AcademyCardTopCourses from '@/views/dashboards/academy/AcademyCardTopCourses.vue'
-import AcademyCourseTable from '@/views/dashboards/academy/AcademyCourseTable.vue'
 import LastProject from '@/views/dashboards/academy/LastProject.vue'
+import LiteracyProject from '@/views/dashboards/academy/LiteracyProject.vue'
+import PopularMentors from '@/views/dashboards/academy/PopularMentors.vue'
+import PostedTable from '@/views/dashboards/academy/PostedTable.vue'
+import TopTenPosted from '@/views/dashboards/academy/TopTenPosted.vue'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 
 const borderColor = 'rgba(var(--v-border-color), var(--v-border-opacity))'
@@ -416,7 +416,7 @@ onUnmounted(() => clearInterval(interval))
         md="4"
         sm="6"
       >
-        <AcademyCardPopularInstructors
+        <PopularMentors
           v-if="teachers.length"
           :teachers="teachers"
         />
@@ -428,7 +428,7 @@ onUnmounted(() => clearInterval(interval))
         md="4"
         sm="6"
       >
-        <AcademyCardTopCourses 
+        <TopTenPosted 
           v-if="topTen.length"
           :top-ten="topTen"
         />
@@ -454,7 +454,7 @@ onUnmounted(() => clearInterval(interval))
         md="4"
         sm="6"
       >
-        <AcademyAssignmentProgress 
+        <LiteracyProject 
           v-if="literasiTasks.length"
           :literasi-tasks="literasiTasks"
           :students="students"
@@ -463,7 +463,7 @@ onUnmounted(() => clearInterval(interval))
 
       <!-- 👉 Weekly Post  -->
       <VCol>
-        <AcademyCourseTable 
+        <PostedTable 
           v-if="socialMediaTasks.length"
           :social-media-tasks="socialMediaTasks"
           :students="students"

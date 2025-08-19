@@ -1,3 +1,10 @@
+// Fungsi mengambil gambar
+import avatar from '@images/avatars/no-profile.png'
+
+export const takePic = src => {
+  return src ? `/storage/${src}` : avatar
+}
+
 // 👉 IsEmpty
 export const isEmpty = value => {
   if (value === null || value === undefined || value === '')
@@ -56,13 +63,6 @@ export const rateNumberIcon = rate => {
   if (rate >= 1.0) return 'tabler-circle-number-1'
 
   return 'tabler-mood-off'
-}
-
-// Fungsi mengambil gambar
-import avatar from '@images/avatars/no-profile.png'
-
-export const takePic = src => {
-  return src ? `/storage/${src}` : avatar
 }
 
 // Format Date

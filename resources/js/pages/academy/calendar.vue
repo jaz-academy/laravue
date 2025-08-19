@@ -1,10 +1,10 @@
 <script setup>
-import FullCalendar from '@fullcalendar/vue3'
 import {
   blankEvent,
   useCalendar,
 } from '@/views/apps/calendar/useCalendar'
 import { useCalendarStore } from '@/views/apps/calendar/useCalendarStore'
+import FullCalendar from '@fullcalendar/vue3'
 
 // Components
 import CalendarEventHandler from '@/views/apps/calendar/CalendarEventHandler.vue'
@@ -29,21 +29,49 @@ const { refCalendar, calendarOptions, addEvent, updateEvent, removeEvent, jumpTo
 // SECTION Sidebar
 
 // 👉 Check all
-const checkAll = computed({
+// const checkAll = computed({
 
-  /*GET: Return boolean `true` => if length of options matches length of selected filters => Length matches when all events are selected
+/*GET: Return boolean `true` => if length of options matches length of selected filters => Length matches when all events are selected
 SET: If value is `true` => then add all available options in selected filters => Select All
 Else if => all filters are selected (by checking length of both array) => Empty Selected array  => Deselect All
 */
-  get: () => store.selectedCalendars.length === store.availableCalendars.length,
+//   get: () => store.selectedCalendars.length === store.availableCalendars.length,
+//   set: val => {
+//     if (val)
+//       store.selectedCalendars = store.availableCalendars.map(i => i.label)
+//     else if (store.selectedCalendars.length === store.availableCalendars.length)
+//       store.selectedCalendars = []
+//   },
+// })
+// !SECTION
+
+import { computed, onMounted, ref } from 'vue'
+
+const availableCalendars = ref([])
+const selectedCalendars = ref([])
+
+onMounted(async () => {
+  const res = await $api('/projects') // endpoint API dari table
+
+  availableCalendars.value = res.data.map(item => ({
+    label: item.title,   // dipakai untuk tampil nama project
+    value: item.id,      // id project
+    start: item.start_date,
+    end: item.end_date,
+    remark: item.remark,
+  }))
+})
+
+// computed checkAll
+const checkAll = computed({
+  get: () => selectedCalendars.value.length === availableCalendars.value.length,
   set: val => {
     if (val)
-      store.selectedCalendars = store.availableCalendars.map(i => i.label)
-    else if (store.selectedCalendars.length === store.availableCalendars.length)
-      store.selectedCalendars = []
+      selectedCalendars.value = availableCalendars.value.map(i => i.label)
+    else if (selectedCalendars.value.length === availableCalendars.value.length)
+      selectedCalendars.value = []
   },
 })
-// !SECTION
 </script>
 
 <template>
@@ -116,7 +144,7 @@ Else if => all filters are selected (by checking length of both array) => Empty 
       </VLayout>
     </VCard>
     <CalendarEventHandler
-      v-model:isDrawerOpen="isEventHandlerSidebarActive"
+      v-model:is-drawer-open="isEventHandlerSidebarActive"
       :event="event"
       @add-event="addEvent"
       @update-event="updateEvent"

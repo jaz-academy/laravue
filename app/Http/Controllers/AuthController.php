@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AdminTeacher;
 use Validator;
 use App\Models\User;
+use App\Notifications\ProjectReminder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Pagination\Paginator;
@@ -106,6 +108,16 @@ class AuthController extends Controller
             'current_password' => 'required|string',
             'new_password' => 'required|string|min:6|confirmed',
         ]);
+
+        $currentUser = json_decode(request()->cookie('userData'), false);
+        $user = User::where('admin_student_id', $currentUser->admin_student_id)->first();
+        $user->notify(new ProjectReminder(
+            'Password Changed!',
+            substr($currentUser->name, 0, strpos($currentUser->name, ' ')) . ' has changed your password.',
+            $user->image ? "/storage/{$user->image}" : null,
+            $user->name,
+            '/academy/project/tasks'
+        ));
 
         $user = Auth::user();
 
@@ -270,6 +282,48 @@ class AuthController extends Controller
      */
     public function update(Request $request, User $user)
     {
+        function userRole($role)
+        {
+            if ($role == '1') {
+                return ['Guest', 'You can only view menu in our dashboard.'];
+            } elseif ($role == '2') {
+                return ['User', 'You can manage your own profile and data 👍'];
+            } elseif ($role == '3') {
+                return ['Superuser', 'You can manage your team data!'];
+            } elseif ($role == '4') {
+                return ['Manager', 'You can manage and delete data!'];
+            } elseif ($role == '5') {
+                return ['Programmer', 'You can write and manage code 😎'];
+            }
+            return ['Annonimous', 'Contact us for more informations.'];
+        }
+
+        if ($request->has('role') && $request->role !== $user->role) {
+            $currentUser = json_decode(request()->cookie('userData'), false);
+            $user->notify(
+                new ProjectReminder(
+                    'Role Updated to ' . userRole($request->role)[0],
+                    userRole($request->role)[1],
+                    $currentUser->image ? "/storage/{$currentUser->image}" : null,
+                    $currentUser->name,
+                    null,
+                ),
+            );
+        }
+
+        if ($request->has('access') && $request->access !== $user->access) {
+            $currentUser = json_decode(request()->cookie('userData'), false);
+            $user->notify(
+                new ProjectReminder(
+                    $currentUser->name . ' give you Access.',
+                    'You authorized to: ' . $request->access,
+                    $currentUser->image ? "/storage/{$currentUser->image}" : null,
+                    $currentUser->name,
+                    null,
+                ),
+            );
+        }
+
         $user->update($request->all());
 
         return response()->json([

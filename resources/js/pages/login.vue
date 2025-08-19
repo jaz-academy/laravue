@@ -36,8 +36,8 @@ const errorMessage = ref('')
 const refVForm = ref()
 
 const credentials = ref({
-  email: 'zah@jaz.id',
-  password: 'semangka',
+  email: '',
+  password: '',
 })
 
 const rememberMe = ref(false)

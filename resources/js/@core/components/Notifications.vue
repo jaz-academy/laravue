@@ -25,14 +25,14 @@ const emit = defineEmits([
   'click:notification',
 ])
 
-const isAllMarkRead = computed(() => props.notifications.some(item => item.isSeen === false))
+const isAllMarkRead = computed(() => props.notifications.every(item => item.isSeen))
 
 const markAllReadOrUnread = () => {
   const allNotificationsIds = props.notifications.map(item => item.id)
-  if (!isAllMarkRead.value)
-    emit('unread', allNotificationsIds)
-  else
+  if (!isAllMarkRead.value) // kalau belum semua dibaca → mark all read
     emit('read', allNotificationsIds)
+  else // kalau semua sudah dibaca → mark all unread
+    emit('unread', allNotificationsIds)
 }
 
 const totalUnseenNotifications = computed(() => {

@@ -2,13 +2,13 @@
 import AppSelect from '@/@core/components/app-form-elements/AppSelect.vue'
 import { fetchStudentData, students } from '@/composables/fetchStudentData'
 import { useApi } from '@/composables/useApi'
-import ApexChartAreaChart from '@/views/home/academy/ApexChartAreaChart.vue'
+import AlquranAreaCharts from '@/views/home/academy/AlquranAreaCharts.vue'
+import AlquranDetailOverview from '@/views/home/academy/AlquranDetailOverview.vue'
 import BahasaDonutCharts from '@/views/home/academy/BahasaDonutCharts.vue'
-import CrmActiveProject from '@/views/home/academy/CrmActiveProject.vue'
-import CrmAnalyticsSales from '@/views/home/academy/CrmAnalyticsSales.vue'
-import CrmBrowserStates from '@/views/home/academy/CrmBrowserStates.vue'
-import CrmEarningReportsYearlyOverview from '@/views/home/academy/CrmEarningReportsYearlyOverview.vue'
-import CrmSalesAreaCharts from '@/views/home/academy/CrmSalesAreaCharts.vue'
+import DirosahActive from '@/views/home/academy/DirosahActive.vue'
+import InformaticsStates from '@/views/home/academy/InformaticsStates.vue'
+import MonthlyAreaChart from '@/views/home/academy/MonthlyAreaChart.vue'
+import TsaqofalAnalytics from '@/views/home/academy/TsaqofalAnalytics.vue'
 import { computed } from 'vue'
 
 const currentUser = useCookie('userData').value
@@ -130,14 +130,14 @@ watch([studentId, semester], async ([newId, newSem]) => {
         @change="fetchScores"
       />
     </VCol>
-    <!-- Area Chart (Kiri) -->
+    <!-- Monthly Progress Area Chart (Kiri) -->
     <VCol
       cols="12"
       md="8"
     >
       <VCard>
         <VCardText>
-          <ApexChartAreaChart
+          <MonthlyAreaChart
             v-if="scores.data && Object.keys(scores.data).length"
             :key="semester + '-' + studentId"
             :bulan="bulan"
@@ -159,7 +159,7 @@ watch([studentId, semester], async ([newId, newSem]) => {
           cols="12"
           md="6"
         >
-          <CrmSalesAreaCharts 
+          <AlquranAreaCharts 
             v-if="scores.data && Object.keys(scores.data).length"
             :key="semester + '-' + studentId"
             :tahsin="findScores('Tahsin') || []"
@@ -222,7 +222,7 @@ watch([studentId, semester], async ([newId, newSem]) => {
       cols="12"
       md="8"
     >
-      <CrmEarningReportsYearlyOverview 
+      <AlquranDetailOverview 
         v-if="scores.data && Object.keys(scores.data).length"
         :key="semester + '-' + studentId"
         :bulan="bulan"
@@ -238,7 +238,7 @@ watch([studentId, semester], async ([newId, newSem]) => {
       cols="12"
       md="4"
     >
-      <CrmAnalyticsSales 
+      <TsaqofalAnalytics 
         v-if="scores.data && Object.keys(scores.data).length"
         :bulan="bulan"
         :pemahaman="findScores('Pemahaman') || []"
@@ -251,7 +251,7 @@ watch([studentId, semester], async ([newId, newSem]) => {
       cols="12"
       md="6"
     >
-      <CrmBrowserStates 
+      <InformaticsStates 
         v-if="scores.data && Object.keys(scores.data).length"
         :informatics="informatics"
         :multimedias="multimedias"
@@ -263,7 +263,7 @@ watch([studentId, semester], async ([newId, newSem]) => {
       cols="12"
       md="6"
     >
-      <CrmActiveProject 
+      <DirosahActive 
         v-if="scores.data && Object.keys(scores.data).length"
         :bahasa="bahasa"
         :dirosah="dirosah"

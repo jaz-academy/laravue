@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers\project;
 
-use App\Http\Controllers\Controller;
-use App\Models\ProjectTask as Task;
+use App\Models\User;
 use Illuminate\Http\Request;
+use App\Models\ProjectTask as Task;
+use App\Http\Controllers\Controller;
+use App\Models\AdminTeacher;
+use App\Notifications\ProjectReminder;
 
 class TaskController extends Controller
 {
@@ -115,6 +118,15 @@ class TaskController extends Controller
 
         $task = Task::create($fields);
 
+        $user = User::where('admin_student_id', $fields['admin_student_id'])->first();
+        $user->notify(new ProjectReminder(
+            'New Task Created!',
+            $fields['name'],
+            $user->image ? "/storage/{$user->image}" : null,
+            $user->name,
+            '/academy/project/tasks'
+        ));
+
         return response()->json([
             'message' => 'Task created successfully',
             'data' => $task
@@ -150,6 +162,18 @@ class TaskController extends Controller
      */
     public function destroy(Task $task)
     {
+        $student_id = $task->admin_student_id;
+        $teacher_id = $task->admin_teacher_id;
+        $teacher = AdminTeacher::find($teacher_id);
+        $user = User::where('admin_student_id', $student_id)->first();
+        $user->notify(new ProjectReminder(
+            'Task Deleted by ' . $teacher->nickname,
+            $task->name . ' ☹ has been deleted.',
+            $teacher->image ? "/storage/{$teacher->image}" : null,
+            null,
+            null,
+        ));
+
         $task->delete();
 
         return response()->json([
@@ -252,6 +276,17 @@ class TaskController extends Controller
 
         $task->update($fields);
         $task->refresh();
+
+        $student_id = $task->admin_student_id;
+        $teacher = AdminTeacher::find($fields['admin_teacher_id']);
+        $user = User::where('admin_student_id', $student_id)->first();
+        $user->notify(new ProjectReminder(
+            'Task Accepted by ' . $teacher->nickname,
+            $task->name . ' 🙂 has been accepted.',
+            $teacher->image ? "/storage/{$teacher->image}" : null,
+            $teacher->nickname,
+            '/?search=' . $task->id
+        ));
 
         return response()->json([
             'message' => 'Task accepted status updated successfully',

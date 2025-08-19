@@ -117,4 +117,17 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
   Route::apiResource('discounts', DiscountController::class);
   Route::apiResource('payments', PaymentController::class);
   Route::apiResource('savings', SavingController::class);
+
+  Route::get('/notifications', function () {
+    return response()->json(auth()->user()->notifications);
+  });
+
+  Route::get('/notifications/unread', function () {
+    return response()->json(auth()->user()->unreadNotifications);
+  });
+
+  Route::post('/notifications/{id}/read', fn($id) => tap(auth()->user()->notifications()->findOrFail($id))->markAsRead());
+  Route::post('/notifications/{id}/unread', fn($id) => auth()->user()->notifications()->where('id', $id)->update(['read_at' => null]));
+
+  Route::delete('/notifications/{id}', fn($id) => auth()->user()->notifications()->where('id', $id)->delete());
 });

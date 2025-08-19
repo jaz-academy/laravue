@@ -1,5 +1,6 @@
 <script setup>
 import AppSelect from '@/@core/components/app-form-elements/AppSelect.vue'
+import { useCookie } from '@/@core/composable/useCookie'
 import { fetchProjectData, plans } from '@/composables/fetchProjectData'
 import { fetchStudentData, students } from '@/composables/fetchStudentData'
 import { fetchTeacherData } from '@/composables/fetchTeacherData'
@@ -13,6 +14,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:isDrawerOpen', 'taskData'])
+const userData = useCookie('userData').value
 
 onMounted(async () => {
   await fetchStudentData()
@@ -25,7 +27,7 @@ const isFormValid = ref(false)
 
 const form = reactive({
   project_plan_id: '',
-  admin_student_id: '',
+  admin_student_id: userData.admin_student_id || '',
   semester: '',
   name: '',
   description: '',
@@ -63,7 +65,7 @@ watch(
     } else {
       Object.assign(form, {
         project_plan_id: '',
-        admin_student_id: '',
+        admin_student_id: userData.admin_student_id || '',
         semester: '',
         name: '',
         description: '',
@@ -168,6 +170,7 @@ const onSubmit = () => {
                   :items="students"
                   item-title="name"
                   item-value="id"
+                  :readonly="userData.admin_student_id"
                 />
               </VCol>
               
