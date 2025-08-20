@@ -1,9 +1,12 @@
 <script setup>
+import { useUserAccess } from '@/@core/utils/helpers'
+
 const { teacher } = defineProps({
   teacher: Object,
 })
 
 const emit = defineEmits(['userData'])
+const { hasRole } = useUserAccess()
 const accountDataLocal = ref({})
 const refForm = ref()
 
@@ -105,8 +108,9 @@ const onSubmit = () => {
 
     <!-- 👉 Actions Button -->
     <VCol
+      v-if="hasRole(4).value"
       cols="12"
-      class="d-flex flex-wrap gap-4 mt-4 d-none"
+      class="d-flex flex-wrap gap-4 mt-4"
     >
       <VBtn type="submit">
         Save changes

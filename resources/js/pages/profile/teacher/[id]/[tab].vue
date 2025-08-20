@@ -1,11 +1,12 @@
 <script setup>
+import { useUserAccess } from '@/@core/utils/helpers'
 import { useApi } from '@/composables/useApi'
 import AccountSettingsAccount from '@/views/profile/teacher/account/AccountSettingsAccount.vue'
 import AccountSettingsOthers from '@/views/profile/teacher/account/AccountSettingsOthers.vue'
 import AccountSettingsRoles from '@/views/profile/user/security/AccountSettingsRoles.vue'
 import AccountSettingsSecurity from '@/views/profile/user/security/AccountSettingsSecurity.vue'
 
-const currentUser = useCookie('userData').value
+const { currentUser, hasRole } = useUserAccess()
 const route = useRoute('profile-teacher-id-tab')
 
 const activeTab = computed({
@@ -14,13 +15,12 @@ const activeTab = computed({
 })
 
 const teacherId = computed(() => route.params.id)
-const teacher = ref(null)
 const isLoading = ref(false)
+const teacher = ref(null)
 const error = ref(null)
-const userData = useCookie('userData')
 
 const canShowMenu = computed(() => {
-  return teacherId.value == userData.value?.admin_teacher_id
+  return teacherId.value == currentUser.value?.admin_teacher_id
 })
 
 // 👉 Alert
@@ -45,7 +45,6 @@ const fetchTeacher = async () => {
     const response = await useApi(`/public/teacher/${teacherId.value}`)
 
     teacher.value = response.data.value.data ?? null
-    console.log('teacher data:', teacherId.value, teacher.value)
   } catch (err) {
     error.value = err
     console.error('Failed to fetch teacher:', err)
@@ -69,29 +68,28 @@ const tabs = [
     tab: 'others',
   },
   {
-    title: 'Security',
-    icon: 'tabler-lock',
-    tab: 'security',
-  },
-  {
     title: 'Roles',
     icon: 'tabler-bell',
     tab: 'roles',
+  },
+  {
+    title: 'Security',
+    icon: 'tabler-lock',
+    tab: 'security',
   },
 ]
 
 definePage({ meta: { navActiveLink: 'profile-teacher-id-tab' } })
 
 const updateTeacher = async (teacherId, userData) => {
-  const isOwner = parseInt(teacherId) === currentUser?.admin_teacher_id
-  const isAdmin = currentUser?.role >= 4
+  const isOwner = parseInt(teacherId) === (userData, currentUser.value?.admin_teacher_id ?? 0)
+  const isAdmin = hasRole(4).value
 
   if (!isOwner && !isAdmin) {
     showAlert('You are not authorized to update this teacher', 'error')
 
     return
   }
-  console.log('Updating Teacher:', teacherId, userData)
   try {
     const { data, response } = await useApi(`/teachers/${teacherId}`, {
       method: 'PATCH',
@@ -104,7 +102,6 @@ const updateTeacher = async (teacherId, userData) => {
 
     if (response.value.ok) {
       showAlert('Data berhasil diperbarui', 'success')
-      console.log('teacher updated:', data)
     } else {
       showAlert(response.value.statusText || 'Gagal memperbarui data', 'error')
       console.error('Update error response:', response.value)
@@ -178,14 +175,14 @@ const updateTeacher = async (teacherId, userData) => {
         />
       </VWindowItem>
 
-      <!-- Security -->
-      <VWindowItem value="security">
-        <AccountSettingsSecurity v-if="canShowMenu" />
-      </VWindowItem>
-
       <!-- roles -->
       <VWindowItem value="roles">
         <AccountSettingsRoles v-if="canShowMenu" />
+      </VWindowItem>
+
+      <!-- Security -->
+      <VWindowItem value="security">
+        <AccountSettingsSecurity v-if="canShowMenu" />
       </VWindowItem>
     </VWindow>
   </div>

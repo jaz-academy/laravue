@@ -7,7 +7,7 @@ import TopTenPosted from '@/views/dashboards/academy/TopTenPosted.vue'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 
 const borderColor = 'rgba(var(--v-border-color), var(--v-border-opacity))'
-const currentUser = useCookie('userData').value
+const currentUser = useCookie('userData')
 const studentId = ref('')
 const semester = ref('')
 const tasks = ref({ semester: semester.value, data: {} })
@@ -256,7 +256,7 @@ onUnmounted(() => clearInterval(interval))
       >
         <div class="pe-3">
           <h3 class="text-h3 text-high-emphasis mb-1">
-            Welcome back, <span class="font-weight-medium"> {{ currentUser.name }} 👋🏻 </span>
+            Welcome back, <span class="font-weight-medium"> {{ currentUser.value?.name ?? '' }} 👋🏻 </span>
           </h3>
 
           <div

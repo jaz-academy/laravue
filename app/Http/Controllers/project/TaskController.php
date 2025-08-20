@@ -119,13 +119,15 @@ class TaskController extends Controller
         $task = Task::create($fields);
 
         $user = User::where('admin_student_id', $fields['admin_student_id'])->first();
-        $user->notify(new ProjectReminder(
-            'New Task Created!',
-            $fields['name'],
-            $user->image ? "/storage/{$user->image}" : null,
-            $user->name,
-            '/academy/project/tasks'
-        ));
+        if ($user) {
+            $user->notify(new ProjectReminder(
+                'New Task Created!',
+                $fields['name'],
+                $user->image ? "/storage/{$user->image}" : null,
+                $user->name,
+                '/academy/project/tasks'
+            ));
+        }
 
         return response()->json([
             'message' => 'Task created successfully',
@@ -160,27 +162,38 @@ class TaskController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Task $task)
+    public function destroy(Request $request, $id)
     {
+        $task = Task::findOrFail($id);
+
+        // simpan data penting sebelum delete
+        $userData = $request->cookie('userData');
+        $currentUser = json_decode($userData, true);
+        $teacher_id = $currentUser['admin_teacher_id'] ?? null;
         $student_id = $task->admin_student_id;
-        $teacher_id = $task->admin_teacher_id;
+        $taskName  = $task->name;
+
+        $task->delete(); // hapus task
+
         $teacher = AdminTeacher::find($teacher_id);
         $user = User::where('admin_student_id', $student_id)->first();
-        $user->notify(new ProjectReminder(
-            'Task Deleted by ' . $teacher->nickname,
-            $task->name . ' ☹ has been deleted.',
-            $teacher->image ? "/storage/{$teacher->image}" : null,
-            null,
-            null,
-        ));
 
-        $task->delete();
+        if ($user) {
+            $user->notify(new ProjectReminder(
+                'Task Deleted by ' . $teacher->nickname ?? 'Teacher',
+                $taskName . ' ☹ was deleted.',
+                $teacher && $teacher->image ? "/storage/{$teacher->image}" : null,
+                null,
+                null,
+            ));
+        }
 
         return response()->json([
             'message' => 'Task deleted successfully.',
             'count' => Task::count()
         ]);
     }
+
 
     public function getTaskByProjectPlan($project_plan_id)
     {

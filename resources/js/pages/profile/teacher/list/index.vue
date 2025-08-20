@@ -1,11 +1,12 @@
 <script setup>
+import { useUserAccess } from '@/@core/utils/helpers'
 import { fetchTeacherData, fetchTeachers, teachers } from '@/composables/fetchTeacherData'
 import AddNewTeacher from '@/views/profile/teacher/list/AddNewTeacher.vue'
 import { paginationMeta } from '@api-utils/paginationMeta'
 import { computed, onMounted, ref } from 'vue'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
-const currentUser = useCookie('userData').value
+const { hasRoleAndAccess, hasRoleOrTeacher } = useUserAccess()
 
 onMounted (() => {
   fetchTeacherData()
@@ -402,7 +403,7 @@ const widgetData = ref([
 
           <!-- 👉 Add user button -->
           <VBtn
-            v-if="currentUser?.role >= 4"
+            v-if="hasRoleAndAccess(2, 'Profile').value"
             prepend-icon="tabler-plus"
             @click="isAddNewTeacherVisible = true"
           >
@@ -481,15 +482,17 @@ const widgetData = ref([
         <!-- Actions -->
         <template #item.actions="{ item }">
           <IconBtn
-            v-if="currentUser?.role >= 4"
+            :disabled="!hasRoleAndAccess(4, 'Profile').value"
+            :color="hasRoleAndAccess(4, 'Profile').value ? 'error' : 'secondary'"
             @click="deleteTeacher(item.id)"
           >
             <VIcon icon="tabler-trash" />
           </IconBtn>
 
-          <IconBtn 
-            :to="currentUser.admin_teacher_id === item.id || currentUser?.role >= 4 ? { name: 'profile-teacher-id-tab', params: { id: item.id, tab: 'account' } } : undefined"
-            :disabled="currentUser.admin_teacher_id !== item.id || currentUser?.role < 4"
+          <IconBtn
+            :to="{ name: 'profile-teacher-id-tab', params: { id: item.id, tab: 'account' } }"
+            :color="hasRoleOrTeacher(4, item.id).value ? 'primary' : 'secondary'"
+            :disabled="!hasRoleOrTeacher(4, item.id).value"
           >
             <VIcon icon="tabler-edit" />
           </IconBtn>

@@ -4,7 +4,7 @@ import AddAwardsDrawer from '@/views/academy/AddAwards.vue'
 import { paginationMeta } from '@api-utils/paginationMeta'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
-const currentUser = useCookie('userData').value
+const { currentUser, hasRole, hasRoleAndAccess } = useUserAccess()
 
 // 👉 Alert
 const isAlertVisible = ref(false)
@@ -266,12 +266,6 @@ const totalAwards = computed(() => awardsData.value.count)
 
 // menambah award baru
 const addNewAward = async ({ action, data }) => {
-  if (currentUser?.role < 4) {
-    showAlert('You do not have permission to modify plans', 'error')
-
-    return
-  }
-
   const sanitizedData = {
     ...data,
     rate: data.rate === '' ? 0 : Number(data.rate),
@@ -492,7 +486,7 @@ const deleteAward = async id => {
           </VBtn>
 
           <VBtn
-            v-if="currentUser?.access?.includes('Awards')"
+            v-if="hasRoleAndAccess(2, 'Awards').value"
             color="primary"
             prepend-icon="tabler-plus"
             @click="() => { mode = 'add'; selectedAward = {}; isDrawerOpen = true }"
@@ -566,18 +560,19 @@ const deleteAward = async id => {
 
         <!-- Actions -->
         <template #item.actions="{ item }">
-          <IconBtn>
-            <VIcon
-              icon="tabler-edit"
-              @click="editAward(item)"
-            />
+          <IconBtn
+            color="primary"
+            @click="editAward(item)"
+          >
+            <VIcon :icon="hasRoleAndAccess(3, 'Awards').value ? 'tabler-edit' : 'tabler-eye'" />
           </IconBtn>
 
-          <IconBtn v-if="currentUser?.role >= 4">
+          <IconBtn :disabled="!hasRoleAndAccess(3, 'Awards').value">
             <VIcon icon="tabler-dots-vertical" />
             <VMenu activator="parent">
               <VList>
                 <VListItem
+                  v-if="hasRole(4).value"
                   value="delete"
                   prepend-icon="tabler-trash"
                   @click="deleteAward(item.id)"
@@ -586,6 +581,7 @@ const deleteAward = async id => {
                 </VListItem>
 
                 <VListItem
+                  v-if="hasRoleAndAccess(2, 'Awards').value"
                   value="duplicate"
                   prepend-icon="tabler-copy"
                   @click="duplicateAward(item)"

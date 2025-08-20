@@ -11,8 +11,8 @@ import MonthlyAreaChart from '@/views/home/academy/MonthlyAreaChart.vue'
 import TsaqofalAnalytics from '@/views/home/academy/TsaqofalAnalytics.vue'
 import { computed } from 'vue'
 
-const currentUser = useCookie('userData').value
-const studentId = ref(currentUser.admin_student_id || '')
+const currentUser = useCookie('userData')
+const studentId = ref(currentUser.value?.admin_student_id || '')
 const semester = ref('')
 const scores = ref({ semester: null, data: {} })
 
@@ -115,7 +115,7 @@ watch([studentId, semester], async ([newId, newSem]) => {
       md="4"
     >
       <AppSelect
-        v-if="currentUser.admin_teacher_id"
+        v-if="currentUser.value?.admin_teacher_id ?? 0"
         v-model="studentId"
         :items="students"
         item-title="nickname"

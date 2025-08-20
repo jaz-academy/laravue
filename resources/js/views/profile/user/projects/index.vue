@@ -5,6 +5,8 @@ import avatar from '@images/avatars/no-profile.png'
 import socialLabel from '@images/icons/project-icons/social.png'
 import { onMounted } from 'vue'
 
+const currentUser = useCookie('userData')
+
 onMounted(() => {
   fetchProjectData()
 })
@@ -95,10 +97,10 @@ const moreList = [
 
             <VChip
               label
-              :color="hasTaskForStudent(data.project_task, useCookie('userData').value.admin_student_id) ? 'success' : 'error'"
+              :color="hasTaskForStudent(data.project_task, (currentUser.value?.admin_student_id ?? 0)) ? 'success' : 'error'"
               size="small"
             >
-              {{ hasTaskForStudent(data.project_task, useCookie('userData').value.admin_student_id) ? `I'm done` : `Not doing Yet` }}
+              {{ hasTaskForStudent(data.project_task, (currentUser.value?.admin_student_id ?? 0)) ? `I'm done` : `Not doing Yet` }}
             </VChip>
           </div>
 
@@ -127,6 +129,7 @@ const moreList = [
                   <VImg
                     v-if="task.admin_student.image"
                     :src="`/storage/${task.admin_student.image}`"
+                    cover
                   />
                   <VImg
                     v-else

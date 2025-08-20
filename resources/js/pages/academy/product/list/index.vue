@@ -1,10 +1,11 @@
 <script setup>
+import { useUserAccess } from '@/@core/utils/helpers'
 import { useApi } from '@/composables/useApi'
 import AddCoursesDrawer from '@/views/academy/AddCourses.vue'
 import { paginationMeta } from '@api-utils/paginationMeta'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
-const currentUser = useCookie('userData').value
+const { hasRole, hasRoleAndAccess } = useUserAccess()
 
 // 👉 Alert
 const isAlertVisible = ref(false)
@@ -176,7 +177,7 @@ const resolveSubject = subject => {
 
 // menambah Course baru
 const addNewCourse = async ({ action, data }) => {
-  if (currentUser?.role < 4) {
+  if (!hasRoleAndAccess(2, 'Courses').value) {
     showAlert('You do not have permission to modify plans', 'error')
 
     return
@@ -328,7 +329,7 @@ const deleteCourse = async id => {
           </VBtn>
 
           <VBtn
-            v-if="currentUser?.access?.includes('Courses')"
+            v-if="hasRoleAndAccess(2, 'Courses').value"
             color="primary"
             prepend-icon="tabler-plus"
             @click="() => { mode = 'add'; selectedCourse = {}; isDrawerOpen = true }"
@@ -384,18 +385,20 @@ const deleteCourse = async id => {
 
         <!-- Actions -->
         <template #item.actions="{ item }">
-          <IconBtn>
-            <VIcon
-              icon="tabler-edit"
-              @click="editCourse(item)"
-            />
+          <IconBtn 
+            :disabled="!hasRoleAndAccess(3, 'Courses').value"
+            :color="hasRoleAndAccess(3, 'Courses').value ? 'primary' : 'secondary'"
+            @click="editCourse(item)"
+          >
+            <VIcon icon="tabler-edit" />
           </IconBtn>
 
-          <IconBtn v-if="currentUser?.role >= 4">
+          <IconBtn :disabled="!hasRoleAndAccess(2, 'Courses').value">
             <VIcon icon="tabler-dots-vertical" />
             <VMenu activator="parent">
               <VList>
                 <VListItem
+                  v-if="hasRole(4).value"
                   value="delete"
                   prepend-icon="tabler-trash"
                   @click="deleteCourse(item.id)"
@@ -404,6 +407,7 @@ const deleteCourse = async id => {
                 </VListItem>
 
                 <VListItem
+                  v-if="hasRoleAndAccess(2, 'Courses').value"
                   value="duplicate"
                   prepend-icon="tabler-copy"
                   @click="duplicateCourse(item)"

@@ -2,24 +2,30 @@
 
 namespace App\Http\Controllers\admin;
 
-use App\Http\Controllers\Controller;
-use App\Models\AdminEvent as Event;
 use Illuminate\Http\Request;
+use App\Models\AdminEvent as Event;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
 
 class EventController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $events = Event::all();
+        $query = Event::query();
 
-        return response()->json([
-            'count' => $events->count(),
-            'data' => $events
-        ]);
+        if ($request->has('calendars')) {
+            $calendars = explode(',', $request->calendars); // ambil array dari query string
+            $query->whereIn('remark', $calendars);
+        }
+
+        $events = $query->get();
+
+        return response()->json($events);
     }
+
 
     /**
      * Store a newly created resource in storage.
@@ -58,21 +64,22 @@ class EventController extends Controller
      */
     public function update(Request $request, Event $event)
     {
-        $fields = $request->validate([
+        $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
-            'remark' => 'required|string|max:255',
+            'remark' => 'nullable|string',
         ]);
 
-        $event->update($fields);
+        $event->update($validated);
 
         return response()->json([
-            'message' => 'Event data updated successfully',
+            'message' => 'Event updated successfully',
             'data' => $event
         ]);
     }
+
 
     /**
      * Remove the specified resource from storage.

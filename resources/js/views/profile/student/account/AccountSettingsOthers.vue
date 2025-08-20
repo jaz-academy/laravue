@@ -1,10 +1,12 @@
 <script setup>
+import { useUserAccess } from '@/@core/utils/helpers'
+
 const { student } = defineProps({
   student: Object,
 })
 
 const emit = defineEmits(['userData'])
-const userData = useCookie('userData')
+const { hasRoleAndAccess } = useUserAccess()
 const accountDataLocal = ref({})
 const refForm = ref()
 
@@ -23,7 +25,7 @@ const resetForm = () => {
 }
 
 const onSubmit = () => {
-  if (userData.value?.role >= 4) {
+  if (hasRoleAndAccess(3, 'Profile')) {
     refForm.value?.validate().then(({ valid }) => {
       if (valid) {
         console.log('SUBMIT PAYLOAD', accountDataLocal.value)
@@ -139,9 +141,9 @@ const onSubmit = () => {
 
     <!-- 👉 Actions Button -->
     <VCol
-      v-if="userData.value?.role >= 4"
-      cols="12"
+      v-if="hasRoleAndAccess(3, 'Profile').value"
       class="d-flex flex-wrap gap-4 mt-4"
+      cols="12"
     >
       <VBtn type="submit">
         Save changes

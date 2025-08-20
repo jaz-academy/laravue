@@ -1,4 +1,4 @@
-const currentUser = useCookie('userData').value
+const currentUser = useCookie('userData')
 
 export default [
   { heading: 'Academy' },
@@ -30,15 +30,15 @@ export default [
         name: 'academy-course-details', 
         query: { name: 'ICT - Pengantar Hardware', id: 52 }, 
       } },
-      ...currentUser?.access?.includes('Courses') ? [{
+      ...((currentUser.value?.access ?? []).includes('Courses') ? [{
         title: 'Collections',
         children: [
           { title: 'List', to: 'academy-product-list' },
         ],
-      }] : [],
+      }] : []),
     ],
   },
-  ...currentUser?.access?.includes('Assessment') ? [{
+  ...((currentUser.value?.access ?? []).includes('Assessment') ? [{
     title: 'Assessment',
     icon: { icon: 'tabler-chart-bar' },
     children: [
@@ -51,5 +51,5 @@ export default [
       { title: 'Details', to: { name: 'academy-assessment-details-id', params: { id: 478426 } } },
       { title: 'Report', to: { name: 'academy-assessment-report-id', params: { id: '5036' } } },
     ],
-  }] : [],
+  }] : []),
 ]

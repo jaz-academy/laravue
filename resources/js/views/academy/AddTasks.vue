@@ -14,7 +14,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:isDrawerOpen', 'taskData'])
-const userData = useCookie('userData').value
+const currentUser = useCookie('userData')
 
 onMounted(async () => {
   await fetchStudentData()
@@ -27,7 +27,7 @@ const isFormValid = ref(false)
 
 const form = reactive({
   project_plan_id: '',
-  admin_student_id: userData.admin_student_id || '',
+  admin_student_id: currentUser.value?.admin_student_id || '',
   semester: '',
   name: '',
   description: '',
@@ -36,7 +36,7 @@ const form = reactive({
   media: '',
   embed: '',
   link: '',
-  accepted: '',
+  accepted: 0,
   rate: '',
   review: '',
   admin_teacher_id: '',
@@ -57,7 +57,7 @@ watch(
         media: props.taskData.media || '',
         embed: props.taskData.embed || '',
         link: props.taskData.link || '',
-        accepted: props.taskData.accepted || '',
+        accepted: props.taskData.accepted || 0,
         rate: props.taskData.rate || '',
         review: props.taskData.review || '',
         admin_teacher_id: props.taskData.admin_teacher_id || '',
@@ -65,7 +65,7 @@ watch(
     } else {
       Object.assign(form, {
         project_plan_id: '',
-        admin_student_id: userData.admin_student_id || '',
+        admin_student_id: currentUser.value?.admin_student_id || '',
         semester: '',
         name: '',
         description: '',
@@ -74,7 +74,7 @@ watch(
         media: '',
         embed: '',
         link: '',
-        accepted: '',
+        accepted: 0,
         rate: '',
         review: '',
         admin_teacher_id: '',
@@ -170,7 +170,7 @@ const onSubmit = () => {
                   :items="students"
                   item-title="name"
                   item-value="id"
-                  :readonly="userData.admin_student_id"
+                  :readonly="!!currentUser.value?.admin_student_id"
                 />
               </VCol>
               

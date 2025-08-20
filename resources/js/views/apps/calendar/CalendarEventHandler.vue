@@ -1,13 +1,8 @@
 <script setup>
+import { useUserAccess } from '@/@core/utils/helpers'
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 import { VForm } from 'vuetify/components/VForm'
 import { useCalendarStore } from './useCalendarStore'
-import avatar1 from '@images/avatars/avatar-1.png'
-import avatar2 from '@images/avatars/avatar-2.png'
-import avatar3 from '@images/avatars/avatar-3.png'
-import avatar5 from '@images/avatars/avatar-5.png'
-import avatar6 from '@images/avatars/avatar-6.png'
-import avatar7 from '@images/avatars/avatar-7.png'
 
 // 👉 store
 const props = defineProps({
@@ -27,6 +22,8 @@ const emit = defineEmits([
   'updateEvent',
   'removeEvent',
 ])
+
+const { hasRoleAndAccess } = useUserAccess()
 
 const store = useCalendarStore()
 const refForm = ref()
@@ -67,33 +64,6 @@ const handleSubmit = () => {
     }
   })
 }
-
-const guestsOptions = [
-  {
-    avatar: avatar1,
-    name: 'Jane Foster',
-  },
-  {
-    avatar: avatar3,
-    name: 'Donna Frank',
-  },
-  {
-    avatar: avatar5,
-    name: 'Gabrielle Robertson',
-  },
-  {
-    avatar: avatar7,
-    name: 'Lori Spears',
-  },
-  {
-    avatar: avatar6,
-    name: 'Sandy Vega',
-  },
-  {
-    avatar: avatar2,
-    name: 'Cheryl May',
-  },
-]
 
 // 👉 Form
 const onCancel = () => {
@@ -152,6 +122,7 @@ const dialogModelValueUpdate = val => {
     >
       <template #beforeClose>
         <IconBtn
+          v-if="hasRoleAndAccess(4, 'Project').value"
           v-show="event.id"
           @click="removeEvent"
         >
@@ -235,49 +206,6 @@ const dialogModelValueUpdate = val => {
                 />
               </VCol>
 
-              <!-- 👉 All day -->
-              <VCol cols="12">
-                <VSwitch
-                  v-model="event.allDay"
-                  label="All day"
-                />
-              </VCol>
-
-              <!-- 👉 Event URL -->
-              <VCol cols="12">
-                <AppTextField
-                  v-model="event.url"
-                  label="Event URL"
-                  placeholder="https://event.com/meeting"
-                  :rules="[urlValidator]"
-                  type="url"
-                />
-              </VCol>
-
-              <!-- 👉 Guests -->
-              <VCol cols="12">
-                <AppSelect
-                  v-model="event.extendedProps.guests"
-                  label="Guests"
-                  placeholder="Select guests"
-                  :items="guestsOptions"
-                  :item-title="item => item.name"
-                  :item-value="item => item.name"
-                  chips
-                  multiple
-                  eager
-                />
-              </VCol>
-
-              <!-- 👉 Location -->
-              <VCol cols="12">
-                <AppTextField
-                  v-model="event.extendedProps.location"
-                  label="Location"
-                  placeholder="Meeting room"
-                />
-              </VCol>
-
               <!-- 👉 Description -->
               <VCol cols="12">
                 <AppTextarea
@@ -288,7 +216,10 @@ const dialogModelValueUpdate = val => {
               </VCol>
 
               <!-- 👉 Form buttons -->
-              <VCol cols="12">
+              <VCol 
+                v-if="hasRoleAndAccess(2, 'Project').value"
+                cols="12"
+              >
                 <VBtn
                   type="submit"
                   class="me-3"

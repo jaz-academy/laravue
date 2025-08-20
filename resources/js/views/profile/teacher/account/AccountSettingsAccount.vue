@@ -1,4 +1,5 @@
 <script setup>
+import { useUserAccess } from '@/@core/utils/helpers'
 import avatar from '@images/avatars/no-profile.png'
 import { ref, watch } from 'vue'
 
@@ -10,6 +11,7 @@ const emit = defineEmits([
   'userData',
 ])
 
+const { hasRole } = useUserAccess()
 const refForm = ref()
 const selectedFile = ref(null)
 const refInputEl = ref()
@@ -116,8 +118,11 @@ const uploadAvatar = async () => {
 <template>
   <VRow>
     <VCol cols="12">
-      <VCard title="Profile Details">
-        <VCardText class="d-flex">
+      <VCard title="Profile Teacher Details">
+        <VCardText
+          v-if="hasRole(2).value"
+          class="d-flex"
+        >
           <!-- 👉 Avatar -->
           <VAvatar
             rounded
@@ -344,6 +349,7 @@ const uploadAvatar = async () => {
 
               <!-- 👉 Form Actions -->
               <VCol
+                v-if="hasRole(2).value"
                 cols="12"
                 class="d-flex flex-wrap gap-4 mt-4"
               >

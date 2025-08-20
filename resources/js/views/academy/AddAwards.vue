@@ -1,4 +1,5 @@
 <script setup>
+import { useUserAccess } from '@/@core/utils/helpers'
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 import { VForm } from 'vuetify/components/VForm'
 
@@ -13,7 +14,7 @@ const subjectsData = await useApi('/subjects')
 const studentsData = await useApi('/students')
 const teachersData = await useApi('/teachers')
 
-const currentUser = useCookie('userData').value
+const { hasRoleAndAccess } = useUserAccess()
 
 const refVForm = ref()
 const isFormValid = ref(false)
@@ -176,13 +177,17 @@ const onSubmit = () => {
                 />
               </VCol>
               
-              <VCol cols="12">
-                <AppSelect
+              <VCol
+                cols="12"
+                class="text-center"
+              >
+                <VRating
                   v-model="form.rate"
-                  placeholder="Select Rate"
-                  label="Rate"
                   :rules="[requiredValidator]"
-                  :items="[1, 2, 3, 4, 5]"
+                  :readonly="!hasRoleAndAccess(3, 'Awards').value"
+                  half-increments
+                  size="x-large"
+                  hover
                 />
               </VCol>
 
@@ -217,7 +222,7 @@ const onSubmit = () => {
               </VCol>
 
               <VCol
-                v-if="currentUser?.role >= 4"
+                v-if="hasRoleAndAccess(2, 'Awards').value"
                 cols="12"
               >
                 <div class="d-flex justify-start">

@@ -1,4 +1,5 @@
 <script setup>
+import { useUserAccess } from '@/@core/utils/helpers'
 import BillingHistoryTable from './BillingHistoryTable.vue'
 
 const { student } = defineProps({
@@ -6,6 +7,7 @@ const { student } = defineProps({
 })
 
 const emit = defineEmits(['userData'])
+const { hasRole } = useUserAccess()
 const accountDataLocal = ref({})
 const refForm = ref()
 
@@ -160,6 +162,7 @@ const onSubmit = () => {
 
               <!-- 👉 Actions Button -->
               <VCol
+                v-if="hasRole(2).value"
                 cols="12"
                 class="d-flex flex-wrap gap-4 mt-4"
               >

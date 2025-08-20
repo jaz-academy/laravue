@@ -20,7 +20,10 @@ export const setupGuards = router => {
          * Check if user is logged in by checking if token & user data exists in local storage
          * Feel free to update this logic to suit your needs
          */
-    const isLoggedIn = !!(useCookie('userData').value && useCookie('accessToken').value)
+    const userData = useCookie('userData')
+    const accessToken = useCookie('accessToken')
+
+    const isLoggedIn = computed(() => !!(userData.value && accessToken.value))
 
     /*
           If user is logged in and is trying to access login like page, redirect to home
@@ -28,7 +31,7 @@ export const setupGuards = router => {
           (WARN: Don't allow executing further by return statement because next code will check for permissions)
          */
     if (to.meta.unauthenticatedOnly) {
-      if (isLoggedIn)
+      if (isLoggedIn.value)
         return '/'
       else
         return undefined
@@ -41,7 +44,7 @@ export const setupGuards = router => {
 
     if (!canNavigate(to)) {
       /* eslint-disable indent */
-            return isLoggedIn
+            return isLoggedIn.value
                 ? { name: 'not-authorized' }
                 : {
                     name: 'login',

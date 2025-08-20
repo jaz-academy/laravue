@@ -1,4 +1,4 @@
-const currentUser = useCookie('userData').value
+const currentUser = useCookie('userData')
 
 export default [
   { heading: useCookie('userAbilityRules').value[0].member || 'Menu' },
@@ -14,10 +14,10 @@ export default [
         title: 'Projects',
         to: 'home-projects',
       },
-      ...currentUser?.role >= 4 ? [{
+      ...((currentUser.value?.role ?? 0) >= 4 ? [{
         title: 'Finance',
         to: 'home-finance',
-      }] : [],
+      }] : []),
     ],
     badgeContent: '3',
     badgeClass: 'bg-global-primary',

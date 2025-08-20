@@ -316,7 +316,7 @@ class AuthController extends Controller
             $user->notify(
                 new ProjectReminder(
                     $currentUser->name . ' give you Access.',
-                    'You authorized to: ' . $request->access,
+                    'You are authorized to manage menus.',
                     $currentUser->image ? "/storage/{$currentUser->image}" : null,
                     $currentUser->name,
                     null,

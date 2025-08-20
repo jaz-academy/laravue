@@ -1,4 +1,5 @@
 <script setup>
+import { useUserAccess } from '@/@core/utils/helpers'
 import { useApi } from '@/composables/useApi'
 import AccountSettingsAccount from '@/views/profile/student/account/AccountSettingsAccount.vue'
 import AccountSettingsOthers from '@/views/profile/student/account/AccountSettingsOthers.vue'
@@ -6,7 +7,7 @@ import AccountSettingsParents from '@/views/profile/student/account/AccountSetti
 import AccountSettingsRoles from '@/views/profile/user/security/AccountSettingsRoles.vue'
 import AccountSettingsSecurity from '@/views/profile/user/security/AccountSettingsSecurity.vue'
 
-const currentUser = useCookie('userData').value
+const { currentUser, hasRoleOrStudent } = useUserAccess()
 const route = useRoute('profile-student-id-tab')
 
 const activeTab = computed({
@@ -18,10 +19,9 @@ const studentId = computed(() => route.params.id)
 const student = ref(null)
 const isLoading = ref(false)
 const error = ref(null)
-const userData = useCookie('userData')
 
 const canShowMenu = computed(() => {
-  return studentId.value == userData.value?.admin_student_id
+  return studentId.value == currentUser.value?.admin_student_id
 })
 
 // 👉 Alert
@@ -46,7 +46,6 @@ const fetchStudent = async () => {
     const response = await useApi(`/public/student/${studentId.value}`)
 
     student.value = response.data.value.data ?? null
-    console.log('Student data:', student.value)
   } catch (err) {
     error.value = err
     console.error('Failed to fetch student:', err)
@@ -75,29 +74,25 @@ const tabs = [
     tab: 'others',
   },
   {
-    title: 'Security',
-    icon: 'tabler-lock',
-    tab: 'security',
-  },
-  {
     title: 'Roles',
     icon: 'tabler-bell',
     tab: 'roles',
+  },
+  {
+    title: 'Security',
+    icon: 'tabler-lock',
+    tab: 'security',
   },
 ]
 
 definePage({ meta: { navActiveLink: 'profile-student-id-tab' } })
 
 const updateStudent = async (studentId, userData) => {
-  const isOwner = parseInt(studentId) === currentUser?.admin_student_id
-  const isAdmin = currentUser?.role >= 4
-
-  if (!isOwner && !isAdmin) {
+  if (!hasRoleOrStudent(4, studentId).value) {
     showAlert('You are not authorized to update this student', 'error')
     
     return
   }
-  console.log('Updating student:', studentId, userData)
   try {
     const { data, response } = await useApi(`/students/${studentId}`, {
       method: 'PATCH',
@@ -110,7 +105,6 @@ const updateStudent = async (studentId, userData) => {
 
     if (response.value.ok) {
       showAlert('Data berhasil diperbarui', 'success')
-      console.log('Student updated:', data)
     } else {
       showAlert(response.value.statusText || 'Gagal memperbarui data', 'error')
       console.error('Update error response:', response.value)
@@ -192,14 +186,14 @@ const updateStudent = async (studentId, userData) => {
         />
       </VWindowItem>
 
-      <!-- Security -->
-      <VWindowItem value="security">
-        <AccountSettingsSecurity v-if="canShowMenu" />
-      </VWindowItem>
-
       <!-- roles -->
       <VWindowItem value="roles">
         <AccountSettingsRoles v-if="canShowMenu" />
+      </VWindowItem>
+
+      <!-- Security -->
+      <VWindowItem value="security">
+        <AccountSettingsSecurity v-if="canShowMenu" />
       </VWindowItem>
     </VWindow>
   </div>

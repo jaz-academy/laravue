@@ -1,8 +1,9 @@
 <script setup>
+import { useUserAccess } from '@/@core/utils/helpers'
 import { paginationMeta } from '@api-utils/paginationMeta'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
-const currentUser = useCookie('userData').value
+const { hasRole } = useUserAccess()
 const searchQuery = ref('')
 
 // 👉 Alert
@@ -68,6 +69,7 @@ const headers = [
 ]
 
 const adminAccessOption = [
+  'Profile',
   'Project',
   'Awards',
   'Courses',
@@ -257,7 +259,7 @@ const totalUsers = computed(() => usersData.value?.totalUsers || 0)
 
         <template #item.role="{ item }">
           <AppSelect
-            v-if="currentUser?.role >= 4"
+            v-if="hasRole(4).value"
             v-model="item.role"
             :items="[
               { text: 'Annonimous', value: 0 },
@@ -291,7 +293,7 @@ const totalUsers = computed(() => usersData.value?.totalUsers || 0)
 
         <template #item.access="{ item }">
           <AppSelect
-            v-if="currentUser?.role >= 4"
+            v-if="hasRole(4).value"
             v-model="item.access"
             placeholder="Select Access"
             multiple
@@ -308,7 +310,7 @@ const totalUsers = computed(() => usersData.value?.totalUsers || 0)
 
         <template #item.actions="{ item }">
           <IconBtn
-            v-if="currentUser?.role >= 4" 
+            v-if="hasRole(4).value" 
             @click="deleteUser(item.id)"
           >
             <VIcon icon="tabler-trash" />

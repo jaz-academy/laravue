@@ -100,6 +100,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
   Route::apiResource('events', EventController::class);
   Route::apiResource('plans', PlanController::class);
   Route::apiResource('tasks', TaskController::class);
+  Route::delete('tasks/{id}', [TaskController::class, 'destroy']);
 
   Route::apiResource('courses', CourseController::class);
   Route::get('courses-distinct', [CourseController::class, 'distinct']);

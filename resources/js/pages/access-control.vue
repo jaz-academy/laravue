@@ -14,9 +14,11 @@ definePage({
       md="6"
     >
       <VCard title="Welcome Aboard! 🚀">
-        <VCardText>You already registered in <strong>Jazmedia.</strong> What next?</VCardText>
+        <VCardText class="text-primary">
+          You already registered in <strong>Jazmedia.</strong> What next?
+        </VCardText>
         <VCardText>
-          Contact your administrator to assign you the necessary permissions
+          Contact your administrator in Jaz Academy to assign you the necessary access data, menu and permissions.
         </VCardText>
       </VCard>
     </VCol>
@@ -26,9 +28,11 @@ definePage({
       md="6"
     >
       <VCard title="Approved User 👍">
-        <VCardText>User with 'Analytics' subject's 'Read' ability can view this card</VCardText>
+        <VCardText class="text-primary">
+          User with subject's 'Read' ability can view this card
+        </VCardText>
         <VCardText class="text-danger">
-          This card is visible to 'admin' only
+          This card is visible to member of Jaz Academy only. You can now view and modify your data and access more informations.
         </VCardText>
       </VCard>
     </VCol>

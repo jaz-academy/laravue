@@ -1,9 +1,9 @@
+import { useCalendarStore } from '@/views/apps/calendar/useCalendarStore'
+import { useConfigStore } from '@core/stores/config'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import listPlugin from '@fullcalendar/list'
 import timeGridPlugin from '@fullcalendar/timegrid'
-import { useConfigStore } from '@core/stores/config'
-import { useCalendarStore } from '@/views/apps/calendar/useCalendarStore'
 
 export const blankEvent = {
   title: '',
@@ -34,11 +34,11 @@ export const useCalendar = (event, isEventHandlerSidebarActive, isLeftSidebarOpe
 
   // 👉 Calendar colors
   const calendarsColor = {
-    Business: 'primary',
-    Holiday: 'success',
-    Personal: 'error',
-    Family: 'warning',
-    ETC: 'info',
+    Academic: 'primary',
+    Task: 'success',
+    Important: 'error',
+    Project: 'warning',
+    Activity: 'info',
   }
 
 
@@ -68,23 +68,31 @@ export const useCalendar = (event, isEventHandlerSidebarActive, isLeftSidebarOpe
 
   // 👉 Fetch events
   const fetchEvents = (info, successCallback) => {
-    // If there's no info => Don't make useless API call
-    if (!info)
-      return
+    if (!info) return
+
     store.fetchEvents()
       .then(r => {
-        successCallback(r.map(e => ({
-          ...e,
+      // Terapkan filter di sini, karena inilah sumber events yang dipakai FullCalendar
+        const selected = new Set(store.selectedCalendars)
+        const filtered = r.filter(e => selected.has(e.remark))
 
-          // Convert string representation of date to Date object
-          start: new Date(e.start),
-          end: new Date(e.end),
+        successCallback(filtered.map(e => ({
+          id: e.id,
+          title: e.title,
+          start: new Date(e.start_date),
+          end: new Date(e.end_date),
+          extendedProps: {
+            calendar: e.remark,
+            description: e.description,
+          },
         })))
       })
       .catch(e => {
         console.error('Error occurred while fetching calendar events', e)
       })
   }
+
+
 
 
   // 👉 Calendar API
@@ -141,24 +149,61 @@ export const useCalendar = (event, isEventHandlerSidebarActive, isLeftSidebarOpe
 
   // 👉 Add event
   const addEvent = _event => {
-    store.addEvent(_event)
+    const payload = {
+      title: _event.title,
+      description: _event.extendedProps?.description ?? "",
+      start_date: _event.start,
+      end_date: _event.end,
+      remark: _event.extendedProps?.calendar ?? "",
+    }
+
+    store.addEvent(payload)
       .then(() => {
         refetchEvents()
       })
   }
 
-
   // 👉 Update event
   const updateEvent = _event => {
-    store.updateEvent(_event)
-      .then(r => {
-        const propsToUpdate = ['id', 'title', 'url']
-        const extendedPropsToUpdate = ['calendar', 'guests', 'location', 'description']
+    const payload = {
+      id: _event.id,
+      title: _event.title,
+      description: _event.extendedProps?.description ?? "",
+      start_date: _event.start,   // ✅ sesuai DB
+      end_date: _event.end,       // ✅ sesuai DB
+      remark: _event.extendedProps?.calendar ?? "",
+    }
 
-        updateEventInCalendar(r, propsToUpdate, extendedPropsToUpdate)
+    store.updateEvent(payload)
+      .then(res => {
+        const updated = res.data?.data ?? payload
+
+        const updatedEvent = {
+          id: updated.id,
+          title: updated.title,
+          start: new Date(updated.start_date),
+          end: new Date(updated.end_date),
+          extendedProps: {
+            calendar: updated.remark,
+            description: updated.description,
+          },
+          allDay: _event.allDay,
+        }
+
+        // update UI di tempat
+        const propsToUpdate = ['id', 'title']
+        const extendedPropsToUpdate = ['calendar', 'description']
+
+        updateEventInCalendar(updatedEvent, propsToUpdate, extendedPropsToUpdate)
+
+        // refetch supaya sync benar-benar dari backend
+        refetchEvents()
       })
-    refetchEvents()
+      .catch(err => {
+        console.error("Update failed", err)
+      })
   }
+
 
 
   // 👉 Remove event
@@ -278,6 +323,7 @@ export const useCalendar = (event, isEventHandlerSidebarActive, isLeftSidebarOpe
   return {
     refCalendar,
     calendarOptions,
+    calendarApi,
     refetchEvents,
     fetchEvents,
     addEvent,

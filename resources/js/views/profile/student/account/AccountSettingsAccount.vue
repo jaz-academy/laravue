@@ -1,4 +1,5 @@
 <script setup>
+import { useUserAccess } from '@/@core/utils/helpers'
 import avatar from '@images/avatars/no-profile.png'
 import { ref, watch } from 'vue'
 
@@ -10,6 +11,7 @@ const emit = defineEmits([
   'userData',
 ])
 
+const { hasRole } = useUserAccess()
 const refForm = ref()
 const selectedFile = ref(null)
 const refInputEl = ref()
@@ -116,8 +118,11 @@ const uploadAvatar = async () => {
 <template>
   <VRow>
     <VCol cols="12">
-      <VCard title="Profile Details">
-        <VCardText class="d-flex">
+      <VCard title="Profile Student Details">
+        <VCardText 
+          v-if="hasRole(2).value"
+          class="d-flex"
+        >
           <!-- 👉 Avatar -->
           <VAvatar
             rounded
@@ -186,7 +191,7 @@ const uploadAvatar = async () => {
                 <AppTextField
                   v-model="accountDataLocal.nis"
                   placeholder="201122"
-                  label="NIS"
+                  label="Nomor Induk"
                 />
               </VCol>
 
@@ -198,7 +203,7 @@ const uploadAvatar = async () => {
                 <AppTextField
                   v-model="accountDataLocal.name"
                   placeholder="John"
-                  label="Name"
+                  label="Nama Lengkap"
                 />
               </VCol>
 
@@ -210,7 +215,7 @@ const uploadAvatar = async () => {
                 <AppTextField
                   v-model="accountDataLocal.nickname"
                   placeholder="Doe"
-                  label="Nickname"
+                  label="Panggilan"
                 />
               </VCol>
 
@@ -221,7 +226,7 @@ const uploadAvatar = async () => {
               >
                 <AppTextField
                   v-model="accountDataLocal.birth_place"
-                  label="Birth Place"
+                  label="Tempat Lahir"
                   placeholder="Enter your birth place"
                 />
               </VCol>
@@ -233,7 +238,7 @@ const uploadAvatar = async () => {
               >
                 <AppTextField
                   v-model="accountDataLocal.birth_date"
-                  label="Birth Date"
+                  label="Tanggal Lahir"
                   placeholder="Select Birth Date"
                 />
               </VCol>
@@ -245,7 +250,7 @@ const uploadAvatar = async () => {
               >
                 <AppTextField
                   v-model="accountDataLocal.ownPhone"
-                  label="Phone Number"
+                  label="Nomor Handphone"
                   placeholder="+62 888 1234 5678"
                 />
               </VCol>
@@ -257,7 +262,7 @@ const uploadAvatar = async () => {
               >
                 <AppTextField
                   v-model="accountDataLocal.address"
-                  label="Address"
+                  label="Alamat"
                   placeholder="Jln. Sirot No. 123"
                 />
               </VCol>
@@ -269,8 +274,8 @@ const uploadAvatar = async () => {
               >
                 <AppTextField
                   v-model="accountDataLocal.hamlet"
-                  label="Hamlet"
-                  placeholder="Dusun Mustaqim"
+                  label="Desa"
+                  placeholder="Desa Mustaqim"
                 />
               </VCol>
 
@@ -281,8 +286,8 @@ const uploadAvatar = async () => {
               >
                 <AppTextField
                   v-model="accountDataLocal.village"
-                  label="Village"
-                  placeholder="Desa / Kec. Jannah"
+                  label="Kecamatan"
+                  placeholder="Kelurahan / Kec. Jannah"
                 />
               </VCol>
 
@@ -293,7 +298,7 @@ const uploadAvatar = async () => {
               >
                 <AppTextField
                   v-model="accountDataLocal.city"
-                  label="City / Regency"
+                  label="Kota"
                   placeholder="Kota / Kabupaten Firdaus"
                 />
               </VCol>
@@ -305,7 +310,7 @@ const uploadAvatar = async () => {
               >
                 <AppTextField
                   v-model="accountDataLocal.district"
-                  label="Province"
+                  label="Provinsi"
                   placeholder="Prop. Firdaus"
                 />
               </VCol>
@@ -317,7 +322,7 @@ const uploadAvatar = async () => {
               >
                 <AppTextField
                   v-model="accountDataLocal.postal_code"
-                  label="Zip Code"
+                  label="Kodepos"
                   placeholder="10001"
                 />
               </VCol>
@@ -335,7 +340,7 @@ const uploadAvatar = async () => {
               >
                 <AppTextField
                   v-model="accountDataLocal.hobby"
-                  label="Hobby"
+                  label="Hobi (selain olahraga)"
                   placeholder="What do you like to do?"
                 />
               </VCol>
@@ -347,7 +352,7 @@ const uploadAvatar = async () => {
               >
                 <AppTextField
                   v-model="accountDataLocal.sport"
-                  label="Sport"
+                  label="Olahraga yang disukai"
                   placeholder="What is your favorite sport?"
                 />
               </VCol>
@@ -359,7 +364,7 @@ const uploadAvatar = async () => {
               >
                 <AppTextField
                   v-model="accountDataLocal.ambition"
-                  label="Ambition"
+                  label="Cita-cita"
                   placeholder="What do you want to be?"
                 />
               </VCol>
@@ -371,7 +376,7 @@ const uploadAvatar = async () => {
               >
                 <AppSelect
                   v-model="accountDataLocal.role"
-                  label="Role"
+                  label="Peran"
                   :items="['Content Creator', 'Entrepreneur', 'Influencer', 'Developer']"
                   placeholder="Select Role"
                 />
@@ -384,7 +389,7 @@ const uploadAvatar = async () => {
               >
                 <AppSelect
                   v-model="accountDataLocal.skills"
-                  label="Skills"
+                  label="Keahlian"
                   placeholder="Select Skills"
                   multiple
                   :items="['Design', 'Editing', 'Copywriting', 'Photography', 'HTML', 'CSS', 'JavaScript', 'React', 'NodeJS', 'MongoDB', 'MySQL', 'Python']"
@@ -393,6 +398,7 @@ const uploadAvatar = async () => {
 
               <!-- 👉 Form Actions -->
               <VCol
+                v-if="hasRole(2).value"
                 cols="12"
                 class="d-flex flex-wrap gap-4 mt-4"
               >

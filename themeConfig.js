@@ -29,6 +29,26 @@ export const { themeConfig, layoutConfig } = defineThemeConfig({
           isRTL: false,
         },
         {
+          label: 'German',
+          i18nLang: 'de',
+          isRTL: false,
+        },
+        {
+          label: 'Japan',
+          i18nLang: 'ja',
+          isRTL: false,
+        },
+        {
+          label: 'China',
+          i18nLang: 'ci',
+          isRTL: false,
+        },
+        {
+          label: 'Korea',
+          i18nLang: 'ko',
+          isRTL: false,
+        },
+        {
           label: 'Arabic',
           i18nLang: 'ar',
           isRTL: true,

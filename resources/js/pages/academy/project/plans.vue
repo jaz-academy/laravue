@@ -1,9 +1,10 @@
 <script setup>
+import { useUserAccess } from '@/@core/utils/helpers'
 import { fetchProjectData, plans } from '@/composables/fetchProjectData'
 import AddPlanDrawer from '@/views/academy/AddPlans.vue'
 import { VDataTable } from 'vuetify/labs/VDataTable'
 
-const currentUser = useCookie('userData').value
+const { hasRoleAndAccess } = useUserAccess()
 
 onMounted(async () => {
   await fetchProjectData()
@@ -43,11 +44,6 @@ const headers = [
 ]
 
 const addNewPlan = async ({ action, data }) => {
-  if (currentUser?.role < 4) {
-    showAlert('You do not have permission to modify plans', 'error')
-
-    return
-  }
   console.log('Sending planData:', data, 'action:', action)
   try {
     let url = '/plans'
@@ -90,6 +86,13 @@ const editPlan = plan => {
   mode.value = 'edit'
   isDrawerOpen.value = true
 }
+
+const addPlan = () => {
+  selectedPlan.value = {}
+  mode.value = 'add'
+  isDrawerOpen.value = true
+}
+
 
 const deletePlan = async id => {
   try {
@@ -136,9 +139,9 @@ const searchQuery = ref('')
               :items="[5,10,15]"
             />
             <VBtn
-              v-if="currentUser?.role >= 4"
+              v-if="hasRoleAndAccess(2, 'Project').value"
               prepend-icon="tabler-plus"
-              @click="() => { mode = 'add'; selectedPlan = {}; isDrawerOpen = true }"
+              @click="addPlan"
             >
               Add Project Plan
             </VBtn>
@@ -160,17 +163,18 @@ const searchQuery = ref('')
           class="text-no-wrap"
         >
           <template #item.actions="{ item }">
-            <IconBtn v-if="currentUser?.role >= 4">
-              <VIcon
-                icon="tabler-trash"
-                @click="deletePlan(item.id)"
-              />
+            <IconBtn
+              :disabled="!hasRoleAndAccess(4, 'Project').value"
+              :color="hasRoleAndAccess(4, 'Project').value ? 'error' : 'secondary'"
+              @click="deletePlan(item.id)"
+            >
+              <VIcon icon="tabler-trash" />
             </IconBtn>
-            <IconBtn>
-              <VIcon
-                icon="tabler-edit"
-                @click="editPlan(item)"
-              />
+            <IconBtn
+              color="primary"
+              @click="editPlan(item)"
+            >
+              <VIcon :icon="hasRoleAndAccess(3, 'Project').value ? 'tabler-edit' : 'tabler-eye'" />
             </IconBtn>
           </template>
 

@@ -1,4 +1,5 @@
 <script setup>
+import { useUserAccess } from '@/@core/utils/helpers'
 import { fetchUserData } from '@/composables/fetchUserData'
 
 // 👉 Alert
@@ -15,17 +16,13 @@ const showAlert = (message, color = 'primary') => {
   }, 10000)
 }
 
-const userData = useCookie('userData')
+const { currentUser, hasRole } = useUserAccess()
+const { user, isLoading, error } = fetchUserData()
+const selectedRole = ref(currentUser.value?.role ?? null)
 const userAbilityRules = useCookie('userAbilityRules').value[0]
 
-console.log('userData:', userData.value, 'userAbilityRules:', userAbilityRules)
-
-const { user, isLoading, error } = fetchUserData()
-
-const selectedRole = ref(userData.value?.role ?? null)
-
 const selectedAccess = ref(
-  (userData.value?.access ?? '')
+  (currentUser.value?.access ?? '')
     .split(',')
     .map(item => item.trim())
     .filter(Boolean),
@@ -41,8 +38,9 @@ const adminRolesOption = [
 ]
 
 const adminAccessOption = [
+  'Profile',
   'Project',
-  'Award',
+  'Awards',
   'Courses',
   'Assessment',
   'Saving',
@@ -51,7 +49,7 @@ const adminAccessOption = [
 ]
 
 const updateUserRole = async () => {
-  if (userData.value?.role < 4) {
+  if (!hasRole(4).value) {
     showAlert('You do not have permission to update roles', 'error')
     
     return
@@ -188,7 +186,7 @@ const updateUserRole = async () => {
     </VCardText>
     <VDivider />
 
-    <VCardText v-if="userData.value?.role >= 4">
+    <VCardText v-if="hasRole(4).value">
       <VForm @submit.prevent="updateUserRole">
         <VRow>
           <VCol

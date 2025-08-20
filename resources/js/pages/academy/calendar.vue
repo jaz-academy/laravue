@@ -1,4 +1,5 @@
 <script setup>
+import { useUserAccess } from '@/@core/utils/helpers'
 import {
   blankEvent,
   useCalendar,
@@ -8,6 +9,8 @@ import FullCalendar from '@fullcalendar/vue3'
 
 // Components
 import CalendarEventHandler from '@/views/apps/calendar/CalendarEventHandler.vue'
+
+const { hasRoleAndAccess } = useUserAccess()
 
 // 👉 Store
 const store = useCalendarStore()
@@ -24,52 +27,15 @@ watch(isEventHandlerSidebarActive, val => {
 const { isLeftSidebarOpen } = useResponsiveLeftSidebar()
 
 // 👉 useCalendar
-const { refCalendar, calendarOptions, addEvent, updateEvent, removeEvent, jumpToDate } = useCalendar(event, isEventHandlerSidebarActive, isLeftSidebarOpen)
-
-// SECTION Sidebar
+const { refCalendar, calendarOptions, calendarApi, addEvent, updateEvent, removeEvent, jumpToDate } = useCalendar(event, isEventHandlerSidebarActive, isLeftSidebarOpen)
 
 // 👉 Check all
-// const checkAll = computed({
-
-/*GET: Return boolean `true` => if length of options matches length of selected filters => Length matches when all events are selected
-SET: If value is `true` => then add all available options in selected filters => Select All
-Else if => all filters are selected (by checking length of both array) => Empty Selected array  => Deselect All
-*/
-//   get: () => store.selectedCalendars.length === store.availableCalendars.length,
-//   set: val => {
-//     if (val)
-//       store.selectedCalendars = store.availableCalendars.map(i => i.label)
-//     else if (store.selectedCalendars.length === store.availableCalendars.length)
-//       store.selectedCalendars = []
-//   },
-// })
-// !SECTION
-
-import { computed, onMounted, ref } from 'vue'
-
-const availableCalendars = ref([])
-const selectedCalendars = ref([])
-
-onMounted(async () => {
-  const res = await $api('/projects') // endpoint API dari table
-
-  availableCalendars.value = res.data.map(item => ({
-    label: item.title,   // dipakai untuk tampil nama project
-    value: item.id,      // id project
-    start: item.start_date,
-    end: item.end_date,
-    remark: item.remark,
-  }))
-})
-
-// computed checkAll
 const checkAll = computed({
-  get: () => selectedCalendars.value.length === availableCalendars.value.length,
+  get: () => store.selectedCalendars.length === store.availableCalendars.length,
   set: val => {
-    if (val)
-      selectedCalendars.value = availableCalendars.value.map(i => i.label)
-    else if (selectedCalendars.value.length === availableCalendars.value.length)
-      selectedCalendars.value = []
+    store.selectedCalendars = val
+      ? store.availableCalendars.map(c => c.label)
+      : []
   },
 })
 </script>
@@ -89,7 +55,10 @@ const checkAll = computed({
           class="calendar-add-event-drawer"
           :temporary="$vuetify.display.mdAndDown"
         >
-          <div style="margin: 1.4rem;">
+          <div 
+            v-if="hasRoleAndAccess(2, 'Project').value"
+            style="margin: 1.4rem;"
+          >
             <VBtn
               block
               prepend-icon="tabler-plus"

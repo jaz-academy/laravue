@@ -10,10 +10,10 @@ export const redirects = [
     redirect: to => {
       // TODO: Get type from backend
       const userData = useCookie('userData')
-      const userRole = userData.value?.role
+      const userRole = userData.value?.role ?? 0
       if (userRole > 0)
         return { name: 'home-projects' }
-      if (userRole === 0)
+      if (userRole == 0)
         return { name: 'access-control' }
       
       return { name: 'login', query: to.query }

@@ -406,6 +406,7 @@
     "rateColor": true,
     "takePic": true,
     "rateNumberIcon": true,
-    "humanDate": true
+    "humanDate": true,
+    "useUserAccess": true
   }
 }

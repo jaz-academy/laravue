@@ -36,12 +36,15 @@ const {
 console.log("coursesData:", coursesData)
 
 // courses data table
-const courses = computed(() => coursesData.value.data)
-const totalCourses = computed(() => coursesData.value.count)
+const courses = computed(() => coursesData.value?.data ?? [])
+const totalCourses = computed(() => coursesData.value?.count ?? 0)
 
 const subjectSelected = computed(() => {
+  if (!coursesData.value?.data) return []
+  
   return [...new Set(coursesData.value.data.map(course => course.subject))].sort()
 })
+
 
 const resolveChipColor = tags => {
   if (tags === 'Informatika')

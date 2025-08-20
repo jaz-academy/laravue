@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\project;
 
 use App\Http\Controllers\Controller;
+use App\Models\AdminEvent;
 use App\Models\ProjectPlan as Plan;
 use Illuminate\Http\Request;
 
@@ -36,6 +37,16 @@ class PlanController extends Controller
         ]);
 
         $plan = Plan::create($fields);
+
+        $eventData = [
+            'title' => $request->theme,
+            'description' => $request->description,
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'remark' => 'Project',
+        ];
+
+        AdminEvent::create($eventData);
 
         return response()->json([
             'message' => 'Project Plan created successfully',

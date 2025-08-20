@@ -1,7 +1,9 @@
 <script setup>
 import AppSelect from '@/@core/components/app-form-elements/AppSelect.vue'
+import { useUserAccess } from '@/@core/utils/helpers'
 import { useApi } from '@/composables/useApi'
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
+import { VBtn } from 'vuetify/components/VBtn' // pastikan path benar
 import { VForm } from 'vuetify/components/VForm'
 
 const props = defineProps({
@@ -28,10 +30,9 @@ const subjectOptions = computed(() => {
   }))
 })
 
-const currentUser = useCookie('userData').value
-
 const refVForm = ref()
 const isFormValid = ref(false)
+const { hasRole } = useUserAccess()
 
 const form = reactive({
   subject: '',
@@ -39,7 +40,7 @@ const form = reactive({
   description: '',
   start_date: '',
   end_date: '',
-  is_active: false,
+  is_active: 1,
 })
 
 watch(
@@ -52,7 +53,7 @@ watch(
         description: props.planData.description || '',
         start_date: props.planData.start_date || '',
         end_date: props.planData.end_date || '',
-        is_active: props.planData.is_active ?? false,
+        is_active: props.planData.is_active ?? 1,
       })
     } else {
       Object.assign(form, {
@@ -61,7 +62,7 @@ watch(
         description: '',
         start_date: '',
         end_date: '',
-        is_active: false,
+        is_active: 1,
       })
     }
   },
@@ -188,7 +189,7 @@ const onSubmit = () => {
               </VCol>
 
               <VCol
-                v-if="currentUser?.role >= 4"
+                v-if="hasRole(4).value"
                 cols="12"
               >
                 <div class="d-flex justify-start">

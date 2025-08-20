@@ -1,5 +1,6 @@
 <script setup>
 import AppTextField from '@/@core/components/app-form-elements/AppTextField.vue'
+import { useUserAccess } from '@/@core/utils/helpers'
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 import { VForm } from 'vuetify/components/VForm'
 
@@ -20,7 +21,7 @@ const subjectsDataOptions = computed(() => {
 
 console.log("subjectsData", subjectsDataOptions)
 
-const currentUser = useCookie('userData').value
+const { hasRoleAndAccess } = useUserAccess()
 
 const refVForm = ref()
 const isFormValid = ref(false)
@@ -216,7 +217,7 @@ const onSubmit = () => {
               </VCol>
 
               <VCol
-                v-if="currentUser?.role >= 4"
+                v-if="hasRoleAndAccess(2, 'Courses')"
                 cols="12"
               >
                 <div class="d-flex justify-start">

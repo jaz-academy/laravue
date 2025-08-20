@@ -18,13 +18,17 @@ const loadCourseById = async id => {
   itemData.value = CourseData.value.data
 }
 
-console.log("itemData: ", itemData)
 
 const loadCourseByName = async name => {
-  const { data } = await useApi(`/courses-by-name/${encodeURIComponent(name)}`)
-
-  courseDetails.value = data.value.data
+  const cleanName = name.trim()
+  const { data } = await useApi(`/courses-by-name/${encodeURIComponent(cleanName)}`)
+  if (data.value) courseDetails.value = data.value.data
+  console.log("clean: ", cleanName)
+  
 }
+
+
+console.log("itemData: ", itemData)
 
 const refreshData = () => {
   if (route.query.id) loadCourseById(route.query.id)

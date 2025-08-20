@@ -11,14 +11,15 @@ onMounted(() => {
   fetchProjectData()
 })
 
-const tasks = allTasks
+const tasks = allTasks ?? ref([]) // pastikan selalu array
+
 
 const getTaskCount = studentId => computed(() => 
-  tasks.value.filter(t => t.admin_student_id === studentId).length,
+  (tasks.value ?? []).filter(t => t.admin_student_id === studentId).length,
 )
 
 const getStars = studentId => computed(() => {
-  const studentTasks = tasks.value.filter(t => t.admin_student_id === studentId)
+  const studentTasks = (tasks.value ?? []).filter(t => t.admin_student_id === studentId)
   const totalRate = studentTasks.reduce((sum, t) => sum + (parseFloat(t.rate) || 0), 0)
   const avgRate = studentTasks.length ? totalRate / studentTasks.length : 0
   
@@ -27,20 +28,21 @@ const getStars = studentId => computed(() => {
 
 // Computed property to sort students by averageRate
 const sortedStudents = computed(() => {
-  return students.value
+  return ((students?.value ?? [])
     .filter(student => student.graduation === null)
     .slice()
     .sort((a, b) => {
       const aRate = getStars(a.id).value.avgRate
       const bRate = getStars(b.id).value.avgRate
-
+      
       return bRate - aRate
     })
+  )
 })
 </script>
 
 <template>
-  <VRow>
+  <VRow v-if="students.length">
     <VCol
       v-for="student in sortedStudents"
       :key="student.id"
@@ -88,7 +90,7 @@ const sortedStudents = computed(() => {
 
         <VCardText class="text-center">
           <VRating
-            v-model="getStars(student.id).value.avgRate"
+            :model-value="getStars(student.id).value.avgRate"
             half-increments
             hover
           />
@@ -98,19 +100,19 @@ const sortedStudents = computed(() => {
           <div class="d-flex justify-space-around">
             <div class="text-center">
               <h4 class="text-h4">
-                {{ getTaskCount(student.id).value }}
+                {{ getTaskCount(student.id)?.value ?? 0 }}
               </h4>
               <span class="text-body-1">Tasks</span>
             </div>
             <div class="text-center">
               <h4 class="text-h4">
-                {{ getStars(student.id).value.totalRate }}
+                {{ getStars(student.id).value?.totalRate ?? 0 }}
               </h4>
               <span class="text-body-1">Stars</span>
             </div>
             <div class="text-center">
               <h4 class="text-h4">
-                {{ getStars(student.id).value.avgRate.toFixed(2) }}
+                {{ getStars(student.id).value?.avgRate.toFixed(1) ?? 0 }}
               </h4>
               <span class="text-body-1">Average</span>
             </div>
@@ -119,7 +121,7 @@ const sortedStudents = computed(() => {
           <div class="d-flex justify-center gap-4 mt-5">
             <VBtn
               prepend-icon="tabler-user-check"
-              :variant="member?.registered == student?.registered ? 'elevated' : 'tonal'"
+              :variant="(member?.registered ?? false) === (student?.registered ?? false) ? 'elevated' : 'tonal'"
             >
               {{ student?.registered }}
             </VBtn>

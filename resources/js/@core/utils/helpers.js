@@ -1,8 +1,61 @@
 // Fungsi mengambil gambar
 import avatar from '@images/avatars/no-profile.png'
+import { computed } from 'vue'
 
 export const takePic = src => {
   return src ? `/storage/${src}` : avatar
+}
+
+// useUserAccess
+export function useUserAccess() {
+  const currentUser = useCookie('userData') // reactive cookie
+
+  // cek role minimum
+  const hasRole = minRole => computed(() =>
+    Number(currentUser.value?.role ?? 0) >= Number(minRole ?? 0),
+  )
+
+  // cek user tertentu berdasarkan id
+  const isThisUser = userId => computed(() =>
+    Number(currentUser.value?.id ?? 0) === Number(userId ?? 0),
+  )
+
+  // cek user student atau role tertentu
+  const hasRoleOrStudent = (minRole, userId) => computed(() =>
+    Number(currentUser.value?.admin_student_id ?? 0) === Number(userId ?? 0) ||
+    Number(currentUser.value?.role ?? 0) >= Number(minRole ?? 0),
+  )
+
+  // cek user teacher atau role tertentu
+  const hasRoleOrTeacher = (minRole, userId) => computed(() =>
+    Number(currentUser.value?.admin_teacher_id ?? 0) === Number(userId ?? 0) ||
+    Number(currentUser.value?.role ?? 0) >= Number(minRole ?? 0),
+  )
+
+  // cek akses custom (array string misal ['Courses','Payment'])
+  const hasAccess = accessName => computed(() => {
+    const accessList = (currentUser.value?.access ?? '').split(',')
+    
+    return accessList.includes(accessName)
+  })
+
+
+  // cek user role dan access menu
+  const hasRoleAndAccess = (minRole, accessName) => computed(() => {
+    const accessList = (currentUser.value?.access ?? '').split(',')
+
+    return accessList.includes(accessName) && Number(currentUser.value?.role ?? 0) >= Number(minRole ?? 0)
+  })
+
+  return {
+    currentUser,
+    hasRole,
+    isThisUser,
+    hasRoleOrStudent,
+    hasRoleOrTeacher,
+    hasAccess,
+    hasRoleAndAccess,
+  }
 }
 
 // 👉 IsEmpty

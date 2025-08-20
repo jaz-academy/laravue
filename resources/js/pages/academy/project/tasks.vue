@@ -1,11 +1,12 @@
 <script setup>
+import { useUserAccess } from '@/@core/utils/helpers'
 import { allTasks, fetchProjectData, fetchTasksList } from '@/composables/fetchProjectData'
 import AddNewTaskDrawer from '@/views/academy/AddTasks.vue'
 import { paginationMeta } from '@api-utils/paginationMeta'
 import { onMounted } from 'vue'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
-const currentUser = useCookie('userData').value
+const { hasRole, currentUser, hasRoleOrTeacher, hasRoleAndAccess } = useUserAccess()
 
 onMounted(async () => {
   await fetchProjectData()
@@ -132,7 +133,7 @@ const updateOptions = options => {
 
 const fetchTasks = async () => {
   const params = {
-    admin_student_id: currentUser?.admin_student_id || '',
+    admin_student_id: currentUser.value?.admin_student_id || '',
     search: searchQuery.value || '',
     status: selectedStatus.value || '',
     media: selectedMedia.value || '',
@@ -499,6 +500,7 @@ const deleteTask = async id => {
           </VBtn>
 
           <VBtn
+            v-if="hasRole(2).value"
             color="primary"
             prepend-icon="tabler-plus"
             @click="() => { mode = 'add'; selectedTask = {}; isDrawerOpen = true }"
@@ -589,11 +591,12 @@ const deleteTask = async id => {
 
         <!-- Actions -->
         <template #item.actions="{ item }">
-          <IconBtn>
-            <VIcon
-              icon="tabler-edit"
-              @click="editTask(item)"
-            />
+          <IconBtn
+            :disabled="!hasRole(2).value"
+            :color="hasRole(2).value ? 'primary' : 'secondary'"
+            @click="editTask(item)"
+          >
+            <VIcon icon="tabler-edit" />
           </IconBtn>
 
           <IconBtn>
@@ -601,8 +604,8 @@ const deleteTask = async id => {
             <VMenu activator="parent">
               <VList>
                 <VListItem
-                  v-if="currentUser?.admin_teacher_id > 1"
-                  value="download"
+                  v-if="hasRoleOrTeacher(4, currentUser.value?.admin_teacher_id ?? 'X').value"
+                  value="review"
                   prepend-icon="tabler-circle-check"
                   @click="reviewTask(item)"
                 >
@@ -610,7 +613,7 @@ const deleteTask = async id => {
                 </VListItem>
 
                 <VListItem
-                  v-if="currentUser?.role >= 4"
+                  v-if="hasRole(4).value"
                   value="delete"
                   prepend-icon="tabler-trash"
                   @click="deleteTask(item.id)"
@@ -619,6 +622,7 @@ const deleteTask = async id => {
                 </VListItem>
 
                 <VListItem
+                  v-if="hasRole(2).value"
                   value="duplicate"
                   prepend-icon="tabler-copy"
                   @click="duplicateTask(item)"

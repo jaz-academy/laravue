@@ -18,5 +18,9 @@ class AdminEvent extends Model
         'end_date',
         'remark',
     ];
-    
+
+    protected $casts = [
+        'start_date' => 'datetime',
+        'end_date'   => 'datetime',
+    ];
 }
