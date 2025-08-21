@@ -1,5 +1,6 @@
 <script setup>
 import { useCookie } from '@/@core/composable/useCookie'
+import { humanDate } from '@/@core/utils/helpers'
 import { fetchProjectData, plansTasks } from '@/composables/fetchProjectData'
 import avatar from '@images/avatars/no-profile.png'
 import socialLabel from '@images/icons/project-icons/social.png'
@@ -92,7 +93,7 @@ const moreList = [
         <VCardText>
           <div class="d-flex align-center justify-space-between flex-wrap gap-2">
             <h6 class="text-base font-weight-medium">
-              Deadline: <span class="text-body-1">{{ data.end_date }}</span>
+              Deadline: <span class="text-body-1">{{ humanDate(data.end_date, 'ddd d MMM yyyy') }}</span>
             </h6>
 
             <VChip

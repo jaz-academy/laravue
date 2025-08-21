@@ -32,7 +32,7 @@ class ProjectTask extends Model
         'project_plan_id' => 'integer',
         'admin_student_id' => 'integer',
         'date' => 'datetime',
-        'accepted' => 'boolean',
+        'accepted' => 'integer',
         'admin_teacher_id' => 'integer',
     ];
 

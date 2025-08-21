@@ -11,7 +11,7 @@ const emit = defineEmits([
   'userData',
 ])
 
-const { hasRole } = useUserAccess()
+const { hasRole, hasRoleOrStudent } = useUserAccess()
 const refForm = ref()
 const selectedFile = ref(null)
 const refInputEl = ref()
@@ -192,6 +192,7 @@ const uploadAvatar = async () => {
                   v-model="accountDataLocal.nis"
                   placeholder="201122"
                   label="Nomor Induk"
+                  :disabled="!hasRole(4).value"
                 />
               </VCol>
 
@@ -236,7 +237,7 @@ const uploadAvatar = async () => {
                 cols="12"
                 md="4"
               >
-                <AppTextField
+                <AppDateTimePicker
                   v-model="accountDataLocal.birth_date"
                   label="Tanggal Lahir"
                   placeholder="Select Birth Date"
@@ -398,7 +399,7 @@ const uploadAvatar = async () => {
 
               <!-- 👉 Form Actions -->
               <VCol
-                v-if="hasRole(2).value"
+                v-if="hasRoleOrStudent(4, accountDataLocal.id).value"
                 cols="12"
                 class="d-flex flex-wrap gap-4 mt-4"
               >

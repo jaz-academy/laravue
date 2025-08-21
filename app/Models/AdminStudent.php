@@ -50,32 +50,38 @@ class AdminStudent extends Model
         'next_school_address',
         'note'
     ];
-    
+
+    protected $casts = [
+        'registered' => 'integer',
+        'graduation' => 'integer',
+        'birth_date' => 'datetime',
+    ];
+
     public function projectTask()
     {
         return $this->hasMany(ProjectTask::class);
     }
-    
+
     public function academyAward()
     {
         return $this->hasMany(AcademyAward::class);
     }
-    
+
     public function academyScore()
     {
         return $this->hasMany(AcademyScore::class);
     }
-    
+
     public function paymentDiscount()
     {
         return $this->hasMany(PaymentDiscount::class);
     }
-    
+
     public function paymentItem()
     {
         return $this->hasMany(PaymentItem::class);
     }
-    
+
     public function paymentSaving()
     {
         return $this->hasMany(PaymentSaving::class);

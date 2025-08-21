@@ -162,7 +162,7 @@ const onSubmit = () => {
 
               <!-- 👉 Actions Button -->
               <VCol
-                v-if="hasRole(2).value"
+                v-if="hasRoleOrTeacher(4, accountDataLocal.id).value"
                 cols="12"
                 class="d-flex flex-wrap gap-4 mt-4"
               >

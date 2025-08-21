@@ -59,11 +59,12 @@ class StudentController extends Controller
         // Filter by status
         if ($status == 'active') {
             $query->whereNull('graduation');
-        } elseif ($status == 'graduated') {
-            $query->whereRaw("LEFT(graduation, 1) = '2'");
         } elseif ($status == 'inactive') {
-            $query->where('graduation', '0');
+            $query->where('graduation', 0);
+        } elseif ($status == 'graduated') {
+            $query->where('graduation', '!=', 0)->whereNotNull('graduation');
         }
+
 
         // Sorting
         if ($sortBy) {

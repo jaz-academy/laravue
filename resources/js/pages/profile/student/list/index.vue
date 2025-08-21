@@ -111,6 +111,9 @@ const fetchUsers = async () => {
 const users = computed(() => usersData.value?.users || [])
 const totalUsers = computed(() => usersData.value?.totalUsers || 0)
 
+console.log("student: ", users.value)
+
+
 // data option select
 const years = computed(() => {
   const userYears = usersData.value?.users?.map(user => user.registered) || []

@@ -1,4 +1,6 @@
 <script setup>
+import { humanDate } from '@/@core/utils/helpers'
+
 const props = defineProps({
   data: {
     type: null,
@@ -23,7 +25,7 @@ const props = defineProps({
               icon="tabler-user"
             />
             <VListItemTitle>
-              <span class="font-weight-medium me-1">Full Name:</span>
+              <span class="font-weight-medium me-1">Name:</span>
               <span>{{ props.data.name }}</span>
             </VListItemTitle>
           </div>
@@ -57,7 +59,7 @@ const props = defineProps({
             />
             <VListItemTitle>
               <span class="font-weight-medium me-1">Birth:</span>
-              <span>{{ props.data.birth_date }}</span>
+              <span>{{ humanDate(props.data.birth_date) }}</span>
             </VListItemTitle>
           </div>
           <div class="d-flex align-items-center mt-4">

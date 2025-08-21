@@ -1,4 +1,5 @@
 <script setup>
+import { humanDate } from '@/@core/utils/helpers'
 import { fetchMemberData, member } from '@/composables/fetchMemberData'
 import avatar from '@images/avatars/no-profile.png'
 import UserProfileHeaderBg from '@images/pages/user-profile-header-bg.png'
@@ -71,7 +72,7 @@ onMounted(() => {
                 class="me-1"
               />
               <span class="text-body-1">
-                {{ member?.birth_date }}
+                {{ humanDate(member?.birth_date) }}
               </span>
             </span>
           </div>

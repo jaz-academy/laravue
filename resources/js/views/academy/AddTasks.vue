@@ -45,7 +45,7 @@ const form = reactive({
 watch(
   () => [props.taskData, props.mode],
   () => {
-    if ((props.mode === 'edit' || props.mode === 'duplicate' || props.mode === 'review') && props.taskData) {
+    if ((props.mode === 'edit' || props.mode === 'review') && props.taskData) {
       Object.assign(form, {
         project_plan_id: props.taskData.project_plan_id || '',
         admin_student_id: props.taskData.admin_student_id || '',
@@ -61,6 +61,23 @@ watch(
         rate: props.taskData.rate || '',
         review: props.taskData.review || '',
         admin_teacher_id: props.taskData.admin_teacher_id || '',
+      })
+    } else if ((props.mode === 'duplicate') && props.taskData) {
+      Object.assign(form, {
+        project_plan_id: props.taskData.project_plan_id || '',
+        admin_student_id: props.taskData.admin_student_id || '',
+        semester: props.taskData.semester || '',
+        name: '',
+        description: props.taskData.description || '',
+        date: '',
+        status: '',
+        media: props.taskData.media || '',
+        embed: '',
+        link: '',
+        accepted: 0,
+        rate: '',
+        review: '',
+        admin_teacher_id: '',
       })
     } else {
       Object.assign(form, {

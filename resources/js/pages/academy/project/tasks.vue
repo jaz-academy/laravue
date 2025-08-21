@@ -6,7 +6,7 @@ import { paginationMeta } from '@api-utils/paginationMeta'
 import { onMounted } from 'vue'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
-const { hasRole, currentUser, hasRoleOrTeacher, hasRoleAndAccess } = useUserAccess()
+const { hasRole, currentUser, hasRoleOrTeacher } = useUserAccess()
 
 onMounted(async () => {
   await fetchProjectData()

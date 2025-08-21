@@ -58,6 +58,17 @@ export function useUserAccess() {
   }
 }
 
+const roleMap = {
+  0: { label: "Annonimous", color: "text-error" },
+  1: { label: "Guest", color: "text-warning" },
+  2: { label: "User", color: "text-primary" },
+  3: { label: "Superuser", color: "text-success" },
+  4: { label: "Manager", color: "text-info" },
+  5: { label: "Programmer", color: "text-info" },
+}
+
+export const getUserRole = role => roleMap[role] || { label: "Unknown", color: "text-secondary" }
+
 // 👉 IsEmpty
 export const isEmpty = value => {
   if (value === null || value === undefined || value === '')
@@ -138,7 +149,18 @@ export function humanDate(date, format = 'dd MMM yyyy') {
     'Des',
   ]
 
+  const dayNames = [
+    'Ahad',
+    'Senin',
+    'Selasa',
+    'Rabu',
+    'Kamis',
+    'Jumat',
+    'Sabtu',
+  ]
+
   const optionsMap = {
+    'ddd': dayNames[d.getDay()],
     'dd': String(d.getDate()).padStart(2, '0'),
     'd': d.getDate(),
     'MMM': monthNames[d.getMonth()],
@@ -151,6 +173,6 @@ export function humanDate(date, format = 'dd MMM yyyy') {
     'ss': String(d.getSeconds()).padStart(2, '0'),
   }
 
-  return format.replace(/\b(dd|d|MMM|MM|M|yyyy|yy|HH|mm|ss)\b/g, match => optionsMap[match])
+  return format.replace(/\b(ddd|dd|d|MMM|MM|M|yyyy|yy|HH|mm|ss)\b/g, match => optionsMap[match])
 }
 

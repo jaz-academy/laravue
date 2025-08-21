@@ -1,4 +1,5 @@
 <script setup>
+import { humanDate } from '@/@core/utils/helpers'
 import { activities } from '@/composables/fetchMemberData'
 import avatar from '@images/avatars/no-profile.png'
 
@@ -37,18 +38,24 @@ console.log(activities)
         <VTimelineItem
           v-for="task in activities"
           :key="task.id"
-          :dot-color="task.rate > 1 ? 'primary' : 'secondary'"
+          :dot-color="task.rate > 0 ? 'primary' : 'secondary'"
           size="x-small"
         >
           <div class="d-flex justify-space-between align-center flex-wrap">
             <span class="app-timeline-title">
               {{ task.name }}
             </span>
-            <span class="app-timeline-meta">{{ task.date }}</span>
+            <span class="app-timeline-meta">{{ humanDate(task.date) }}</span>
           </div>
-          <p class="app-timeline-text mb-2">
-            {{ task.project_plan?.theme }}
-          </p>
+          <div class="d-flex justify-space-between align-center flex-wrap">
+            <span class="app-timeline-text mb-2">
+              {{ task.project_plan?.subject }} - {{ task?.media }} - {{ task.project_plan?.theme }}
+            </span>
+            <a
+              :href="`/?search=${task.id}`"
+              class="app-timeline-text"
+            >{{ task.id }}</a>
+          </div>
 
           <div
             v-if="task.rate > 0"

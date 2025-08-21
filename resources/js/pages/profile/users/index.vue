@@ -1,5 +1,5 @@
 <script setup>
-import { useUserAccess } from '@/@core/utils/helpers'
+import { getUserRole, useUserAccess } from '@/@core/utils/helpers'
 import { paginationMeta } from '@api-utils/paginationMeta'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
@@ -275,7 +275,7 @@ const totalUsers = computed(() => usersData.value?.totalUsers || 0)
           />
           <span
             v-else
-            :class="item.role >= 4 ? 'text-info' : item.role >= 2 ? 'text-primary' : item.role == 1 ? 'text-warning' : 'text-error'"
+            :class="getUserRole(item.role).color"
           >
             <VAvatar
               size="30"
@@ -287,7 +287,7 @@ const totalUsers = computed(() => usersData.value?.totalUsers || 0)
                 size="18"
               />
             </VAvatar>
-            {{ item.role === 0 ? 'Annonimous' : item.role === 1 ? 'Guest' : item.role === 2 ? 'User' : item.role === 3 ? 'Superuser' : item.role === 4 ? 'Manager' : 'Programmer' }}
+            {{ getUserRole(item.role).label }}
           </span>
         </template>
 

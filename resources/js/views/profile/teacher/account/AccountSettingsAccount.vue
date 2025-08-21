@@ -11,7 +11,7 @@ const emit = defineEmits([
   'userData',
 ])
 
-const { hasRole } = useUserAccess()
+const { hasRole, hasRoleOrTeacher } = useUserAccess()
 const refForm = ref()
 const selectedFile = ref(null)
 const refInputEl = ref()
@@ -236,7 +236,7 @@ const uploadAvatar = async () => {
                 cols="12"
                 md="4"
               >
-                <AppTextField
+                <AppDateTimePicker
                   v-model="accountDataLocal.birth_date"
                   label="Birth Date"
                   placeholder="Select Birth Date"
@@ -349,7 +349,7 @@ const uploadAvatar = async () => {
 
               <!-- 👉 Form Actions -->
               <VCol
-                v-if="hasRole(2).value"
+                v-if="hasRoleOrTeacher(4, accountDataLocal.id).value"
                 cols="12"
                 class="d-flex flex-wrap gap-4 mt-4"
               >

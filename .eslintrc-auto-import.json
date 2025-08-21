@@ -407,6 +407,7 @@
     "takePic": true,
     "rateNumberIcon": true,
     "humanDate": true,
-    "useUserAccess": true
+    "useUserAccess": true,
+    "getUserRole": true
   }
 }

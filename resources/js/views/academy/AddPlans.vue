@@ -179,7 +179,7 @@ const onSubmit = () => {
               </VCol>
 
               <VCol cols="12">
-                <VSelect
+                <AppSelect
                   v-model="form.is_active"
                   placeholder="Select Status"
                   label="Status"

@@ -48,6 +48,7 @@ class User extends Authenticatable
         'admin_teacher_id' => 'integer',
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'role' => 'integer',
     ];
 
     public function adminStudent()
