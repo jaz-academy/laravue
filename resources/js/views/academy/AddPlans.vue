@@ -13,6 +13,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:isDrawerOpen', 'planData'])
+
 const subjectsData = await useApi('/subjects')
 
 const subjectOptions = computed(() => {
@@ -67,6 +68,8 @@ watch(
     }
   },
   { immediate: true },
+  console.log(typeof props.planData.is_active, props.planData.is_active),
+  console.log(typeof form.is_active, form.is_active),
 )
 
 watch(
@@ -176,15 +179,17 @@ const onSubmit = () => {
               </VCol>
 
               <VCol cols="12">
-                <AppSelect
+                <VSelect
                   v-model="form.is_active"
-                  :rules="[requiredValidator]"
                   placeholder="Select Status"
                   label="Status"
+                  :rules="[requiredValidator]"
                   :items="[
                     { title: 'Activated', value: 1 },
                     { title: 'Deactivated', value: 0 }
                   ]"
+                  item-title="title"
+                  item-value="value"
                 />
               </VCol>
 

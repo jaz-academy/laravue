@@ -18,6 +18,11 @@ class AcademyCompetence extends Model
         'competence_3',
     ];
 
+    protected $casts = [
+        'academy_subject_id' => 'integer',
+        'admin_teacher_id' => 'integer',
+    ];
+
     public function academySubject()
     {
         return $this->belongsTo(AcademySubject::class);
@@ -27,6 +32,4 @@ class AcademyCompetence extends Model
     {
         return $this->belongsTo(AdminTeacher::class);
     }
-
-    
 }

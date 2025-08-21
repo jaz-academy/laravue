@@ -19,6 +19,11 @@ class PaymentSaving extends Model
         'admin',
     ];
 
+    protected $casts = [
+        'date' => 'datetime',
+        'admin_student_id' => 'integer',
+    ];
+
     public function adminStudent()
     {
         return $this->belongsTo(AdminStudent::class);

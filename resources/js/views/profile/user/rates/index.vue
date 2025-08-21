@@ -11,33 +11,28 @@ onMounted(() => {
   fetchProjectData()
 })
 
-const tasks = allTasks ?? ref([]) // pastikan selalu array
+const getTaskCount = studentId => {
+  return (allTasks.value ?? []).filter(t => t.admin_student_id === studentId).length
+}
 
-
-const getTaskCount = studentId => computed(() => 
-  (tasks.value ?? []).filter(t => t.admin_student_id === studentId).length,
-)
-
-const getStars = studentId => computed(() => {
-  const studentTasks = (tasks.value ?? []).filter(t => t.admin_student_id === studentId)
+const getStars = studentId => {
+  const studentTasks = (allTasks.value ?? []).filter(t => t.admin_student_id === studentId)
   const totalRate = studentTasks.reduce((sum, t) => sum + (parseFloat(t.rate) || 0), 0)
   const avgRate = studentTasks.length ? totalRate / studentTasks.length : 0
   
   return { totalRate, avgRate }
-})
+}
 
 // Computed property to sort students by averageRate
 const sortedStudents = computed(() => {
-  return ((students?.value ?? [])
+  return (students.value ?? [])
     .filter(student => student.graduation === null)
     .slice()
-    .sort((a, b) => {
-      const aRate = getStars(a.id).value.avgRate
-      const bRate = getStars(b.id).value.avgRate
-      
-      return bRate - aRate
-    })
-  )
+    .sort((a, b) => getStars(b.id).avgRate - getStars(a.id).avgRate)
+})
+
+watch(allTasks, val => {
+  console.log('All tasks updated:', val)
 })
 </script>
 
@@ -90,7 +85,7 @@ const sortedStudents = computed(() => {
 
         <VCardText class="text-center">
           <VRating
-            :model-value="getStars(student.id).value.avgRate"
+            :model-value="getStars(student.id).avgRate"
             half-increments
             hover
           />
@@ -100,19 +95,19 @@ const sortedStudents = computed(() => {
           <div class="d-flex justify-space-around">
             <div class="text-center">
               <h4 class="text-h4">
-                {{ getTaskCount(student.id)?.value ?? 0 }}
+                {{ getTaskCount(student.id) }}
               </h4>
               <span class="text-body-1">Tasks</span>
             </div>
             <div class="text-center">
               <h4 class="text-h4">
-                {{ getStars(student.id).value?.totalRate ?? 0 }}
+                {{ getStars(student.id).totalRate }}
               </h4>
               <span class="text-body-1">Stars</span>
             </div>
             <div class="text-center">
               <h4 class="text-h4">
-                {{ getStars(student.id).value?.avgRate.toFixed(1) ?? 0 }}
+                {{ getStars(student.id).avgRate.toFixed(1) }}
               </h4>
               <span class="text-body-1">Average</span>
             </div>

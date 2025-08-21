@@ -1,5 +1,5 @@
 <script setup>
-import { useUserAccess } from '@/@core/utils/helpers'
+import { humanDate, useUserAccess } from '@/@core/utils/helpers'
 import { fetchProjectData, plans } from '@/composables/fetchProjectData'
 import AddPlanDrawer from '@/views/academy/AddPlans.vue'
 import { VDataTable } from 'vuetify/labs/VDataTable'
@@ -29,7 +29,7 @@ const plansData = computed(() => {
     subject: plan.subject || `Plan ${index + 1}`,
     theme: plan.theme || '',
     description: plan.description || '',
-    is_active: plan.is_active || 0,
+    is_active: Number(plan.is_active ?? 0),
     start_date: plan.start_date || '',
     end_date: plan.end_date || '',
   }))
@@ -211,13 +211,13 @@ const searchQuery = ref('')
 
           <template #item.end_date="{ item }">
             <h6 class="text-h6 text-end pe-4">
-              {{ (item.end_date).toLocaleString() }}
+              {{ humanDate(item.end_date) }}
             </h6>
           </template>
 
           <template #item.start_date="{ item }">
             <div class="text-end pe-4">
-              {{ (item.start_date).toLocaleString() }}
+              {{ humanDate(item.start_date) }}
             </div>
           </template>
 

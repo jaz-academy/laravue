@@ -12,6 +12,7 @@ import TsaqofalAnalytics from '@/views/home/academy/TsaqofalAnalytics.vue'
 import { computed } from 'vue'
 
 const currentUser = useCookie('userData')
+const teacherId = ref(currentUser.value?.admin_teacher_id || '')
 const studentId = ref(currentUser.value?.admin_student_id || '')
 const semester = ref('')
 const scores = ref({ semester: null, data: {} })
@@ -115,7 +116,7 @@ watch([studentId, semester], async ([newId, newSem]) => {
       md="4"
     >
       <AppSelect
-        v-if="currentUser.value?.admin_teacher_id ?? 0"
+        v-if="teacherId"
         v-model="studentId"
         :items="students"
         item-title="nickname"

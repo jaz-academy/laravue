@@ -28,6 +28,11 @@ class AcademyScore extends Model
         'competence_3',
     ];
 
+    protected $casts = [
+        'admin_student_id' => 'integer',
+        'academy_competence_id' => 'integer',
+    ];
+
     public function adminStudent()
     {
         return $this->belongsTo(AdminStudent::class);
@@ -38,5 +43,3 @@ class AcademyScore extends Model
         return $this->belongsTo(AcademyCompetence::class);
     }
 }
-
-

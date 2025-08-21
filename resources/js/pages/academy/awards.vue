@@ -1,4 +1,5 @@
 <script setup>
+import { humanDate } from '@/@core/utils/helpers'
 import { useApi } from '@/composables/useApi'
 import AddAwardsDrawer from '@/views/academy/AddAwards.vue'
 import { paginationMeta } from '@api-utils/paginationMeta'
@@ -545,6 +546,11 @@ const deleteAward = async id => {
         <!-- mentor -->
         <template #item.admin_teacher.name="{ item }">
           {{ item.admin_teacher.name }}
+        </template>
+
+        <!-- date -->
+        <template #item.date="{ item }">
+          {{ humanDate(item.date) }}
         </template>
 
         <!-- result -->

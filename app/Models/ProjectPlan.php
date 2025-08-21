@@ -19,7 +19,13 @@ class ProjectPlan extends Model
         'end_date',
         'is_active',
     ];
-    
+
+    protected $casts = [
+        'start_date' => 'datetime',
+        'end_date' => 'datetime',
+        'is_active' => 'boolean',
+    ];
+
     public function projectTask()
     {
         return $this->hasMany(ProjectTask::class);

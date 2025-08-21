@@ -24,6 +24,13 @@ class AcademyAward extends Model
         'remark',
     ];
 
+    protected $casts = [
+        'date' => 'datetime',
+        'admin_student_id' => 'integer',
+        'academy_subject_id' => 'integer',
+        'admin_teacher_id' => 'integer',
+    ];
+
     public function adminStudent()
     {
         return $this->belongsTo(AdminStudent::class);

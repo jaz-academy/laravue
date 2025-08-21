@@ -44,6 +44,8 @@ class User extends Authenticatable
      * @var array<string, string>
      */
     protected $casts = [
+        'admin_student_id' => 'integer',
+        'admin_teacher_id' => 'integer',
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];

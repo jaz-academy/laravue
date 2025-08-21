@@ -28,6 +28,14 @@ class ProjectTask extends Model
         'admin_teacher_id',
     ];
 
+    protected $casts = [
+        'project_plan_id' => 'integer',
+        'admin_student_id' => 'integer',
+        'date' => 'datetime',
+        'accepted' => 'boolean',
+        'admin_teacher_id' => 'integer',
+    ];
+
     protected static function booted()
     {
         static::creating(function ($model) {
@@ -36,7 +44,8 @@ class ProjectTask extends Model
         });
     }
 
-    public function projectPlan() {
+    public function projectPlan()
+    {
         return $this->belongsTo(ProjectPlan::class);
     }
 
@@ -49,17 +58,17 @@ class ProjectTask extends Model
     {
         return $this->belongsTo(AdminTeacher::class);
     }
-    
+
     public function mediaBookmark()
     {
         return $this->hasMany(MediaBookmark::class);
     }
-    
+
     public function mediaLike()
     {
         return $this->hasMany(MediaLike::class);
     }
-    
+
     public function mediaComment()
     {
         return $this->hasMany(MediaComment::class);

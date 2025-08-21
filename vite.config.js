@@ -113,6 +113,11 @@ export default defineConfig({
   },
   build: {
     chunkSizeWarningLimit: 5000,
+    terserOptions: {
+      compress: {
+        drop_console: true,
+      },
+    },
   },
   optimizeDeps: {
     exclude: ['vuetify'],
