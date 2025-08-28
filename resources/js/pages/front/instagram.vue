@@ -173,6 +173,18 @@ useIntersectionObserver([
           </div>
         </VCol>
       </VRow>
+      <div class="py-4 text-center text-gray-400">
+        <div
+          v-if="!taskData || isLoading"
+          class="flex justify-center items-center my-4 mt-6"
+        >
+          <VProgressCircular
+            :size="50"
+            color="primary"
+            indeterminate
+          />
+        </div>
+      </div>
     </div>
   </div>
 

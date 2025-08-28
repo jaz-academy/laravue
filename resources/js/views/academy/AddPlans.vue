@@ -17,15 +17,10 @@ const emit = defineEmits(['update:isDrawerOpen', 'planData'])
 const subjectsData = await useApi('/subjects')
 
 const subjectOptions = computed(() => {
-  const groupsSet = new Set()
-
-  subjectsData.data.value.data?.forEach(subject => {
-    if (subject && subject.group) {
-      groupsSet.add(subject.group)
-    }
-  })
-
-  return Array.from(groupsSet).map(group => ({
+  const apiGroups = subjectsData.data.value.data?.map(s => s.group) || []
+  const allGroups = new Set(['Literasi', 'Social Media', ...apiGroups.filter(Boolean)])
+  
+  return Array.from(allGroups).map(group => ({
     value: group,
     title: group,
   }))

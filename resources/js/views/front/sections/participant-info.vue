@@ -237,7 +237,7 @@ const featuresData = [
                   <AppTextField
                     v-model="username"
                     prepend-inner-icon="tabler-user"
-                    label="Username"
+                    label="Username / Email"
                     placeholder="Mehmed"
                   />
                 </VCol>

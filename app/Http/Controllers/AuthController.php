@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AdminTeacher;
+use App\Models\MediaParticipant;
 use Validator;
 use App\Models\User;
 use App\Notifications\ProjectReminder;
@@ -44,6 +45,19 @@ class AuthController extends Controller
                     'subject' => 'AclDemo',
                 ],
             ];
+
+            if ($request->adminTeacherId > 0) {
+
+                $fields = [
+                    'name' => $request->name,
+                    'username' => $request->email,
+                    'password' => bcrypt($request->password),
+                    'role' => 2,
+                    'image' => null,
+                ];
+
+                MediaParticipant::create($fields);
+            }
 
             return response()->json([
                 'accessToken' => $token,
@@ -309,6 +323,9 @@ class AuthController extends Controller
                     null,
                 ),
             );
+            if ($request->admin_teacher_id > 0) {
+                MediaParticipant::where('username', $request->email)->update(['role' => $request->role]);
+            }
         }
 
         if ($request->has('access') && $request->access !== $user->access) {

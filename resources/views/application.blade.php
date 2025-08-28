@@ -11,13 +11,7 @@
 </head>
 
 <body>
-    <div id="app">
-        <div id="loading-bg">
-            <div class="loading-logo">
-                <img width="86" height="86" src="{{ asset('/images/loading.gif') }}" alt=""srcset="">
-            </div>
-        </div>
-    </div>
+    <div id="app"></div>
 
     <script>
         const loaderColor = localStorage.getItem('vuexy-initial-loader-bg') || '#FFFFFF'

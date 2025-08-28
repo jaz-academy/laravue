@@ -119,14 +119,12 @@ const resolveChipColor = tags => {
                       {{ course.subject }}
                     </VChip>
                     <div class="d-flex">
-                      <span class="text-body-1 font-weight-medium align-center">
-                        {{ rand(4.0, 5.0) }}
-                      </span>
-                      <VIcon
-                        icon="tabler-star-filled"
-                        color="warning"
-                        class="mx-2"
-                        size="20"
+                      <VRating
+                        :model-value="rand(2.5, 5.0)"
+                        half-increments
+                        density="compact"
+                        size="x-small"
+                        readonly=""
                       />
                     </div>
                   </div>
@@ -150,20 +148,6 @@ const resolveChipColor = tags => {
                     <span class="text-body-1 my-auto"> {{ course.course_count }} Videos</span>
                   </div>
                   <div class="d-flex flex-wrap gap-4">
-                    <VBtn
-                      variant="tonal"
-                      color="secondary"
-                      class="flex-grow-1"
-                      :to="`/academy/course/details?name=${course.name}&id=${course.first_id}`"
-                    >
-                      <template #prepend>
-                        <VIcon
-                          icon="tabler-rotate-clockwise-2"
-                          class="flip-in-rtl"
-                        />
-                      </template>
-                      Start Over
-                    </VBtn>
                     <VBtn
                       variant="tonal"
                       class="flex-grow-1"

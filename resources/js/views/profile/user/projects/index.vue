@@ -54,7 +54,7 @@ const moreList = [
 <template>
   <VRow>
     <VCol
-      v-for="data in plansTasks"
+      v-for="data in plansTasks.filter(p => new Date(p.end_date) >= new Date())"
       :key="data.id"
       cols="12"
       sm="6"

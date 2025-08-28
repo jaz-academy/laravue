@@ -200,12 +200,12 @@ const searchQuery = ref('')
 
           <template #item.is_active="{ item }">
             <VChip
-              :color="item.is_active ? 'primary' : 'error'"
+              :color="item.end_date && new Date(item.end_date) < new Date() ? 'warning' : item.is_active ? 'primary' : 'error'"
               size="small"
               class="text-capitalize"
               label
             >
-              {{ item.is_active ? 'Activated' : 'Deactivated' }}
+              {{ item.end_date && new Date(item.end_date) < new Date() ? 'Expired' : item.is_active ? 'Activated' : 'Deactivated' }}
             </VChip>
           </template>
 

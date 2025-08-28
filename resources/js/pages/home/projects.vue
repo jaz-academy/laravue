@@ -399,7 +399,7 @@ onUnmounted(() => clearInterval(interval))
                         {{ topic.title }}
                       </div>
                       <h4 class="text-h4">
-                        {{ topic.value }}%
+                        {{ Number(topic.value) }}%
                       </h4>
                     </div>
                   </div>

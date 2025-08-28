@@ -9,7 +9,6 @@ import { hexToRgb } from '@layouts/utils'
 import { useTheme } from 'vuetify'
 
 import { onMounted, ref } from 'vue'
-import LoadingIndicator from './layouts/components/LoadingIndicator.vue'
 
 const { global } = useTheme()
 
@@ -33,8 +32,19 @@ onMounted(() => {
   <VLocaleProvider :rtl="configStore.isAppRTL">
     <!-- ℹ️ This is required to set the background color of active nav link based on currently active global theme's primary -->
     <VApp :style="`--v-global-theme-primary: ${hexToRgb(global.current.value.colors.primary)}`">
-      <LoadingIndicator :is-loading="isLoading" />
-      <div v-if="!isLoading">
+      <div
+        v-if="isLoading"
+        style="position:fixed; z-index:9999; display:grid; background:rgba(255,255,255,70%); inset:0; place-items:center;"
+      >
+        <img
+          width="86"
+          height="86"
+          src="/images/loading.gif"
+          alt="Loading..."
+        >
+      </div>
+
+      <div v-else>
         <RouterView />
       </div>
       <ScrollToTop />

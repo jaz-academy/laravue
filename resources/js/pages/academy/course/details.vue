@@ -62,19 +62,27 @@ const isPlayed = topicId => Number(route.query.id) === Number(topicId)
 // Deteksi source video (YouTube / MP4)
 const videoSource = computed(() => {
   if (!itemData.value?.video_url) return null
-  const url = itemData.value.video_url
 
+  let url = itemData.value.video_url
+
+  // YouTube
   if (url.includes('youtube.com') || url.includes('youtu.be')) {
-    return {
-      src: url,
-      type: 'video/youtube',
-    }
-  } else {
-    return {
-      src: url,
-      type: 'video/mp4',
+    return { src: url, type: 'youtube' }
+  }
+
+  // Google Drive
+  if (url.includes('drive.google.com')) {
+    const match = url.match(/\/d\/([^/]+)/)
+    if (match && match[1]) {
+      return { 
+        src: `https://drive.google.com/file/d/${match[1]}/preview`, 
+        type: 'gdrive', 
+      }
     }
   }
+
+  // Default MP4
+  return { src: url, type: 'mp4' }
 })
 </script>
 
@@ -119,15 +127,39 @@ const videoSource = computed(() => {
             border
           >
             <div class="px-2 pt-2">
-              <VideoPlayer
-                v-if="videoSource"
-                :key="videoSource.src"
-                :options="{ techOrder: videoSource.type === 'video/youtube' ? ['youtube'] : ['html5'], sources: [videoSource] }"
-                controls
-                plays-inline
-                :height="$vuetify.display.mdAndUp ? 440 : 250"
-                class="w-100 rounded"
-              />
+              <div class="px-2 pt-2">
+                <!-- YouTube -->
+                <VideoPlayer
+                  v-if="videoSource?.type === 'youtube'"
+                  :key="videoSource.src"
+                  :options="{ techOrder: ['youtube'], sources: [{ src: videoSource.src, type: 'video/youtube' }] }"
+                  controls
+                  plays-inline
+                  :height="$vuetify.display.mdAndUp ? 440 : 250"
+                  class="w-100 rounded"
+                />
+
+                <!-- Google Drive -->
+                <iframe
+                  v-else-if="videoSource?.type === 'gdrive'"
+                  :src="videoSource.src"
+                  width="100%"
+                  height="480"
+                  allow="autoplay"
+                  class="rounded"
+                />
+
+                <!-- MP4 -->
+                <VideoPlayer
+                  v-else-if="videoSource?.type === 'mp4'"
+                  :key="videoSource.src"
+                  :options="{ techOrder: ['html5'], sources: [{ src: videoSource.src, type: 'video/mp4' }] }"
+                  controls
+                  plays-inline
+                  :height="$vuetify.display.mdAndUp ? 440 : 250"
+                  class="w-100 rounded"
+                />
+              </div>
             </div>
             <VCardText>
               <h5 class="text-h5 mb-3">

@@ -29,10 +29,12 @@ const topTasks = computed(() => {
   })
 
   return result.map(task => ({
+    id: task.id,
     title: task.name,
     name: task.admin_student.name,
     icon: 'tabler-stars',
     color: colors[task.admin_student.id % colors.length],
+    link: task.link || '#',
   }))
 })
 </script>
@@ -51,8 +53,8 @@ const topTasks = computed(() => {
     <VCardText>
       <VList class="card-list scrollable-card">
         <VListItem
-          v-for="(value, index) in topTasks"
-          :key="index"
+          v-for="value in topTasks"
+          :key="value.id"
         >
           <template #prepend>
             <VAvatar

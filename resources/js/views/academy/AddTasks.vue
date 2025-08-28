@@ -64,14 +64,14 @@ watch(
       })
     } else if ((props.mode === 'duplicate') && props.taskData) {
       Object.assign(form, {
-        project_plan_id: props.taskData.project_plan_id || '',
+        project_plan_id: '',
         admin_student_id: props.taskData.admin_student_id || '',
         semester: props.taskData.semester || '',
         name: '',
         description: props.taskData.description || '',
-        date: '',
-        status: '',
-        media: props.taskData.media || '',
+        date: new Date().toLocaleDateString('en-CA'),
+        status: 'In Progress',
+        media: props.taskData.media || 'Instagram',
         embed: '',
         link: '',
         accepted: 0,
@@ -86,9 +86,9 @@ watch(
         semester: '',
         name: '',
         description: '',
-        date: '',
-        status: '',
-        media: '',
+        date: new Date().toLocaleDateString('en-CA'),
+        status: 'In Progress',
+        media: 'Instagram',
         embed: '',
         link: '',
         accepted: 0,
@@ -172,7 +172,7 @@ const onSubmit = () => {
                   placeholder="Select Project Plan"
                   label="Project Plan"
                   :rules="[requiredValidator]"
-                  :items="plans"
+                  :items="plans.filter(p => p.is_active && new Date(p.end_date) >= new Date())"
                   item-title="theme"
                   item-value="id"
                 />
