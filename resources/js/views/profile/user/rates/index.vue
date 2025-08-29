@@ -87,7 +87,7 @@ watch(allTasks, val => {
           <VRating
             :model-value="getStars(student.id).avgRate"
             half-increments
-            hover
+            readonly
           />
         </VCardText>
 
