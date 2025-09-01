@@ -12,21 +12,24 @@ onMounted(() => {
   fetchProjectData()
 })
 
-function getDistinctTasks(tasks) {
-  const groupedTasks = tasks.reduce((acc, task) => {
-    if (!acc.has(task.admin_student_id)) {
-      acc.set(task.admin_student_id, task)
-    }
-    
-    return acc
-  }, new Map())
+function getDistinctStudents(tasks) {
+  const map = new Map()
 
+  tasks.forEach(task => {
+    task.students.forEach(student => {
+      if (!map.has(student.id)) {
+        map.set(student.id, student)
+      }
+    })
+  })
   
-  return Array.from(groupedTasks.values())
+  return Array.from(map.values())
 }
 
 function hasTaskForStudent(tasks, studentId) {
-  return tasks.some(task => task.admin_student_id === studentId)
+  return tasks.some(task =>
+    task.students.some(student => student.id === studentId),
+  )
 }
 
 
@@ -98,22 +101,22 @@ const moreList = [
 
             <VChip
               label
-              :color="hasTaskForStudent(data.project_task, (currentUser.value?.admin_student_id ?? 0)) ? 'success' : 'error'"
+              :color="hasTaskForStudent(data.project_task, (currentUser.admin_student_id ?? 0)) ? 'success' : 'error'"
               size="small"
             >
-              {{ hasTaskForStudent(data.project_task, (currentUser.value?.admin_student_id ?? 0)) ? `I'm done` : `Not doing Yet` }}
+              {{ hasTaskForStudent(data.project_task, (currentUser.admin_student_id ?? 0)) ? `I'm done` : `Not doing Yet` }}
             </VChip>
           </div>
 
           <div class="d-flex align-center justify-space-between flex-wrap text-sm mt-4 mb-2">
             <span>All member doing</span>
-            <span>{{ Math.round((getDistinctTasks(data.project_task).length / 20) * 100) }}%</span>
+            <span>{{ Math.round((getDistinctStudents(data.project_task).length / 20) * 100) }}%</span>
           </div>
           <VProgressLinear
             rounded
             rounded-bar
             height="8"
-            :model-value="getDistinctTasks(data.project_task).length"
+            :model-value="getDistinctStudents(data.project_task).length"
             :max="20"
             color="primary"
           />
@@ -121,15 +124,15 @@ const moreList = [
           <div class="d-flex align-center justify-space-between flex-wrap gap-2 mt-3">
             <div class="d-flex align-center">
               <div class="v-avatar-group me-2">
-                <VAvatar 
-                  v-for="task in getDistinctTasks(data.project_task).slice(0, 10)" 
-                  :key="task.id"
+                <VAvatar
+                  v-for="student in getDistinctStudents(data.project_task).slice(0, 10)"
+                  :key="student.id"
                   color="info"
                   :size="32"
                 >
                   <VImg
-                    v-if="task.admin_student.image"
-                    :src="`/storage/${task.admin_student.image}`"
+                    v-if="student.image"
+                    :src="`/storage/${student.image}`"
                     cover
                   />
                   <VImg
@@ -140,15 +143,16 @@ const moreList = [
                     location="top"
                     activator="parent"
                   >
-                    {{ task.admin_student.name }}
+                    {{ student.nickname }}
                   </VTooltip>
                 </VAvatar>
+
                 <VAvatar
-                  v-if="getDistinctTasks(data.project_task).length > 10"
+                  v-if="getDistinctStudents(data.project_task).length > 10"
                   color="secondary"
                   size="32"
                 >
-                  <span class="text-xs">+{{ getDistinctTasks(data.project_task).length - 10 }}</span>
+                  <span class="text-xs">+{{ getDistinctStudents(data.project_task).length - 10 }}</span>
                 </VAvatar>
               </div>
               <span class="text-xs" />

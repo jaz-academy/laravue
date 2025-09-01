@@ -24,7 +24,7 @@ class BookmarkController extends Controller
     public function getByParticipant($participant_id)
     {
         $mediaBookmarks = MediaBookmark::where('media_participant_id', $participant_id)
-            ->with(['projectTask.projectPlan', 'projectTask.adminStudent', 'projectTask.adminTeacher'])
+            ->with(['projectTask.projectPlan', 'projectTask.students', 'projectTask.adminTeacher'])
             ->get();
 
         return response()->json([

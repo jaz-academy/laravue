@@ -8,16 +8,11 @@ const props = defineProps({
 })
 
 const literasiData = computed(() => {
-  const taskMap = {}
-
-  props.literasiTasks.forEach(task => {
-    taskMap[task.admin_student_id] = task
-  })
-
   return Object.values(props.students).map(student => {
-    const task = taskMap[student.id]
-
-    console.log("task", task)
+    // cari task yang punya student.id di dalam task.students
+    const task = props.literasiTasks.find(t =>
+      t.students?.some(s => s.id === student.id),
+    )
 
     return {
       title: task?.name || 'No Task',
@@ -67,7 +62,7 @@ const literasiData = computed(() => {
           <template #append>
             <VBtn
               :href="data.link"
-              target="_blank"
+              :target="data.link.startsWith('http') ? '_blank' : null"
               rel="noopener noreferrer"
               variant="tonal"
               color="default"

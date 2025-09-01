@@ -12,9 +12,16 @@ class StudentController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $students = Student::all();
+        $currentUser = json_decode($request->cookie('userData'));
+
+        if ($currentUser && $currentUser->admin_student_id > 0) {
+            $students = Student::whereNull('graduation')->get();
+        } else {
+            $students = Student::all();
+        }
+
 
         return response()->json([
             'count' => $students->count(),

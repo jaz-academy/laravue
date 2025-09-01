@@ -7,10 +7,8 @@ export const fetchStudentData = async () => {
   const { data: studentsData, error: studentsError } = await useApi(`/public/students`)
   if (studentsError.value) {
     console.log('Students Error:', studentsError.value)
-  } else {
-    if (studentsData.value) {
-      students.value = studentsData.value.data
-    }
+  } else if (studentsData.value) {
+    students.value = studentsData.value.data.sort((a, b) => a.nickname.localeCompare(b.nickname))
   }
 }
 
