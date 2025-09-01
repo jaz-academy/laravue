@@ -26,7 +26,7 @@ const loadTasksIfLoggedIn = async () => {
     if (data.value.data) {
       bookmarks.value = data.value.data
 
-      // console.log('bookmarks :', bookmarks.value)
+      console.log('bookmarks :', bookmarks.value)
     }
   } else {
     bookmarks.value = []
@@ -67,11 +67,8 @@ const handleLoginStatus = async () => {
           :stars="mark.project_task?.rate"
           :media="mark.project_task?.media"
           :post-id="mark.project_task?.media == 'Instagram' ? mark.project_task?.link?.match(/\/(?:p|reel)\/([\w-]+)/)?.[1] : mark.project_task?.link?.match(/\/d\/(.*?)\//)?.[1] || 'N/A'"
-          :student-name="mark.project_task?.admin_student?.name"
-          :nickname="mark.project_task?.admin_student?.nickname"
-          :email="mark.project_task?.admin_student?.email"
+          :students="mark.project_task?.students"
           :teacher="mark.project_task?.admin_teacher ? { id: mark.project_task?.admin_teacher.id, name: mark.project_task?.admin_teacher.nickname } : 'Not Accepted'"
-          :student-img="mark.project_task?.admin_student?.image"
           :teacher-img="mark.project_task?.admin_teacher?.image"
           :accepted="mark.project_task?.accepted"
           :review="mark.project_task?.review || null"

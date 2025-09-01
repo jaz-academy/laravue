@@ -1,7 +1,7 @@
 <script setup>
-import { properCase } from '@/@core/utils/helpers'
+import { humanDate, properCase } from '@/@core/utils/helpers'
+import avatar from '@images/avatars/no-profile.png'
 import { computed } from 'vue'
-
 
 const props = defineProps({
   topTen: Array,
@@ -31,9 +31,10 @@ const topTasks = computed(() => {
   return result.map(task => ({
     id: task.id,
     title: task.name,
-    name: task.admin_student.name,
+    students: task.students,
+    date: humanDate(task.date),
     icon: 'tabler-stars',
-    color: colors[task.admin_student.id % colors.length],
+    color: colors[task.students[0].id % colors.length],
     link: task.link || '#',
   }))
 })
@@ -72,21 +73,46 @@ const topTasks = computed(() => {
           <VListItemTitle class="me-4">
             <div class="d-flex flex-column">
               <div class="font-weight-medium text-truncate">
-                <RouterLink
-                  :to="value.link"
+                <a
+                  :href="value.link"
                   :class="`text-${value.color}`"
+                  :target="value.link.startsWith('http') ? '_blank' : null"
+                  rel="noopener noreferrer"
                 >
                   {{ properCase(value.title) }}
-                </RouterLink>
+                </a>
               </div>
-              <div>
-                <VChip
-                  variant="tonal"
-                  :color="value.color"
-                  label
+              <div class="v-avatar-group">
+                <VAvatar
+                  v-for="student in value.students.slice(0, 5)"
+                  :key="student.id"
+                  color="info"
+                  size="23"
                 >
-                  {{ value.name }}
-                </VChip>
+                  <VImg
+                    v-if="student.image"
+                    cover
+                    :src="`/storage/${student.image}`"
+                  />
+                  <VImg
+                    v-else
+                    :src="avatar"
+                  />
+                  <VTooltip
+                    location="top"
+                    activator="parent"
+                  >
+                    {{ student.nickname }}
+                  </VTooltip>
+                </VAvatar>
+                <VAvatar
+                  v-if="value.students.length > 5"
+                  color="secondary"
+                  size="23"
+                >
+                  <span class="text-xs">+{{ value.students.length - 5 }}</span>
+                </VAvatar>
+                <small class="ms-2">{{ value.students.length > 1 ? 'Collab' : 'Individual' }}, {{ value.date }}</small>
               </div>
             </div>
           </VListItemTitle>

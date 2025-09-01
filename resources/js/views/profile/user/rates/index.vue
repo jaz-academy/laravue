@@ -12,14 +12,19 @@ onMounted(() => {
 })
 
 const getTaskCount = studentId => {
-  return (allTasks.value ?? []).filter(t => t.admin_student_id === studentId).length
+  return (allTasks.value ?? []).filter(t =>
+    (t.students ?? []).some(s => s.id === studentId),
+  ).length
 }
 
 const getStars = studentId => {
-  const studentTasks = (allTasks.value ?? []).filter(t => t.admin_student_id === studentId)
+  const studentTasks = (allTasks.value ?? []).filter(t =>
+    (t.students ?? []).some(s => s.id === studentId),
+  )
+
   const totalRate = studentTasks.reduce((sum, t) => sum + (parseFloat(t.rate) || 0), 0)
   const avgRate = studentTasks.length ? totalRate / studentTasks.length : 0
-  
+
   return { totalRate, avgRate }
 }
 
@@ -101,7 +106,7 @@ watch(allTasks, val => {
             </div>
             <div class="text-center">
               <h4 class="text-h4">
-                {{ getStars(student.id).totalRate }}
+                {{ getStars(student.id).totalRate.toFixed(0) }}
               </h4>
               <span class="text-body-1">Stars</span>
             </div>

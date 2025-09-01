@@ -27,7 +27,7 @@ const isFormValid = ref(false)
 
 const form = reactive({
   project_plan_id: '',
-  admin_student_id: currentUser.value?.admin_student_id || '',
+  student_ids: currentUser.value?.admin_student_id ? [currentUser.value.admin_student_id] : [],
   semester: '',
   name: '',
   description: '',
@@ -48,7 +48,7 @@ watch(
     if ((props.mode === 'edit' || props.mode === 'review') && props.taskData) {
       Object.assign(form, {
         project_plan_id: props.taskData.project_plan_id || '',
-        admin_student_id: props.taskData.admin_student_id || '',
+        student_ids: props.taskData.students.map(s => s.id),
         semester: props.taskData.semester || '',
         name: props.taskData.name || '',
         description: props.taskData.description || '',
@@ -66,6 +66,7 @@ watch(
       Object.assign(form, {
         project_plan_id: '',
         admin_student_id: props.taskData.admin_student_id || '',
+        student_ids: props.taskData.students.map(s => s.id),
         semester: props.taskData.semester || '',
         name: '',
         description: props.taskData.description || '',
@@ -83,6 +84,7 @@ watch(
       Object.assign(form, {
         project_plan_id: '',
         admin_student_id: currentUser.value?.admin_student_id || '',
+        student_ids: [],
         semester: '',
         name: '',
         description: '',
@@ -178,16 +180,19 @@ const onSubmit = () => {
                 />
               </VCol>
               
+              <!-- multiselect students -->
               <VCol cols="12">
                 <AppSelect
-                  v-model="form.admin_student_id"
-                  placeholder="Select Student"
-                  label="Student"
+                  v-model="form.student_ids"
                   :rules="[requiredValidator]"
                   :items="students"
-                  item-title="name"
+                  item-title="nickname"
                   item-value="id"
-                  :readonly="!!currentUser.value?.admin_student_id"
+                  placeholder="Select Creators"
+                  label="Select Creators"
+                  chips
+                  multiple
+                  closable-chips
                 />
               </VCol>
               

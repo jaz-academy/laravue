@@ -59,7 +59,7 @@ function updateHistory() {
       .flatMap(task => [
         {
           prependAvatar: avatar1, // Misalnya, gunakan avatar default
-          title: task.admin_student?.name || 'Unknown Student',
+          students: task.students || [],
           subtitle: task.name || 'No Task Name',
         },
         { type: 'divider', inset: true },
@@ -111,16 +111,16 @@ useIntersectionObserver([
                       size="34"
                       variant="tonal"
                       color="primary"
-                      class="me-3"
+                      class="me-1 mt-2"
                     >
                       <VImg
-                        v-if="avatar"
-                        :src="avatar"
+                        v-if="item.students[0].image"
+                        :src="item.students[0].image"
                       />
-                      <span v-else>{{ avatarText(item.title) }}</span>
+                      <span v-else>{{ avatarText(item.students[0].nickname) }}</span>
                     </VAvatar>
                   </template>
-                  <VListItemTitle>{{ item.title }}</VListItemTitle>
+                  <VListItemTitle>{{ item.students.length > 1 ? item.students[0].nickname + ' And ' + (item.students.length - 1) + ' others' : item.students[0].name }}</VListItemTitle>
                   <VListItemSubtitle>{{ item.subtitle }}</VListItemSubtitle>
                 </VListItem>
 
@@ -159,11 +159,8 @@ useIntersectionObserver([
                 :stars="task.rate"
                 :media="task.media"
                 :post-id="task.link?.match(/\/(?:p|reel)\/([\w-]+)/)?.[1] || 'N/A'"
-                :student-name="task.admin_student.name"
-                :nickname="task.admin_student.nickname"
-                :email="task.admin_student.email"
+                :students="task.students"
                 :teacher="task.admin_teacher ? { id: task.admin_teacher.id, name: task.admin_teacher.nickname } : 'Not Accepted'"
-                :student-img="task.admin_student?.image"
                 :teacher-img="task.admin_teacher?.image"
                 :accepted="task.accepted"
                 :review="task?.review || null"

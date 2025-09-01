@@ -12,14 +12,13 @@ const props = defineProps({
   stars: String,
   media: String,
   postId: String,
-  studentName: String,
-  nickname: String,
-  email: String,
+  students: Array,
   teacher: Object,
-  studentImg: String,
+  review: String,
   teacherImg: String,
   accepted: Number,
-  review: String,
+  link: String,
+  date: String,
 })
 
 const dataStorageParticipant = localStorage.getItem('participant')
@@ -160,33 +159,43 @@ const comments = [
         >
           <div>
             <div class="d-flex align-center">
-              <VAvatar
-                size="34"
-                variant="tonal"
-                color="primary"
-                class="me-3"
-              >
-                <VImg
-                  v-if="props.studentImg"
-                  :src="`/storage/${props.studentImg}`"
-                  cover
-                />
-                <VImg
-                  v-else
-                  :src="avatar"
-                />
-              </VAvatar>
-              <div class="d-flex flex-column">
-                <h6 class="text-base">
-                  <RouterLink
-                    class="font-weight-medium text-link"
-                    :to="`/?search=${abbreviateName(props.studentName, 10, 1).toLowerCase()}`"
+              <div class="v-avatar-group me-2">
+                <VAvatar
+                  v-for="student in props.students.slice(0, 3)"
+                  :key="student.id"
+                  color="info"
+                  size="34"
+                >
+                  <VImg
+                    :src="takePic(student.image)"
+                    cover
+                  />
+                  <VTooltip
+                    location="top"
+                    activator="parent"
                   >
-                    {{ props.studentName }}
-                  </RouterLink>
-                </h6>
-                <span class="text-sm text-medium-emphasis">{{ props.email || props.nickname }}</span>
+                    {{ student.nickname }}
+                  </VTooltip>
+                </VAvatar>
+                <VAvatar
+                  v-if="props.students.length > 3"
+                  color="secondary"
+                  size="34"
+                >
+                  <span class="text-xs">+{{ props.students.length - 3 }}</span>
+                </VAvatar>
               </div>
+              <RouterLink
+                :to="`/?search=${abbreviateName(props.students[0].nickname, 10, 1).toLowerCase()}`"
+                class="d-flex flex-column"
+              >
+                <h6 class="text-base text-primary">
+                  {{ abbreviateName(props.students[0].name, 30, 3) }}
+                </h6>
+                <span class="text-sm text-medium-emphasis">
+                  {{ props.students.length > 1 ? `And ${props.students.length - 1} others` : props.students[0].email || props.students[0].nickname }}
+                </span>
+              </RouterLink>
             </div>
             <hr class="my-custom-line">
             <RouterLink

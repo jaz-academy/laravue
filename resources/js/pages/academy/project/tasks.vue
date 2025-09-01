@@ -3,6 +3,7 @@ import { useUserAccess } from '@/@core/utils/helpers'
 import { allTasks, fetchProjectData, fetchTasksList } from '@/composables/fetchProjectData'
 import AddNewTaskDrawer from '@/views/academy/AddTasks.vue'
 import { paginationMeta } from '@api-utils/paginationMeta'
+import avatar from '@images/avatars/no-profile.png'
 import { onMounted } from 'vue'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
@@ -200,8 +201,9 @@ const headers = [
     key: 'name',
   },
   {
-    title: 'Media',
-    key: 'media',
+    title: 'Creators',
+    key: 'students',
+    sortable: false,
   },
   {
     title: 'Stars',
@@ -329,6 +331,18 @@ const deleteTask = async id => {
     showAlert(err.message || 'Gagal menghapus data', 'error')
     console.error(err)
   }
+}
+
+function getDistinctStudent(students) {
+  const groupedStud = students.reduce((acc, stud) => {
+    if (!acc.has(stud.id)) {
+      acc.set(stud.id, stud)
+    }
+    
+    return acc
+  }, new Map())
+
+  return Array.from(groupedStud.values())
 }
 </script>
 
@@ -527,35 +541,58 @@ const deleteTask = async id => {
         <template #item.name="{ item }">
           <div class="d-flex align-center gap-x-2">
             <VAvatar
-              size="38"
+              size="30"
               variant="tonal"
+              :color="resolveMedia(item.media)?.color"
+              class="me-2"
               rounded
             >
-              <VImg :src="`/images/plans/${item.project_plan.subject}.png`" />
-            </VAvatar>
+              <VIcon
+                :icon="resolveMedia(item.media)?.icon"
+                size="18"
+              />
+            </VAvatar> 
            
             <div class="d-flex flex-column">
               <span class="text-body-1 font-weight-medium">{{ item.name.substring(0, 30) }}</span>
-              <span class="text-sm text-disabled">{{ item.project_plan.theme }} by {{ item.admin_student.nickname }}</span>
+              <span class="text-sm text-disabled">{{ item.project_plan.theme }} @ {{ item.media }}</span>
             </div>
           </div>
         </template>
 
-        <!-- MEDIA -->
-        <template #item.media="{ item }">
-          <VAvatar
-            size="30"
-            variant="tonal"
-            :color="resolveMedia(item.media)?.color"
-            class="me-2"
-          >
-            <VIcon
-              :icon="resolveMedia(item.media)?.icon"
-              size="18"
-            />
-          </VAvatar> 
-         
-          <span class="text-body-1 font-weight-medium">{{ item.media }}</span>
+        <!-- CREATORS -->
+        <template #item.students="{ item }">
+          <div class="v-avatar-group me-2">
+            <VAvatar
+              v-for="student in getDistinctStudent(item.students).slice(0, 3)"
+              :key="student.id"
+              color="info"
+              size="32"
+            >
+              <VImg
+                v-if="student.image"
+                cover
+                :src="`/storage/${student.image}`"
+              />
+              <VImg
+                v-else
+                :src="avatar"
+              />
+              <VTooltip
+                location="top"
+                activator="parent"
+              >
+                {{ student.nickname }}
+              </VTooltip>
+            </VAvatar>
+            <VAvatar
+              v-if="getDistinctStudent(item.students).length > 3"
+              color="secondary"
+              size="32"
+            >
+              <span class="text-xs">+{{ getDistinctStudent(item.students).length - 3 }}</span>
+            </VAvatar>
+          </div>
         </template>
 
         <!-- STARS -->

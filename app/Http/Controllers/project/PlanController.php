@@ -110,7 +110,7 @@ class PlanController extends Controller
 
     public function planWithTasks()
     {
-        $plans = Plan::with('projectTask.adminStudent')->where('is_active', true)->get();
+        $plans = Plan::with('projectTask.students')->where('is_active', true)->get();
 
         return response()->json([
             'message' => 'Project Plan with tasks founded',

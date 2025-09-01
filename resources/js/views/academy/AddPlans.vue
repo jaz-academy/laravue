@@ -63,8 +63,6 @@ watch(
     }
   },
   { immediate: true },
-  console.log(typeof props.planData.is_active, props.planData.is_active),
-  console.log(typeof form.is_active, form.is_active),
 )
 
 watch(

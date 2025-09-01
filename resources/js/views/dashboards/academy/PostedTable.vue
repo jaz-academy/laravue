@@ -9,16 +9,11 @@ const props = defineProps({
 })
 
 const socialMediaData = computed(() => {
-  const taskMap = {}
-
-  props.socialMediaTasks.forEach(task => {
-    taskMap[task.admin_student_id] = task
-  })
-
   return Object.values(props.students).map(student => {
-    const task = taskMap[student.id]
-
-    console.log("task", task)
+    // cari task yang punya student.id di dalam task.students
+    const task = props.socialMediaTasks.find(t =>
+      t.students?.some(s => s.id === student.id),
+    )
 
     return {
       title: task?.name || 'No Task',
@@ -210,11 +205,11 @@ const paginatedTasks = computed(() => {
           <div>
             <VIcon
               icon="tabler-user"
-              :color="item.teacher == 'Unknown' ? 'secondary' : 'primary'"
+              :color="item.color"
               size="24"
               class="me-2"
             />
-            <span :class="`text-${item.teacher == 'Unknown' ? 'secondary' : 'primary'}`">
+            <span :class="`text-${item.color}`">
               {{ item.teacher }}
             </span>
           </div>
@@ -227,12 +222,12 @@ const paginatedTasks = computed(() => {
           <div>
             <a
               :href="item.link"
-              target="_blank"
+              :target="item.link.startsWith('http') ? '_blank' : null"
               rel="noopener noreferrer"
             >
               <VIcon
                 icon="tabler-brand-zoom"
-                color="error"
+                :color="item.color"
                 size="24"
                 class="me-2"
               />

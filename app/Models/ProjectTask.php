@@ -13,14 +13,12 @@ class ProjectTask extends Model
 
     protected $fillable = [
         'project_plan_id',
-        'admin_student_id',
         'semester',
         'name',
         'description',
         'date',
         'status',
         'media',
-        'embed',
         'link',
         'accepted',
         'rate',
@@ -30,7 +28,6 @@ class ProjectTask extends Model
 
     protected $casts = [
         'project_plan_id' => 'integer',
-        'admin_student_id' => 'integer',
         'date' => 'datetime',
         'accepted' => 'integer',
         'admin_teacher_id' => 'integer',
@@ -44,14 +41,16 @@ class ProjectTask extends Model
         });
     }
 
+    public function students()
+    {
+        return $this->belongsToMany(AdminStudent::class, 'pivot_student_task', 'project_task_id', 'admin_student_id')
+            ->withPivot(['role', 'progress'])
+            ->withTimestamps();
+    }
+
     public function projectPlan()
     {
         return $this->belongsTo(ProjectPlan::class);
-    }
-
-    public function adminStudent()
-    {
-        return $this->belongsTo(AdminStudent::class);
     }
 
     public function adminTeacher()
