@@ -94,7 +94,7 @@ class DashboardController extends Controller
         $completedTasks = ProjectTask::selectRaw('
             SUM(CASE WHEN accepted = 1 THEN 1 ELSE 0 END) as accepted,
             SUM(CASE WHEN status = "Completed" THEN 1 ELSE 0 END) as completed,
-            SUM(CASE WHEN status = "On Progress" THEN 1 ELSE 0 END) as progress
+            SUM(CASE WHEN status = "In Progress" THEN 1 ELSE 0 END) as progress
         ');
         $topTen = ProjectTask::with('students') // bukan adminStudent
             ->where('rate', 5)
@@ -106,36 +106,25 @@ class DashboardController extends Controller
         $literasi = ProjectPlan::where('subject', 'Literasi')
             ->orderByDesc('id')
             ->first(); // ambil 1 data terbaru
-        $literasiPreview = DB::table('pivot_student_task')
-            ->join('project_tasks', 'pivot_student_task.project_task_id', '=', 'project_tasks.id')
-            ->where('project_tasks.project_plan_id', $literasi->id)
-            ->select('pivot_student_task.admin_student_id', DB::raw('MAX(project_tasks.id) as latest_id'))
-            ->groupBy('pivot_student_task.admin_student_id')
-            ->pluck('latest_id');
-        $literasiTasks = ProjectTask::with(['students', 'projectPlan'])
-            ->whereIn('id', $literasiPreview)
+        $literasiTasks = ProjectTask::with(['students', 'projectPlan', 'adminTeacher'])
+            ->where('project_plan_id', $literasi->id)
             ->get();
 
         // task-social-media
         $socialMedia = ProjectPlan::where('subject', 'Social Media')
             ->orderByDesc('id')
-            ->first(); // ambil 1 data terbaru
-        $socialMediaPreview = ProjectTask::where('project_plan_id', $socialMedia->id)
-            ->select(DB::raw('MAX(id) as latest_id'))
-            ->pluck('latest_id'); // ambil id task terbaru tiap siswa
-        $socialMediaTasks = ProjectTask::with('students')->with('projectPlan')->with('adminTeacher')
-            ->whereIn('id', $socialMediaPreview)
+            ->first();
+        $socialMediaTasks = ProjectTask::with(['students', 'projectPlan', 'adminTeacher'])
+            ->where('project_plan_id', $socialMedia->id)
             ->get();
+
 
         // task-terakhir
         $lastProject = ProjectPlan::where('subject', '<>', 'Literasi')->where('subject', '<>', 'Social Media')
             ->orderByDesc('id')
             ->first(); // ambil 1 data terbaru
-        $lastProjectPreview = ProjectTask::where('project_plan_id', $lastProject->id)
-            ->select(DB::raw('MAX(id) as latest_id'))
-            ->pluck('latest_id'); // ambil id task terbaru tiap siswa
-        $lastProjectTasks = ProjectTask::with('students')
-            ->whereIn('id', $lastProjectPreview)
+        $lastProjectTasks = ProjectTask::with(['students', 'projectPlan', 'adminTeacher'])
+            ->where('project_plan_id', $lastProject->id)
             ->get();
 
         // pengkondisian
@@ -144,7 +133,9 @@ class DashboardController extends Controller
             $media->where('semester', $semester);
             $teacher->where('semester', $semester);
         } else {
-            $completedTasks->where('semester', ProjectTask::max('semester'));
+            $completedTasks->whereYear('date', now()->year)->whereMonth('date', now()->month);
+            $media->whereYear('date', now()->year)->whereMonth('date', now()->month);
+            $teacher->whereYear('date', now()->year)->whereMonth('date', now()->month);
         }
 
         if ($studentId) {

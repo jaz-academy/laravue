@@ -145,7 +145,7 @@ const timeSpendingChartConfig = {
   labels: [
     'Accepted',
     'Completed',
-    'On Progress',
+    'In Progress',
   ],
   colors: [
     donutChartColors.donut.series1,
@@ -274,7 +274,7 @@ onUnmounted(() => clearInterval(interval))
               v-for="{ title, value, icon, color } in [
                 { title: 'Accepted ', value: progressTasks.accepted, icon: 'custom-check', color: 'success' },
                 { title: 'Completed ', value: progressTasks.completed, icon: 'custom-laptop', color: 'info' },
-                { title: 'On Progress ', value: progressTasks.progress, icon: 'custom-lightbulb', color: 'warning' },
+                { title: 'In Progress ', value: progressTasks.progress, icon: 'custom-lightbulb', color: 'warning' },
               ]"
               :key="title"
             >

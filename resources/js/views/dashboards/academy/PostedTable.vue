@@ -16,7 +16,8 @@ const socialMediaData = computed(() => {
     )
 
     return {
-      title: task?.name || 'No Task',
+      id: task?.id,
+      title: task?.name || '',
       link: task?.link || '#',
       theme: task?.project_plan?.theme || 'Weekly Vlog',
       subject: task?.project_plan?.subject || 'Social Media',
@@ -184,7 +185,10 @@ const paginatedTasks = computed(() => {
 
       <!-- rate -->
       <template #item.rate="{ item }">
-        <div class="d-flex align-center gap-x-4 mb-2">
+        <div
+          v-if="item.title"
+          class="d-flex align-center gap-x-4 mb-2"
+        >
           <VRating v-model="item.rate">
             <template #item="slotProps">
               <VIcon
@@ -201,7 +205,10 @@ const paginatedTasks = computed(() => {
 
       <!-- admin_teacher.nickname -->
       <template #item.admin_teacher.nickname="{ item }">
-        <div class="d-flex justify-space-between gap-x-4">
+        <div 
+          v-if="item.title"
+          class="d-flex justify-space-between gap-x-4"
+        >
           <div>
             <VIcon
               icon="tabler-user"
@@ -218,11 +225,14 @@ const paginatedTasks = computed(() => {
 
       <!-- Status -->
       <template #item.link="{ item }">
-        <div class="d-flex justify-space-between gap-x-4">
+        <div 
+          v-if="item.title"
+          class="d-flex justify-space-between gap-x-4"
+        >
           <div>
             <a
-              :href="item.link"
-              :target="item.link.startsWith('http') ? '_blank' : null"
+              :href="`/?search=${item.id}`"
+              target="_blank"
               rel="noopener noreferrer"
             >
               <VIcon

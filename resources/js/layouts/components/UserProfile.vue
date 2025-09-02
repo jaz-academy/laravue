@@ -9,15 +9,18 @@ const userData = useCookie('userData')
 const userAbilityRules = useCookie('userAbilityRules').value[0]
 const accountPage = ref({})
 
-if (userData.value.admin_teacher_id >0) {
-  accountPage.value = {
-    name: 'profile-teacher-id-tab',
-    params: { id: userData.value.admin_teacher_id, tab: 'account' },
-  }
-}else{
-  accountPage.value = {
-    name: 'profile-student-id-tab',
-    params: { id: userData.value.admin_student_id, tab: 'account' },
+// Pastikan userData.value ada dulu
+if (userData.value) {
+  if (userData.value.admin_teacher_id && userData.value.admin_teacher_id > 0) {
+    accountPage.value = {
+      name: 'profile-teacher-id-tab',
+      params: { id: userData.value.admin_teacher_id, tab: 'account' },
+    }
+  } else if (userData.value.admin_student_id) {
+    accountPage.value = {
+      name: 'profile-student-id-tab',
+      params: { id: userData.value.admin_student_id, tab: 'account' },
+    }
   }
 }
 
