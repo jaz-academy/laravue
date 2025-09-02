@@ -1,9 +1,10 @@
 <script setup>
-import LastProject from '@/views/dashboards/academy/LastProject.vue'
-import LiteracyProject from '@/views/dashboards/academy/LiteracyProject.vue'
-import PopularMentors from '@/views/dashboards/academy/PopularMentors.vue'
-import PostedTable from '@/views/dashboards/academy/PostedTable.vue'
-import TopTenPosted from '@/views/dashboards/academy/TopTenPosted.vue'
+import LastProject from '@/views/dashboards/projects/LastProject.vue'
+import LiteracyProject from '@/views/dashboards/projects/LiteracyProject.vue'
+import NotAcceptedTasksTable from '@/views/dashboards/projects/NotAcceptedTasksTable.vue'
+import PopularMentors from '@/views/dashboards/projects/PopularMentors.vue'
+import PostedTable from '@/views/dashboards/projects/PostedTable.vue'
+import TopTenPosted from '@/views/dashboards/projects/TopTenPosted.vue'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 
 const borderColor = 'rgba(var(--v-border-color), var(--v-border-opacity))'
@@ -25,6 +26,7 @@ const lastProject = computed(() => tasks.value.lastProject || [])
 const lastProjectTasks = computed(() => tasks.value.lastProjectTasks || [])
 const literasiTasks = computed(() => tasks.value.literasiTasks || [])
 const socialMediaTasks = computed(() => tasks.value.socialMediaTasks || [])
+const notAcceptedTasks = computed(() => tasks.value.notAcceptedTasks || [])
 
 const progressTasks = computed(() => {
   const { accepted = 0, completed = 0, progress = 0 } = tasks.value.completedTasks?.[0] || {}
@@ -156,7 +158,7 @@ const timeSpendingChartConfig = {
   dataLabels: {
     enabled: false,
     formatter(val) {
-      return `${ Number.parseInt(val) }%`
+      return `${ Number.parseInt(val) }`
     },
   },
   legend: { show: false },
@@ -174,7 +176,7 @@ const timeSpendingChartConfig = {
             fontWeight: 500,
             offsetY: -15,
             formatter(val) {
-              return `${ Number.parseInt(val) }%`
+              return `${ Number.parseInt(val) }`
             },
           },
           name: { offsetY: 20 },
@@ -441,7 +443,7 @@ onUnmounted(() => clearInterval(interval))
         sm="6"
       >
         <LastProject 
-          v-if="lastProjectTasks.length"
+          v-if="students.length"
           :last-project="lastProject"
           :last-project-tasks="lastProjectTasks"
           :students="students"
@@ -455,18 +457,26 @@ onUnmounted(() => clearInterval(interval))
         sm="6"
       >
         <LiteracyProject 
-          v-if="literasiTasks.length"
+          v-if="students.length"
           :literasi-tasks="literasiTasks"
           :students="students"
         />
       </VCol>
 
       <!-- 👉 Weekly Post  -->
-      <VCol>
+      <VCol cols="12">
         <PostedTable 
           v-if="socialMediaTasks.length"
           :social-media-tasks="socialMediaTasks"
           :students="students"
+        />
+      </VCol>
+
+      <!-- 👉 Not Accepted Task  -->
+      <VCol cols="12">
+        <NotAcceptedTasksTable 
+          v-if="currentUser.admin_teacher_id && notAcceptedTasks.length"
+          :not-accepted-tasks="notAcceptedTasks"
         />
       </VCol>
     </VRow>

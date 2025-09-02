@@ -108,6 +108,11 @@ export const properCase = str => {
     .join(' ')
 }
 
+// BayesianAverage
+export const bayesianScore = (avg, n, C, m) => {
+  return (avg * n + C * m) / (n + m)
+}
+
 // Fungsi untuk menentukan warna berdasarkan rate
 export const rateColor = rate => {
   if (rate == 5) return 'success'

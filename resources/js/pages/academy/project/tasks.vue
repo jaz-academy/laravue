@@ -614,7 +614,12 @@ function getDistinctStudent(students) {
 
         <!-- ID -->
         <template #item.id="{ item }">
-          {{ item.id }}
+          <RouterLink
+            :to="'/?search=' + item.id"
+            target="_blank"
+          >
+            {{ item.id }}
+          </RouterLink>
         </template>
 
         <!-- STATUS -->

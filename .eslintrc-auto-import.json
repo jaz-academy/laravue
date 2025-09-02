@@ -408,6 +408,7 @@
     "rateNumberIcon": true,
     "humanDate": true,
     "useUserAccess": true,
-    "getUserRole": true
+    "getUserRole": true,
+    "bayesianScore": true
   }
 }
