@@ -15,7 +15,8 @@ const literasiData = computed(() => {
     )
 
     return {
-      title: task?.name || 'No Task',
+      id: task?.id,
+      title: task?.name || '',
       link: task?.link || '#',
       date: task?.date || '',
       name: student.nickname,
@@ -24,6 +25,8 @@ const literasiData = computed(() => {
     }
   })
 })
+
+console.log("literasiData:", literasiData.value[2].title)
 </script>
 
 <template>
@@ -54,18 +57,24 @@ const literasiData = computed(() => {
               </span>
             </VProgressCircular>
           </template>
-          <VListItemTitle class="font-weight-medium mb-2">
+          <VListItemTitle
+            class="font-weight-medium mb-2"
+            :class="['text-' + data.color]"
+          >
             {{ properCase(data.title) }}
           </VListItemTitle>
 
-          <VListItemSubtitle>{{ humanDate(data.date) }} - {{ data.name }}</VListItemSubtitle>
+          <VListItemSubtitle :class="['text-' + data.color]">
+            {{ humanDate(data.date) }} - {{ data.name }}
+          </VListItemSubtitle>
           <template #append>
             <VBtn
-              :href="data.link"
-              :target="data.link.startsWith('http') ? '_blank' : null"
+              v-if="data.title"
+              :href="`/?search=${data.id}`"
+              target="_blank"
               rel="noopener noreferrer"
               variant="tonal"
-              color="default"
+              :color="data.color"
               class="rounded-sm"
               size="30"
             >

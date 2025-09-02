@@ -112,8 +112,8 @@ export const properCase = str => {
 export const rateColor = rate => {
   if (rate == 5) return 'success'
   if (rate >= 4.0) return 'primary'
-  if (rate >= 3.0) return 'warning'
-  if (rate >= 1.0) return 'error'
+  if (rate >= 3.0) return 'info'
+  if (rate >= 1.0) return 'warning'
   
   return 'secondary'
 }

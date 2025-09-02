@@ -1,0 +1,1 @@
+import{o}from"./index-094d6f8e.js";import{$ as s}from"./main-37de545e.js";const t=o.create({baseURL:"/fake",async onRequest({options:e}){const a=s("accessToken").value;a&&(e.headers={...e.headers,Authorization:`Bearer ${a}`})}});export{t as $};
