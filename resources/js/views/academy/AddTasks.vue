@@ -45,7 +45,7 @@ const form = reactive({
 watch(
   () => [props.taskData, props.mode],
   () => {
-    if ((props.mode === 'edit' || props.mode === 'review') && props.taskData) {
+    if ((props.mode === 'edit') && props.taskData) {
       Object.assign(form, {
         project_plan_id: props.taskData.project_plan_id || '',
         student_ids: props.taskData.students.map(s => s.id),
@@ -53,7 +53,24 @@ watch(
         name: props.taskData.name || '',
         description: props.taskData.description || '',
         date: props.taskData.date || '',
-        status: props.taskData.status || '',
+        status: props.taskData.link !== '' ? 'Completed' : 'In Progress',
+        media: props.taskData.media || '',
+        embed: props.taskData.embed || '',
+        link: props.taskData.link || '',
+        accepted: props.taskData.accepted || 0,
+        rate: props.taskData.rate || '',
+        review: props.taskData.review || '',
+        admin_teacher_id: props.taskData.admin_teacher_id || '',
+      })
+    } else if ((props.mode === 'review') && props.taskData) {
+      Object.assign(form, {
+        project_plan_id: props.taskData.project_plan_id || '',
+        student_ids: props.taskData.students.map(s => s.id),
+        semester: props.taskData.semester || '',
+        name: props.taskData.name || '',
+        description: props.taskData.description || '',
+        date: props.taskData.date || '',
+        status: props.taskData.accepted === 1 ? 'Completed' : 'In Progress',
         media: props.taskData.media || '',
         embed: props.taskData.embed || '',
         link: props.taskData.link || '',

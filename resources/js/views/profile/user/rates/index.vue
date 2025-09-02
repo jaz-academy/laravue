@@ -1,5 +1,6 @@
 <script setup>
 import { abbreviateName } from '@/@core/utils/formatters'
+import { bayesianScore } from '@/@core/utils/helpers'
 import { member } from '@/composables/fetchMemberData'
 import { allTasks, fetchProjectData } from '@/composables/fetchProjectData'
 import { fetchStudentData, students } from '@/composables/fetchStudentData'
@@ -24,16 +25,28 @@ const getStars = studentId => {
 
   const totalRate = studentTasks.reduce((sum, t) => sum + (parseFloat(t.rate) || 0), 0)
   const avgRate = studentTasks.length ? totalRate / studentTasks.length : 0
+  const n = studentTasks.length
 
-  return { totalRate, avgRate }
+  // hitung global average rating semua task
+  const allRates = (allTasks.value ?? []).map(t => parseFloat(t.rate) || 0)
+  const C = allRates.length ? allRates.reduce((a, b) => a + b, 0) / allRates.length : 0
+
+  // tentukan minimum threshold (m), misalnya pakai rata-rata jumlah task semua student
+  const taskCounts = (students.value ?? []).map(s => getTaskCount(s.id))
+  const m = taskCounts.length ? Math.round(taskCounts.reduce((a, b) => a + b, 0) / taskCounts.length) : 1
+
+  const score = bayesianScore(avgRate, n, C, m)
+
+  return { totalRate, avgRate, n, score }
 }
+
 
 // Computed property to sort students by averageRate
 const sortedStudents = computed(() => {
   return (students.value ?? [])
     .filter(student => student.graduation === null)
     .slice()
-    .sort((a, b) => getStars(b.id).avgRate - getStars(a.id).avgRate)
+    .sort((a, b) => getStars(b.id).score - getStars(a.id).score)
 })
 
 watch(allTasks, val => {

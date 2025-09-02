@@ -102,6 +102,10 @@ class DashboardController extends Controller
             ->take(10)
             ->get();
 
+        // task-not-accepted
+        $notAcceptedTasks = ProjectTask::with('students')
+            ->where('accepted', 0)->get();
+
         // task-literasi
         $literasi = ProjectPlan::where('subject', 'Literasi')
             ->orderByDesc('id')
@@ -133,9 +137,9 @@ class DashboardController extends Controller
             $media->where('semester', $semester);
             $teacher->where('semester', $semester);
         } else {
-            $completedTasks->whereYear('date', now()->year)->whereMonth('date', now()->month);
-            $media->whereYear('date', now()->year)->whereMonth('date', now()->month);
-            $teacher->whereYear('date', now()->year)->whereMonth('date', now()->month);
+            $completedTasks->whereYear('date', now()->year);
+            $media->whereYear('date', now()->year);
+            $teacher->whereYear('date', now()->year);
         }
 
         if ($studentId) {
@@ -158,6 +162,7 @@ class DashboardController extends Controller
             'lastProject' => $lastProject,
             'lastProjectTasks' => $lastProjectTasks,
             'literasiTasks' => $literasiTasks,
+            'notAcceptedTasks' => $notAcceptedTasks,
             'socialMediaTasks' => $socialMediaTasks,
             'media' => [
                 'name'  => $media->pluck('media'),
