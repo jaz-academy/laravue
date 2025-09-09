@@ -1,5 +1,8 @@
 <script setup>
+import { humanDate } from '@/@core/utils/helpers'
+import { useApi } from '@/composables/useApi'
 import { paginationMeta } from '@api-utils/paginationMeta'
+import { onMounted } from 'vue'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
 const widgetData = ref([
@@ -34,33 +37,24 @@ const widgetData = ref([
 
 const headers = [
   {
-    title: 'Product',
-    key: 'product',
+    title: 'Subject',
+    key: 'subject',
   },
   {
-    title: 'Category',
-    key: 'category',
+    title: 'Semester',
+    key: 'semester',
   },
   {
-    title: 'Stock',
-    key: 'stock',
-    sortable: false,
+    title: 'Date',
+    key: 'created_at',
   },
   {
-    title: 'SKU',
-    key: 'sku',
+    title: 'Data',
+    key: 'count',
   },
   {
-    title: 'Price',
-    key: 'price',
-  },
-  {
-    title: 'QTY',
-    key: 'qty',
-  },
-  {
-    title: 'Status',
-    key: 'status',
+    title: 'Serial',
+    key: 'serial',
   },
   {
     title: 'Actions',
@@ -69,63 +63,21 @@ const headers = [
   },
 ]
 
-const selectedStatus = ref()
-const selectedCategory = ref()
-const selectedStock = ref()
+const subjects = ref([])
+const years = ref([])
+
+onMounted(async () => {
+  const { data: subjectsData } = await useApi('/subjects')
+  const { data: yearsData } = await useApi('/public/students/years')
+
+  subjects.value = subjectsData.value.data || []
+  years.value = yearsData.value || []
+})
+
+const selectedSubject = ref()
+const selectedSemester = ref()
+const selectedYear = ref()
 const searchQuery = ref('')
-
-const status = ref([
-  {
-    title: 'Scheduled',
-    value: 'Scheduled',
-  },
-  {
-    title: 'Publish',
-    value: 'Published',
-  },
-  {
-    title: 'Inactive',
-    value: 'Inactive',
-  },
-])
-
-const categories = ref([
-  {
-    title: 'Accessories',
-    value: 'Accessories',
-  },
-  {
-    title: 'Home Decor',
-    value: 'Home Decor',
-  },
-  {
-    title: 'Electronics',
-    value: 'Electronics',
-  },
-  {
-    title: 'Shoes',
-    value: 'Shoes',
-  },
-  {
-    title: 'Office',
-    value: 'Office',
-  },
-  {
-    title: 'Games',
-    value: 'Games',
-  },
-])
-
-const stockStatus = ref([
-  {
-    title: 'In Stock',
-    value: true,
-  },
-  {
-    title: 'Out of Stock',
-    value: false,
-  },
-])
 
 // Data table options
 const itemsPerPage = ref(10)
@@ -139,66 +91,47 @@ const updateOptions = options => {
   orderBy.value = options.sortBy[0]?.order
 }
 
-const resolveCategory = category => {
-  if (category === 'Accessories')
+const resolveSemester = semester => {
+  if (semester === 1)
     return {
       color: 'error',
-      icon: 'tabler-device-watch',
+      icon: 'tabler-circle-number-1',
     }
-  if (category === 'Home Decor')
+  if (semester === 2)
     return {
       color: 'info',
-      icon: 'tabler-home',
+      icon: 'tabler-circle-number-2',
     }
-  if (category === 'Electronics')
+  if (semester === 3)
     return {
       color: 'primary',
-      icon: 'tabler-device-imac',
+      icon: 'tabler-circle-number-3',
     }
-  if (category === 'Shoes')
+  if (semester === 4)
     return {
       color: 'success',
-      icon: 'tabler-shoe',
+      icon: 'tabler-circle-number-4',
     }
-  if (category === 'Office')
+  if (semester === 5)
     return {
       color: 'warning',
-      icon: 'tabler-briefcase',
+      icon: 'tabler-circle-number-5',
     }
-  if (category === 'Games')
+  if (semester === 6)
     return {
       color: 'primary',
-      icon: 'tabler-device-gamepad-2',
-    }
-}
-
-const resolveStatus = statusMsg => {
-  if (statusMsg === 'Scheduled')
-    return {
-      text: 'Scheduled',
-      color: 'warning',
-    }
-  if (statusMsg === 'Published')
-    return {
-      text: 'Publish',
-      color: 'success',
-    }
-  if (statusMsg === 'Inactive')
-    return {
-      text: 'Inactive',
-      color: 'error',
+      icon: 'tabler-circle-number-6',
     }
 }
 
 const {
-  data: productsData,
-  execute: fetchProducts,
-} = await useFake(createUrl('/apps/ecommerce/products', {
+  data: scoresData,
+} = await useApi(createUrl('/scores-distinct', {
   query: {
     q: searchQuery,
-    stock: selectedStock,
-    category: selectedCategory,
-    status: selectedStatus,
+    year: selectedYear,
+    semester: selectedSemester,
+    subject: selectedSubject,
     page,
     itemsPerPage,
     sortBy,
@@ -206,19 +139,16 @@ const {
   },
 }))
 
-const products = computed(() => productsData.value.products)
-const totalProduct = computed(() => productsData.value.total)
+console.log('scoresData', scoresData)
 
-const deleteProduct = async id => {
-  await $fake(`apps/ecommerce/products/${ id }`, { method: 'DELETE' })
-  fetchProducts()
-}
+const scores = computed(() => scoresData.value?.data || [])
+const totalScores = computed(() => scoresData.value?.total || 0)
 </script>
 
 <template>
   <div>
     <!-- 👉 widgets -->
-    <VCard class="mb-6">
+    <VCard class="mb-6 d-none">
       <VCardText>
         <VRow>
           <template
@@ -288,50 +218,54 @@ const deleteProduct = async id => {
       </VCardText>
     </VCard>
 
-    <!-- 👉 products -->
+    <!-- 👉 scores -->
     <VCard
       title="Filters"
       class="mb-6"
     >
       <VCardText>
         <VRow>
-          <!-- 👉 Select Status -->
+          <!-- 👉 Select Subject -->
           <VCol
             cols="12"
             sm="4"
           >
             <AppSelect
-              v-model="selectedStatus"
-              placeholder="Status"
-              :items="status"
+              v-model="selectedSubject"
+              placeholder="Subject"
+              :items="subjects"
+              item-title="name"
+              item-value="id"
               clearable
               clear-icon="tabler-x"
             />
           </VCol>
 
-          <!-- 👉 Select Category -->
+          <!-- 👉 Select Semester -->
           <VCol
             cols="12"
             sm="4"
           >
             <AppSelect
-              v-model="selectedCategory"
-              placeholder="Category"
-              :items="categories"
+              v-model="selectedSemester"
+              placeholder="Semester"
+              :items="[1, 2, 3, 4, 5, 6]"
               clearable
               clear-icon="tabler-x"
             />
           </VCol>
 
-          <!-- 👉 Select Stock Status -->
+          <!-- 👉 Select Year -->
           <VCol
             cols="12"
             sm="4"
           >
             <AppSelect
-              v-model="selectedStock"
-              placeholder="Stock"
-              :items="stockStatus"
+              v-model="selectedYear"
+              placeholder="Period"
+              :items="years"
+              item-title="year"
+              item-value="year"
               clearable
               clear-icon="tabler-x"
             />
@@ -371,9 +305,9 @@ const deleteProduct = async id => {
           <VBtn
             color="primary"
             prepend-icon="tabler-plus"
-            @click="$router.push('/academy/assessment/scores/edit/20')"
+            @click="$router.push('/academy/assessment/scores/edit/new')"
           >
-            Add Product
+            New Inputs
           </VBtn>
         </div>
       </div>
@@ -386,62 +320,57 @@ const deleteProduct = async id => {
         v-model:page="page"
         :headers="headers"
         show-select
-        :items="products"
-        :items-length="totalProduct"
+        :items="scores"
+        :items-length="totalScores"
         class="text-no-wrap"
         @update:options="updateOptions"
       >
-        <!-- product  -->
-        <template #item.product="{ item }">
+        <!-- subject  -->
+        <template #item.subject="{ item }">
           <div class="d-flex align-center gap-x-2">
             <VAvatar
-              v-if="item.image"
+              v-if="item.subject"
               size="38"
               variant="tonal"
+              :color="resolveSemester(item.semester)?.color"
               rounded
-              :image="item.image"
-            />
+            >
+              <VIcon :icon="item.semester == '1' ? 'tabler-square-number-1' : item.semester == '2' ? 'tabler-square-number-2' : item.semester == '3' ? 'tabler-square-number-3' : item.semester == '4' ? 'tabler-square-number-4' : 'tabler-square-number-5'" />
+            </VAvatar>
             <div class="d-flex flex-column">
-              <span class="text-body-1 font-weight-medium">{{ item.productName }}</span>
-              <span class="text-sm text-disabled">{{ item.productBrand }}</span>
+              <span class="text-body-1 font-weight-medium">{{ item.subject }}</span>
+              <span class="text-sm text-disabled">{{ item.teacher }}</span>
             </div>
           </div>
         </template>
 
-        <!-- category -->
-        <template #item.category="{ item }">
+        <!-- semester -->
+        <template #item.semester="{ item }">
           <VAvatar
             size="30"
             variant="tonal"
-            :color="resolveCategory(item.category)?.color"
+            :color="resolveSemester(item.semester)?.color"
             class="me-2"
           >
             <VIcon
-              :icon="resolveCategory(item.category)?.icon"
+              :icon="resolveSemester(item.semester)?.icon"
               size="18"
             />
           </VAvatar>
-          <span class="text-body-1 font-weight-medium">{{ item.category }}</span>
+          {{ item.year }}
         </template>
 
-        <!-- stock -->
-        <template #item.stock="{ item }">
-          <VSwitch :model-value="item.stock" />
-        </template>
-
-        <!-- status -->
-        <template #item.status="{ item }">
-          <VChip
-            v-bind="resolveStatus(item.status)"
-            density="default"
-            label
-          />
+        <!-- date -->
+        <template #item.created_at="{ item }">
+          {{ humanDate(item.created_at) }}
         </template>
 
         <!-- Actions -->
         <template #item.actions="{ item }">
           <IconBtn>
-            <VIcon icon="tabler-edit" />
+            <RouterLink :to="'/academy/assessment/scores/edit/' + item.serial">
+              <VIcon icon="tabler-eye" />
+            </RouterLink>
           </IconBtn>
 
           <IconBtn>
@@ -453,14 +382,6 @@ const deleteProduct = async id => {
                   prepend-icon="tabler-download"
                 >
                   Download
-                </VListItem>
-
-                <VListItem
-                  value="delete"
-                  prepend-icon="tabler-trash"
-                  @click="deleteProduct(item.id)"
-                >
-                  Delete
                 </VListItem>
 
                 <VListItem
@@ -479,13 +400,13 @@ const deleteProduct = async id => {
 
           <div class="d-flex align-center justify-space-between flex-wrap gap-3 pa-5 pt-3">
             <p class="text-sm text-medium-emphasis mb-0">
-              {{ paginationMeta({ page, itemsPerPage }, totalProduct) }}
+              {{ paginationMeta({ page, itemsPerPage }, totalScores) }}
             </p>
 
             <VPagination
               v-model="page"
-              :length="Math.min(Math.ceil(totalProduct / itemsPerPage), 5)"
-              :total-visible="$vuetify.display.xs ? 1 : Math.min(Math.ceil(totalProduct / itemsPerPage), 5)"
+              :length="Math.min(Math.ceil(totalScores / itemsPerPage), 5)"
+              :total-visible="$vuetify.display.xs ? 1 : Math.min(Math.ceil(totalScores / itemsPerPage), 5)"
             >
               <template #prev="slotProps">
                 <VBtn

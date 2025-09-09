@@ -140,18 +140,18 @@ export function humanDate(date, format = 'dd MMM yyyy') {
   const d = new Date(date)
 
   const monthNames = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
+    'Januari',
+    'Februari',
+    'Maret',
+    'April',
     'Mei',
-    'Jun',
-    'Jul',
-    'Agu',
-    'Sep',
-    'Okt',
-    'Nov',
-    'Des',
+    'Juni',
+    'Juli',
+    'Agustus',
+    'September',
+    'Oktober',
+    'November',
+    'Desember',
   ]
 
   const dayNames = [

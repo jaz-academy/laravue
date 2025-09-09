@@ -1,49 +1,65 @@
 <script setup>
+import { humanDate } from '@/@core/utils/helpers'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
+import { computed } from 'vue'
 
 const route = useRoute('academy-assessment-report-id')
-const { data: invoiceData } = await useApi(`/apps/invoice/${ Number(route.params.id) }`)
-const invoice = invoiceData.value.invoice
-const paymentDetails = invoiceData.value.paymentDetails
+const studentId = Number(route.params.id)
 
-const purchasedProducts = [
-  {
-    name: 'Vuexy Admin Template',
-    description: 'HTML Admin Template',
-    qty: 1,
-    cost: 32,
-  },
-  {
-    name: 'Frest Admin Template',
-    description: 'Angular Admin Template',
-    qty: 1,
-    cost: 22,
-  },
-  {
-    name: 'Apex Admin Template',
-    description: 'HTML Admin Template',
-    qty: 2,
-    cost: 17,
-  },
-  {
-    name: 'Robust Admin Template',
-    description: 'React Admin Template',
-    qty: 1,
-    cost: 66,
-  },
-]
+// Fetch all data in parallel
+const [{ data: scoreData }, { data: studentResult }, { data: schoolResult }] = await Promise.all([
+  useApi(`/scores-by-person?student_id=${studentId}&semester=`),
+  useApi(`/students/${studentId}`),
+  useApi('/schools'),
+])
+
+const student = computed(() => studentResult.value?.data)
+const school = computed(() => schoolResult.value?.data)
+
+const averageScore = computed(() => {
+  if (!scoreData.value?.data || scoreData.value.data.length === 0)
+    return 0
+  
+  const total = scoreData.value.data.reduce((sum, item) => sum + (item.final_score || 0), 0)
+  
+  return (total / scoreData.value.data.length).toFixed(2)
+})
+
+const getPredicate = score => {
+  if (score >= 95)
+    return 'A+'
+  if (score >= 90)
+    return 'A'
+  if (score >= 85)
+    return 'A-'
+  if (score >= 80)
+    return 'B'
+  if (score >= 75)
+    return 'B-'
+  if (score >= 70)
+    return 'C+'
+  if (score >= 65)
+    return 'C'
+  if (score >= 60)
+    return 'C-'
+  
+  return 'D'
+}
 </script>
 
 <template>
-  <section v-if="invoiceData">
+  <section v-if="scoreData && student && school">
     <VRow>
       <VCol cols="12">
         <VCard>
           <!-- SECTION Header -->
           <VCardText class="d-flex flex-wrap justify-space-between flex-column flex-sm-row print-row">
             <!-- 👉 Left Content -->
-            <div class="ma-sm-4">
+            <div
+              v-if="school?.length"
+              class="ma-sm-4"
+            >
               <div class="d-flex align-center mb-6">
                 <!-- 👉 Logo -->
                 <VNodeRenderer
@@ -59,33 +75,52 @@ const purchasedProducts = [
 
               <!-- 👉 Address -->
               <p class="mb-0">
-                Office 149, 450 South Brand Brooklyn
+                {{ school[0]?.name }} ✪ <strong>{{ school[0]?.organization }}</strong>
               </p>
               <p class="my-2">
-                San Diego County, CA 91905, USA
+                {{ school[0]?.address }}
               </p>
               <p class="mb-0">
-                +1 (123) 456 7891, +44 (876) 543 2198
+                <VIcon
+                  icon="tabler-phone"
+                  class="me-2"
+                />
+                {{ school[0]?.phone }}
+          
+                <VIcon
+                  icon="tabler-mail"
+                  class="mx-2"
+                />
+                {{ school[0]?.email }}
               </p>
             </div>
 
             <!-- 👉 Right Content -->
-            <div class="mt-4 ma-sm-4">
-              <!-- 👉 Invoice ID -->
+            <div
+              v-if="student"
+              class="mt-4 ma-sm-4 text-end"
+            >
+              <!-- 👉 Nama -->
               <h6 class="font-weight-medium text-h4">
-                Invoice #{{ invoice.id }}
+                {{ student.name }}
               </h6>
 
-              <!-- 👉 Issue Date -->
-              <p class="my-3">
-                <span>Date Issued: </span>
-                <span>{{ new Date(invoice.issuedDate).toLocaleDateString('en-GB') }}</span>
+              <!-- 👉 No Induk -->
+              <p class="my-3 font-weight-medium text-h5">
+                <span>Angkatan : </span>
+                <span>{{ student.registered - 2022 }}</span>
               </p>
 
-              <!-- 👉 Due Date -->
+              <!-- 👉 Angkatan -->
               <p class="mb-0">
-                <span>Due Date: </span>
-                <span>{{ new Date(invoice.dueDate).toLocaleDateString('en-GB') }}</span>
+                <span>Period : </span>
+                <span>{{ student.registered }}</span>
+              </p>
+
+              <!-- 👉 Semester -->
+              <p class="mb-0">
+                <span>NID : </span>
+                <span>{{ student.nis }}</span>
               </p>
             </div>
           </VCardText>
@@ -94,80 +129,16 @@ const purchasedProducts = [
           <VDivider />
 
           <!-- 👉 Payment Details -->
-          <VCardText class="d-flex justify-space-between flex-wrap flex-column flex-sm-row print-row">
-            <div class="ma-sm-4">
-              <h6 class="text-base font-weight-medium mb-6">
-                Invoice To:
-              </h6>
-              <p class="mb-1">
-                {{ invoice.client.name }}
-              </p>
-              <p class="mb-1">
-                {{ invoice.client.company }}
-              </p>
-              <p class="mb-1">
-                {{ invoice.client.address }}, {{ invoice.client.country }}
-              </p>
-              <p class="mb-1">
-                {{ invoice.client.contact }}
-              </p>
-              <p class="mb-0">
-                {{ invoice.client.companyEmail }}
-              </p>
-            </div>
-
-            <div class="mt-4 ma-sm-4">
-              <h6 class="text-h6 font-weight-medium mb-6">
-                Bill To:
-              </h6>
-              <table>
-                <tbody>
-                  <tr>
-                    <td class="pe-6 pb-1">
-                      Total Due:
-                    </td>
-                    <td class="pb-1">
-                      <span class="font-weight-medium">
-                        {{ paymentDetails.totalDue }}
-                      </span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="pe-6 pb-1">
-                      Bank Name:
-                    </td>
-                    <td class="pb-1">
-                      {{ paymentDetails.bankName }}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="pe-6 pb-1">
-                      Country:
-                    </td>
-                    <td class="pb-1">
-                      {{ paymentDetails.country }}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="pe-6 pb-1">
-                      IBAN:
-                    </td>
-                    <td class="pb-1">
-                      {{ paymentDetails.iban }}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="pe-6 pb-1">
-                      SWIFT Code:
-                    </td>
-                    <td class="pb-1">
-                      {{ paymentDetails.swiftCode }}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+          <VCardText class="text-center">
+            <h2>LAPORAN HASIL STUDI</h2>
+            <p
+              v-if="student"
+              class="font-weight-medium text-h5"
+            >
+              Semester {{ scoreData.semester }}
+            </p>
           </VCardText>
+
 
           <!-- 👉 Table -->
           <VDivider />
@@ -175,53 +146,57 @@ const purchasedProducts = [
           <VTable class="invoice-preview-table">
             <thead>
               <tr>
+                <th class="d-none d-md-table-cell" />
+                <th
+                  scope="col"
+                  class="text-center"
+                >
+                  NOMOR
+                </th>
                 <th scope="col">
-                  ITEM
+                  KATEGORI
                 </th>
                 <th scope="col">
-                  DESCRIPTION
+                  BIDANG STUDI
                 </th>
                 <th
                   scope="col"
                   class="text-center"
                 >
-                  COST
+                  NILAI
                 </th>
                 <th
                   scope="col"
                   class="text-center"
                 >
-                  QTY
+                  PREDIKAT
                 </th>
-                <th
-                  scope="col"
-                  class="text-center"
-                >
-                  PRICE
-                </th>
+                <th class="d-none d-md-table-cell" />
               </tr>
             </thead>
 
             <tbody>
               <tr
-                v-for="item in purchasedProducts"
+                v-for="item in scoreData.data"
                 :key="item.name"
               >
+                <td class="d-none d-md-table-cell" />
+                <td class="text-center">
+                  {{ item.number }}
+                </td>
+                <td class="text-no-wrap">
+                  {{ item.group }}
+                </td>
                 <td class="text-no-wrap">
                   {{ item.name }}
                 </td>
-                <td class="text-no-wrap">
-                  {{ item.description }}
+                <td class="text-center">
+                  {{ item.final_score }}
                 </td>
                 <td class="text-center">
-                  ${{ item.cost }}
+                  {{ getPredicate(item.final_score) }}
                 </td>
-                <td class="text-center">
-                  {{ item.qty }}
-                </td>
-                <td class="text-center">
-                  ${{ item.cost * item.qty }}
-                </td>
+                <td class="d-none d-md-table-cell" />
               </tr>
             </tbody>
           </VTable>
@@ -230,54 +205,19 @@ const purchasedProducts = [
 
           <!-- Total -->
           <VCardText class="d-flex justify-space-between flex-column flex-sm-row print-row">
-            <div class="my-2 mx-sm-4 text-base">
-              <div class="d-flex align-center mb-1">
-                <h6 class="text-base font-weight-medium me-1">
-                  Salesperson:
-                </h6>
-                <span>Alfie Solomons</span>
-              </div>
-              <p>Thanks for your business</p>
+            <div class="my-4 mx-sm-4">
+              <h6 class="text-base font-weight-medium">
+                Nilai Rata-rata:
+                <span class="font-weight-bold">{{ averageScore }}</span>
+              </h6>
             </div>
-
-            <div class="my-2 mx-sm-4">
-              <table>
-                <tbody>
-                  <tr>
-                    <td class="text-end">
-                      <div class="me-5">
-                        <p class="mb-2">
-                          Subtotal:
-                        </p>
-                        <p class="mb-2">
-                          Discount:
-                        </p>
-                        <p class="mb-2">
-                          Tax:
-                        </p>
-                        <p class="mb-2">
-                          Total:
-                        </p>
-                      </div>
-                    </td>
-
-                    <td class="font-weight-medium text-high-emphasis">
-                      <p class="mb-2">
-                        $154.25
-                      </p>
-                      <p class="mb-2">
-                        $00.00
-                      </p>
-                      <p class="mb-2">
-                        $50.00
-                      </p>
-                      <p class="mb-2">
-                        $204.25
-                      </p>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+            <VSpacer />
+            <div
+              v-if="school?.length"
+              class="my-4 mx-sm-4 text-end"
+            >
+              Tasikmalaya, {{ humanDate(new Date(), 'd MMM yyyy') }}
+              <br>✪ <strong>{{ school[0]?.organization }}</strong>
             </div>
           </VCardText>
 
@@ -288,7 +228,7 @@ const purchasedProducts = [
               <h6 class="text-base font-weight-medium me-1">
                 Note:
               </h6>
-              <span>It was a pleasure working with you and your team. We hope you will keep us in mind for future freelance projects. Thank You!</span>
+              <span>Ilmu itu di dalam Dada.. Bukan diatas Kertas..</span>
             </div>
           </VCardText>
         </VCard>

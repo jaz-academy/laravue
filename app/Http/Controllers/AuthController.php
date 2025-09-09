@@ -48,21 +48,22 @@ class AuthController extends Controller
 
             if ($request->adminTeacherId > 0) {
 
-                $fields = [
+                $participant = [
                     'name' => $request->name,
                     'username' => $request->email,
                     'password' => bcrypt($request->password),
-                    'role' => 2,
+                    'role' => 0,
                     'image' => null,
                 ];
 
-                MediaParticipant::create($fields);
+                MediaParticipant::create($participant);
             }
 
             return response()->json([
                 'accessToken' => $token,
                 'userData' => $user,
                 'userAbilityRules' => $abilityRules,
+                'participant' => $participant ?? null,
             ], 201);
         } else {
             return response()->json(['error' => 'Cannot create user, Try again leter!'], 500);
@@ -109,10 +110,12 @@ class AuthController extends Controller
             ],
         ];
 
+        $participant = MediaParticipant::where('username', $user->email)->first();
         return response()->json([
             'accessToken' => $token,
             'userData' => $user,
             'userAbilityRules' => $abilityRules,
+            'participant' => $participant ?? null,
         ]);
     }
 
@@ -369,6 +372,10 @@ class AuthController extends Controller
     public function destroy(User $user)
     {
         $user->delete();
+        $participant = MediaParticipant::where('username', $user->email)->first();
+        if ($participant) {
+            $participant->delete();
+        }
 
         return response()->json([
             'message' => 'User data deleted successfully.',

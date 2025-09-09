@@ -1,55 +1,62 @@
 <script setup>
-import LogisticsCardStatistics from '@/views/apps/logistics/LogisticsCardStatistics.vue'
-import LogisticsDeliveryExpectations from '@/views/apps/logistics/LogisticsDeliveryExpectations.vue'
-import LogisticsDeliveryPerformance from '@/views/apps/logistics/LogisticsDeliveryPerformance.vue'
-import LogisticsOrderByCountries from '@/views/apps/logistics/LogisticsOrderByCountries.vue'
-import LogisticsOverviewTable from '@/views/apps/logistics/LogisticsOverviewTable.vue'
-import LogisticsShipmentStatistics from '@/views/apps/logistics/LogisticsShipmentStatistics.vue'
-import LogisticsVehicleOverview from '@/views/apps/logistics/LogisticsVehicleOverview.vue'
+import AllocationTable from '@/views/home/finance/AllocationTable.vue'
+import ExpenseStatistics from '@/views/home/finance/ExpenseStatistics.vue'
+import FinanceHistory from '@/views/home/finance/FinanceHistory.vue'
+import NonKitchenOverview from '@/views/home/finance/NonKitchenOverview.vue'
+import PaymentDelivery from '@/views/home/finance/PaymentDelivery.vue'
+import PaymentPerformance from '@/views/home/finance/PaymentPerformance.vue'
+import SaldoCardStatistics from '@/views/home/finance/SaldoCardStatistics.vue'
 </script>
 
 <template>
   <VRow class="match-height">
     <VCol cols="12">
-      <LogisticsCardStatistics />
+      <!-- Cards Saldo -->
+      <SaldoCardStatistics />
     </VCol>
     <VCol
       cols="12"
       md="6"
     >
-      <LogisticsVehicleOverview />
+      <!-- Cards Pengeluaran Non Dapur -->
+      <NonKitchenOverview />
     </VCol>
 
     <VCol
       cols="12"
       md="6"
     >
-      <LogisticsShipmentStatistics />
+      <!-- Pembelanjaan -->
+      <ExpenseStatistics />
     </VCol>
 
     <VCol
       cols="12"
       md="4"
     >
-      <LogisticsDeliveryPerformance />
+      <!-- List Pembayaran -->
+      <PaymentPerformance />
     </VCol>
 
     <VCol
       cols="12"
       md="4"
     >
-      <LogisticsDeliveryExpectations />
+      <!-- Chart Pembayaran -->
+      <PaymentDelivery />
     </VCol>
 
     <VCol
       cols="12"
       md="4"
     >
-      <LogisticsOrderByCountries />
+      <!-- Riwayat Transaksi -->
+      <FinanceHistory />
     </VCol>
 
     <VCol cols="12">
-      <LogisticsOverviewTable />
+      <!-- Alokasi -->
+      <AllocationTable />
     </VCol>
   </VRow>
 </template>

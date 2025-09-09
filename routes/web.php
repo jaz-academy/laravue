@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -13,6 +14,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('{any?}', function() {
+Route::get('/test-log', function () {
+    Log::info('Test log dari Windows Ayah 😎');
+    return 'Cek storage/logs/laravel.log';
+});
+
+Route::get('{any?}', function () {
     return view('application');
 })->where('any', '.*');

@@ -14,7 +14,12 @@ const emit = defineEmits(['update:isDrawerOpen', 'courseData'])
 const subjectsData = await useApi('/subjects')
 
 const subjectsDataOptions = computed(() => {
-  const groups = [...new Set(subjectsData?.data.value.data?.map(s => s.group))]
+  const groups = [
+    ...new Set(subjectsData?.data.value.data?.map(s => s.group)),
+    'Entrepreneur',
+    'Leadership',
+    'Other',
+  ]
   
   return groups.map(g => ({ value: g, label: g }))
 })

@@ -38,18 +38,23 @@ export default [
       }] : []),
     ],
   },
-  ...((currentUser.value?.access ?? []).includes('Assessment') ? [{
+  {
     title: 'Assessment',
     icon: { icon: 'tabler-chart-bar' },
     children: [
-      { title: 'Subject', to: 'academy-assessment-subject' },
-      { title: 'Competence', to: 'academy-assessment-competence' },
-      { title: 'Scores', to: 'academy-assessment-scores' },
-      { title: 'Edit', to: { name: 'academy-assessment-scores-edit-id', params: { id: '5036' } } },
+      ...(
+        (currentUser.value?.access ?? []).includes('Assessment')
+          ? [
+            { title: 'Subject', to: 'academy-assessment-subject' },
+            { title: 'Competence', to: 'academy-assessment-competence' },
+            { title: 'Scores', to: 'academy-assessment-scores' },
+            { title: 'Edit', to: { name: 'academy-assessment-scores-edit-id', params: { id: 'new' } } },
+          ] : []
+      ),
 
-      // general
-      { title: 'Details', to: { name: 'academy-assessment-details-id', params: { id: 478426 } } },
-      { title: 'Report', to: { name: 'academy-assessment-report-id', params: { id: '5036' } } },
+      // { title: 'Details', to: { name: 'academy-assessment-details-id', params: { id: 478426 } } },
+      { title: 'Report', to: { name: 'academy-assessment-report-id', params: { id: currentUser.value?.admin_student_id || 1 } } },
     ],
-  }] : []),
+  },
+
 ]

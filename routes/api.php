@@ -69,6 +69,7 @@ Route::group(['prefix' => 'public'], function () {
   Route::post('update-task-accepted/{task}', [TaskController::class, 'updateTaskAccepted']);
   Route::apiResource('bookmarks', BookmarkController::class);
   Route::apiResource('participants', ParticipantController::class);
+  Route::get('students/years', [StudentController::class, 'years']);
 });
 
 Route::group(['prefix' => 'auth'], function () {
@@ -111,6 +112,10 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
   Route::apiResource('subjects', SubjectController::class);
   Route::apiResource('competences', CompetenceController::class);
   Route::apiResource('scores', ScoreController::class);
+  Route::get('scores-distinct', [ScoreController::class, 'distinct']);
+  Route::get('scores-by-serial/{serial}', [ScoreController::class, 'scoreBySerial']);
+  Route::post('scores/bulk-store', [ScoreController::class, 'bulkStore']);
+  Route::get('scores-by-person', [ScoreController::class, 'scoreByPerson']);
 
   Route::apiResource('accounts', AccountController::class);
   Route::apiResource('finances', FinanceController::class);

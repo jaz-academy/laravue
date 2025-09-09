@@ -1,171 +1,68 @@
 <script setup>
-import InvoiceAddPaymentDrawer from '@/views/financial/finance/InvoiceAddPaymentDrawer.vue'
-import InvoiceEditable from '@/views/financial/finance/InvoiceEditable.vue'
-import InvoiceSendInvoiceDrawer from '@/views/financial/finance/InvoiceSendInvoiceDrawer.vue'
+import AssessmentEditable from '@/views/academy/assessment/edit/AssessmentEditable.vue'
 
-const invoiceData = ref()
 const route = useRoute('academy-assessment-scores-edit-id')
-const { data: invoiceDetails } = await useApi(`/apps/invoice/${ route.params.id }`)
+const serialNumber = computed(() => route.params.id)
 
-invoiceData.value = {
-  invoice: invoiceDetails.value.invoice,
-  paymentDetails: invoiceDetails.value.paymentDetails,
-  purchasedProducts: [{
-    title: 'App Design',
-    cost: 24,
-    qty: 2,
-    description: 'Designed UI kit & app pages.',
-  }],
-  note: 'It was a pleasure working with you and your team. We hope you will keep us in mind for future freelance projects. Thank You!',
-  paymentMethod: 'Bank Account',
-  salesperson: 'Tom Cook',
-  thanksNote: 'Thanks for your business',
+// assessmentData akan menampung semua data untuk halaman ini
+const assessmentData = ref({
+  header: {
+    semester: null,
+    academy_competence_id: null,
+    teacher: '',
+  },
+  studentScores: [], // Array untuk menampung data skor per siswa
+})
+
+// Cek apakah ini halaman untuk edit (serial sudah ada) atau buat baru
+if (serialNumber.value && serialNumber.value !== 'new') {
+  // Panggil API yang benar untuk mengambil data skor berdasarkan serial
+  const { data: scoresResponse } = await useApi(`/scores-by-serial/${serialNumber.value}`)
+
+  if (scoresResponse.value && scoresResponse.value.data.length > 0) {
+    const scores = scoresResponse.value.data
+    
+    // Asumsikan data header (kompetensi, semester, dll) sama untuk semua data dalam satu serial
+    const firstScore = scores[0]
+    
+    assessmentData.value.header = {
+      year: firstScore.admin_student?.registered,
+      semester: firstScore.semester,
+      academy_competence_id: firstScore.academy_competence_id,
+      teacher: firstScore.academy_competence?.admin_teacher?.name,
+    }
+    assessmentData.value.studentScores = scores
+  }
 }
 
-const addProduct = value => {
-  invoiceData.value?.purchasedProducts.push(value)
+// Fungsi untuk menambah item/siswa baru ke dalam form
+const addStudentScore = () => {
+  assessmentData.value?.studentScores.push({
+    // Sediakan nilai default untuk skor baru
+    admin_student_id: null,
+    month_1: 0, month_2: 0, month_3: 0, month_4: 0, month_5: 0, month_6: 0, final_score: 0,
+    is_ok_1: 0, competence_1: '',
+    is_ok_2: 0, competence_2: '',
+    is_ok_3: 0, competence_3: '',
+  })
 }
 
-const removeProduct = id => {
-  invoiceData.value?.purchasedProducts.splice(id, 1)
+const removeStudentScore = id => {
+  assessmentData.value?.studentScores.splice(id, 1)
 }
-
-const isSendSidebarActive = ref(false)
-const isAddPaymentSidebarActive = ref(false)
-const paymentTerms = ref(true)
-const clientNotes = ref(false)
-const paymentStub = ref(false)
-const selectedPaymentMethod = ref('Bank Account')
-
-const paymentMethods = [
-  'Bank Account',
-  'PayPal',
-  'UPI Transfer',
-]
 </script>
 
 <template>
   <VRow>
     <!-- 👉 InvoiceEditable -->
-    <VCol
-      cols="12"
-      md="9"
-    >
-      <InvoiceEditable
-        v-if="invoiceData?.invoice"
-        :data="invoiceData"
-        @push="addProduct"
-        @remove="removeProduct"
+    <VCol cols="12">
+      <AssessmentEditable
+        v-if="assessmentData"
+        v-model:data="assessmentData"
+        :serial-number="serialNumber"
+        @push="addStudentScore"
+        @remove="removeStudentScore"
       />
     </VCol>
-
-    <!-- 👉 Right Column: Invoice Action -->
-    <VCol
-      cols="12"
-      md="3"
-    >
-      <VCard class="mb-8">
-        <VCardText>
-          <!-- 👉 Send Invoice Trigger button -->
-          <VBtn
-            block
-            prepend-icon="tabler-send"
-            class="mb-2"
-            @click="isSendSidebarActive = true"
-          >
-            Send Invoice
-          </VBtn>
-
-          <div class="d-flex gap-2">
-            <div class="w-50">
-              <!-- 👉  Preview button -->
-              <VBtn
-                block
-                color="secondary"
-                variant="tonal"
-                class="mb-2"
-                :to="{ name: 'financial-finance-preview-id', params: { id: route.params.id } }"
-              >
-                Preview
-              </VBtn>
-            </div>
-
-            <div class="w-50">
-              <!-- 👉 Save button -->
-              <VBtn
-                block
-                color="secondary"
-                variant="tonal"
-                class="mb-2"
-              >
-                Save
-              </VBtn>
-            </div>
-          </div>
-
-          <!-- 👉 Add Payment trigger button -->
-          <VBtn
-            block
-            prepend-icon="tabler-currency-dollar"
-            @click="isAddPaymentSidebarActive = true"
-          >
-            Add Payment
-          </VBtn>
-        </VCardText>
-      </VCard>
-
-      <!-- 👉 Accept payment via  -->
-      <AppSelect
-        v-model="selectedPaymentMethod"
-        :items="paymentMethods"
-        label="Accept Payment Via"
-        class="mb-6"
-      />
-
-      <!-- 👉 Payment Terms -->
-      <div class="d-flex align-center justify-space-between mb-2">
-        <VLabel for="payment-terms">
-          Payment Terms
-        </VLabel>
-        <div>
-          <VSwitch
-            id="payment-terms"
-            v-model="paymentTerms"
-          />
-        </div>
-      </div>
-
-      <!-- 👉 Client Notes -->
-      <div class="d-flex align-center justify-space-between mb-2">
-        <VLabel for="client-notes">
-          Client Notes
-        </VLabel>
-        <div>
-          <VSwitch
-            id="client-notes"
-            v-model="clientNotes"
-          />
-        </div>
-      </div>
-
-      <!-- 👉 Payment Stub -->
-      <div class="d-flex align-center justify-space-between">
-        <VLabel for="payment-stub">
-          Payment Stub
-        </VLabel>
-        <div>
-          <VSwitch
-            id="payment-stub"
-            v-model="paymentStub"
-          />
-        </div>
-      </div>
-    </VCol>
-
-    <!-- 👉 Invoice send drawer -->
-    <InvoiceSendInvoiceDrawer v-model:is-drawer-open="isSendSidebarActive" />
-
-    <!-- 👉 Invoice add payment drawer -->
-    <InvoiceAddPaymentDrawer v-model:is-drawer-open="isAddPaymentSidebarActive" />
   </VRow>
 </template>
