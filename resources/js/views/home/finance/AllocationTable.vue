@@ -95,7 +95,7 @@ const resolveChipColor = warning => {
           size="40"
         >
           <VIcon
-            icon="tabler-truck"
+            icon="tabler-building-bank"
             size="24"
           />
         </VAvatar>
@@ -103,16 +103,16 @@ const resolveChipColor = warning => {
           class="text-body-2 text-high-emphasis font-weight-medium"
           :to="{ name: 'apps-logistics-fleet' }"
         >
-          VOL-{{ item.startCity }}
+          {{ item.startCity }}
         </RouterLink>
       </template>
 
       <template #item.startRoute="{ item }">
-        27.000.000
+        {{ item.progress }}.000.000
       </template>
 
       <template #item.endRoute="{ item }">
-        50.000.000
+        {{ item.progress }}.000.000
       </template>
 
       <template #item.warnings="{ item }">
@@ -120,7 +120,7 @@ const resolveChipColor = warning => {
           :color="resolveChipColor(item.warnings)"
           label
         >
-          12.000.000
+          {{ item.progress }}.000.000
         </VChip>
       </template>
 

@@ -119,10 +119,24 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
   Route::apiResource('accounts', AccountController::class);
   Route::apiResource('finances', FinanceController::class);
-  Route::apiResource('billings', BillingController::class);
-  Route::apiResource('discounts', DiscountController::class);
-  Route::apiResource('payments', PaymentController::class);
+  Route::get('finances-distinct', [FinanceController::class, 'distinct']);
+  Route::get('finances-by-invoice/{invoice}', [FinanceController::class, 'financeByInvoice']);
+  Route::post('finances/bulk-store', [FinanceController::class, 'bulkStore']);
+
   Route::apiResource('savings', SavingController::class);
+  Route::apiResource('discounts', DiscountController::class);
+  Route::get('discounts-by-year/{year}/{studentId}', [DiscountController::class, 'discountByYear']);
+  Route::apiResource('billings', BillingController::class);
+  Route::get('billings-distinct', [BillingController::class, 'distinct']);
+  Route::get('billings-by-year/{year}/{category}', [BillingController::class, 'billingByYear']);
+  Route::post('billings/bulk-store', [BillingController::class, 'bulkStore']);
+
+  Route::apiResource('payments', PaymentController::class);
+  Route::get('payments-distinct', [PaymentController::class, 'distinct']);
+  Route::get('payments-by-invoice/{invoice}', [PaymentController::class, 'paymentByInvoice']);
+  Route::get('payments-by-year/{year}/{studentId}', [PaymentController::class, 'paymentByYear']);
+  Route::get('payments-by-student/{studentId}', [PaymentController::class, 'paymentByStudent']);
+  Route::post('payments/bulk-store', [PaymentController::class, 'bulkStore']);
 
   Route::get('/notifications', function () {
     return response()->json(auth()->user()->notifications);

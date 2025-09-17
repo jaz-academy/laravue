@@ -29,7 +29,9 @@ class PaymentSaving extends Model
         return $this->belongsTo(AdminStudent::class);
     }
 
-    public function getBalance()
+    protected $appends = ['balance'];
+
+    public function getBalanceAttribute()
     {
         return $this->credit - $this->debit;
     }

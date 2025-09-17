@@ -56,6 +56,8 @@ class CompetenceController extends Controller
      */
     public function show(AcademyCompetence $competence)
     {
+        $competence->load('academySubject', 'adminTeacher');
+
         return response()->json([
             'message' => $competence->exists ? 'Competence founded' : 'Competence not found',
             'data' => $competence

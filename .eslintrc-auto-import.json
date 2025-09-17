@@ -409,6 +409,7 @@
     "humanDate": true,
     "useUserAccess": true,
     "getUserRole": true,
-    "bayesianScore": true
+    "bayesianScore": true,
+    "periode": true
   }
 }

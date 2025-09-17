@@ -151,69 +151,65 @@ const totalScores = computed(() => scoresData.value?.total || 0)
     <VCard class="mb-6 d-none">
       <VCardText>
         <VRow>
-          <template
+          <VCol
             v-for="(data, id) in widgetData"
             :key="id"
+            cols="12"
+            sm="6"
+            md="3"
+            class="px-6 position-relative"
           >
-            <VCol
-              cols="12"
-              sm="6"
-              md="3"
-              class="px-6"
+            <div
+              class="d-flex justify-space-between"
+              :class="$vuetify.display.xs
+                ? 'product-widget'
+                : $vuetify.display.sm
+                  ? id < 2 ? 'product-widget' : ''
+                  : ''"
             >
-              <div
-                class="d-flex justify-space-between"
-                :class="$vuetify.display.xs
-                  ? 'product-widget'
-                  : $vuetify.display.sm
-                    ? id < 2 ? 'product-widget' : ''
-                    : ''"
-              >
-                <div class="d-flex flex-column gap-y-1">
-                  <div class="text-body-1 font-weight-medium text-capitalize">
-                    {{ data.title }}
-                  </div>
-
-                  <h4 class="text-h4 my-1">
-                    {{ data.value }}
-                  </h4>
-
-                  <div class="d-flex">
-                    <div class="me-2 text-disabled text-no-wrap">
-                      {{ data.desc }}
-                    </div>
-
-                    <VChip
-                      v-if="data.change"
-                      label
-                      :color="data.change > 0 ? 'success' : 'error'"
-                    >
-                      {{ prefixWithPlus(data.change) }}%
-                    </VChip>
-                  </div>
+              <div class="d-flex flex-column gap-y-1">
+                <div class="text-body-1 font-weight-medium text-capitalize">
+                  {{ data.title }}
                 </div>
 
-                <VAvatar
-                  variant="tonal"
-                  rounded
-                  size="38"
-                >
-                  <VIcon
-                    :icon="data.icon"
-                    size="28"
-                  />
-                </VAvatar>
+                <h4 class="text-h4 my-1">
+                  {{ data.value }}
+                </h4>
+
+                <div class="d-flex">
+                  <div class="me-2 text-disabled text-no-wrap">
+                    {{ data.desc }}
+                  </div>
+
+                  <VChip
+                    v-if="data.change"
+                    label
+                    :color="data.change > 0 ? 'success' : 'error'"
+                  >
+                    {{ prefixWithPlus(data.change) }}%
+                  </VChip>
+                </div>
               </div>
-            </VCol>
+
+              <VAvatar
+                variant="tonal"
+                rounded
+                size="38"
+              >
+                <VIcon
+                  :icon="data.icon"
+                  size="28"
+                />
+              </VAvatar>
+            </div>
             <VDivider
-              v-if="$vuetify.display.mdAndUp ? id !== widgetData.length - 1
-                : $vuetify.display.smAndUp ? id % 2 === 0
-                  : false"
+              v-if="($vuetify.display.mdAndUp && id < widgetData.length - 1) || ($vuetify.display.smOnly && id % 2 === 0)"
               vertical
               inset
-              length="95"
+              class="position-absolute"
+              style=" block-size: 70%;inset-block-start: 50%; inset-inline-end: 0; transform: translateY(-50%);"
             />
-          </template>
+          </VCol>
         </VRow>
       </VCardText>
     </VCard>

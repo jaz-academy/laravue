@@ -6,6 +6,14 @@ export const takePic = src => {
   return src ? `/storage/${src}` : avatar
 }
 
+export const periode = (newDate = new Date()) => {
+  const date = new Date(newDate)
+  const month = date.getMonth() + 1
+  const year = date.getFullYear()
+  
+  return (month >= 7 ? year : year - 1).toString()
+}
+
 // useUserAccess
 export function useUserAccess() {
   const currentUser = useCookie('userData') // reactive cookie
@@ -135,7 +143,7 @@ export const rateNumberIcon = rate => {
 }
 
 // Format Date
-export function humanDate(date, format = 'dd MMM yyyy') {
+export function humanDate(date, format = 'd MMM yyyy') {
   if (!date) return '-'
   const d = new Date(date)
 
@@ -168,7 +176,8 @@ export function humanDate(date, format = 'dd MMM yyyy') {
     'ddd': dayNames[d.getDay()],
     'dd': String(d.getDate()).padStart(2, '0'),
     'd': d.getDate(),
-    'MMM': monthNames[d.getMonth()],
+    'MMMM': monthNames[d.getMonth()],
+    'MMM': monthNames[d.getMonth()].substring(0, 3),
     'MM': String(d.getMonth() + 1).padStart(2, '0'),
     'M': d.getMonth() + 1,
     'yyyy': d.getFullYear(),
@@ -178,6 +187,6 @@ export function humanDate(date, format = 'dd MMM yyyy') {
     'ss': String(d.getSeconds()).padStart(2, '0'),
   }
 
-  return format.replace(/\b(ddd|dd|d|MMM|MM|M|yyyy|yy|HH|mm|ss)\b/g, match => optionsMap[match])
+  return format.replace(/\b(ddd|dd|d|MMMM|MMM|MM|M|yyyy|yy|HH|mm|ss)\b/g, match => optionsMap[match])
 }
 

@@ -13,7 +13,7 @@ class PaymentDiscount extends Model
         'admin_student_id',
         'year',
         'finance_account_id',
-        'payment_billing_id',
+        'billing',
         'amount',
         'note',
         'admin',

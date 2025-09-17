@@ -36,14 +36,15 @@ if (serialNumber.value && serialNumber.value !== 'new') {
 }
 
 // Fungsi untuk menambah item/siswa baru ke dalam form
-const addStudentScore = () => {
+const addStudentScore = (studentData = {}) => {
   assessmentData.value?.studentScores.push({
     // Sediakan nilai default untuk skor baru
-    admin_student_id: null,
+    admin_student_id: studentData.admin_student_id || null,
     month_1: 0, month_2: 0, month_3: 0, month_4: 0, month_5: 0, month_6: 0, final_score: 0,
     is_ok_1: 0, competence_1: '',
     is_ok_2: 0, competence_2: '',
     is_ok_3: 0, competence_3: '',
+    ...studentData,
   })
 }
 
