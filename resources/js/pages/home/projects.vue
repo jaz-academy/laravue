@@ -208,7 +208,7 @@ const topicsData = computed(() => {
   const total = counts.reduce((a, b) => a + b, 0) || 1 // supaya nggak div 0
 
   return (tasks.value.media?.name || []).map((name, i) => {
-    const percent = Math.round((counts[i] / total) * 100)
+    const percent = Math.round(((Number(counts[i]) || 0) / total) * 100)
     
     return {
       title: name,

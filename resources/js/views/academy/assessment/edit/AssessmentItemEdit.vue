@@ -92,6 +92,7 @@ const ticksLabels = { 0: 'D', 1: 'C', 2: 'B', 3: 'A' }
           item-value="id"
           placeholder="Select Student"
           density="compact"
+          :readonly="!!localScoreData.admin_student_id"
         />
       </VCol>
       <VSpacer />

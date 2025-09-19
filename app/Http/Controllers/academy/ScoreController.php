@@ -25,6 +25,9 @@ class ScoreController extends Controller
         ]);
     }
 
+    /**
+     * Display a custom listing of the resource.
+     */
     public function distinct(Request $request)
     {
         $search = $request->get('q');
@@ -95,13 +98,12 @@ class ScoreController extends Controller
     /**
      * Store or update a batch of scores.
      */
-
     public function bulkStore(Request $request)
     {
         $request->validate([
             'header' => 'required|array',
             'header.academy_competence_id' => 'required|exists:academy_competences,id',
-            'studentScores' => 'required|array|min:1',
+            'studentScores' => 'present|array',
             'studentScores.*.admin_student_id' => 'required|exists:admin_students,id',
         ]);
 
@@ -109,7 +111,7 @@ class ScoreController extends Controller
         $studentScores = $request->input('studentScores');
 
         // Jika serial tidak ada di request, buat serial baru. Jika ada, gunakan yang sudah ada.
-        $serial = $request->input('header.serial') ?? strtoupper(Str::random(8));
+        $serial = $request->input('header.serial') ?? 'AS' . strtoupper(Str::random(8));
 
         // log payload masuk
         Log::info('bulkStore called', [
@@ -171,7 +173,6 @@ class ScoreController extends Controller
         }
     }
 
-
     /**
      * Store a newly created resource in storage.
      */
@@ -215,6 +216,9 @@ class ScoreController extends Controller
         ]);
     }
 
+    /**
+     * Display the specified resource.
+     */
     public function scoreBySerial($serial)
     {
         $scores = AcademyScore::with('adminStudent', 'academyCompetence.adminTeacher')->where('serial', $serial)->get();
@@ -224,10 +228,17 @@ class ScoreController extends Controller
         ]);
     }
 
+    /**
+     * Display the specified resource.
+     */
     public function scoreByPerson(Request $request)
     {
         $studentId = $request->get('student_id');
-        $semester = $request->get('semester') ?? $semester = AcademyScore::where('admin_student_id', $studentId)->max('semester');
+        $semester = $request->get('semester');
+
+        if ($semester === 'last' || !$semester) {
+            $semester = AcademyScore::where('admin_student_id', $studentId)->max('semester');
+        }
 
         $scores = AcademyScore::query()
             ->join('academy_competences', 'academy_scores.academy_competence_id', '=', 'academy_competences.id')
@@ -239,7 +250,14 @@ class ScoreController extends Controller
                 'academy_subjects.group',
                 'academy_subjects.number',
                 'academy_subjects.name',
-                'academy_scores.final_score'
+                'academy_scores.final_score',
+                'academy_scores.is_ok_1',
+                'academy_scores.competence_1',
+                'academy_scores.is_ok_2',
+                'academy_scores.competence_2',
+                'academy_scores.is_ok_3',
+                'academy_scores.competence_3',
+                'academy_scores.created_at'
             ]);
 
         return response()->json([
@@ -248,7 +266,6 @@ class ScoreController extends Controller
             'semester' => $semester
         ]);
     }
-
 
     /**
      * Update the specified resource in storage.

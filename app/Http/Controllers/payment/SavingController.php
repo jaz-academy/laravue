@@ -13,7 +13,7 @@ class SavingController extends Controller
      */
     public function index()
     {
-        $savings = PaymentSaving::all();
+        $savings = PaymentSaving::with('adminStudent')->get();
 
         return response()->json([
             'count' => $savings->count(),

@@ -114,6 +114,9 @@ fetchSchool()
 
 watch(() => localData.value.header.semester, async semester => {
   if (semester) {
+    // Reset pilihan kompetensi saat semester berubah
+    localData.value.header.academy_competence_id = null
+
     const { data } = await useApi(`/competences?semester=${semester}`)
 
     competences.value = data.value.data
@@ -121,10 +124,55 @@ watch(() => localData.value.header.semester, async semester => {
 })
 
 watch(() => localData.value.header.academy_competence_id, competenceId => {
+  // Jika ID kompetensi dikosongkan, reset field terkait
+  if (!competenceId) {
+    localData.value.header.teacher = ''
+    localData.value.studentScores.forEach(score => {
+      score.competence_1 = ''
+      score.competence_2 = ''
+      score.competence_3 = ''
+    })
+
+    return
+  }
+
+  // Cari kompetensi yang dipilih dari data yang sudah ada di frontend
   const competence = competences.value.find(c => c.id === competenceId)
 
-  // Update teacher name in localData
-  localData.value.header.teacher = competence?.admin_teacher?.name || ''
+  if (competence) {
+    // Update nama guru di header
+    localData.value.header.teacher = competence.admin_teacher?.name || ''
+
+    // Update deskripsi kompetensi untuk semua siswa yang sudah ada di daftar
+    localData.value.studentScores.forEach(score => {
+      score.competence_1 = competence.competence_1 || ''
+      score.competence_2 = competence.competence_2 || ''
+      score.competence_3 = competence.competence_3 || ''
+    })
+  }
+})
+
+watch(() => localData.value.header.year, async year => {
+  // Hanya jalankan jika ini adalah form baru dan tahun sudah dipilih
+  if (year && props.serialNumber === 'new') {
+    // Kosongkan daftar skor siswa yang ada
+    localData.value.studentScores = []
+
+    // Ambil data siswa aktif berdasarkan tahun registrasi
+    const { data: studentsResponse } = await useApi(`/public/students-show?year=${year}&itemsPerPage=999&status=active`)
+
+    if (studentsResponse.value?.data) {
+      const students = studentsResponse.value.data
+
+      // Urutkan siswa berdasarkan nama
+      students.sort((a, b) => a.name.localeCompare(b.name))
+
+      // Tambahkan setiap siswa ke dalam daftar penilaian
+      students.forEach(student => {
+        emit('push', { admin_student_id: student.id })
+      })
+    }
+  }
 })
 
 // 👉 Add item function
@@ -151,8 +199,9 @@ const isFormValid = computed(() => {
     }
   }
 
-  // Form valid jika semua siswa telah ditambahkan atau tidak ada siswa sama sekali.
-  return localData.value.studentScores.length > 0
+  // Form dianggap valid jika header sudah terisi, dan setiap baris siswa (jika ada) memiliki siswa yang dipilih.
+  // Ini memungkinkan penyimpanan dengan daftar siswa kosong (untuk menghapus semua skor).
+  return true
 })
 
 const isLoading = ref(false)

@@ -1,220 +1,198 @@
 <script setup>
-import ECommerceAddCategoryDrawer from '@/views/financial/savings/AddSavings.vue'
-import { paginationMeta } from '@api-utils/paginationMeta'
-import { VDataTableServer } from 'vuetify/labs/VDataTable'
+import { humanDate, useUserAccess } from '@/@core/utils/helpers'
+import AddSavings from '@/views/financial/savings/AddSavings.vue'
+import { VDataTable } from 'vuetify/labs/VDataTable'
 
-const widgetData = ref([
-  {
-    title: 'In-Store Sales',
-    value: '$5,345.43',
-    icon: 'tabler-home',
-    desc: '5k orders',
-    change: 5.7,
-  },
-  {
-    title: 'Website Sales',
-    value: '$674,347.12',
-    icon: 'tabler-device-laptop',
-    desc: '21k orders',
-    change: 12.4,
-  },
-  {
-    title: 'Discount',
-    value: '$14,235.12',
-    icon: 'tabler-gift',
-    desc: '6k orders',
-  },
-  {
-    title: 'Affiliate',
-    value: '$8,345.23',
-    icon: 'tabler-wallet',
-    desc: '150 orders',
-    change: -3.5,
-  },
-])
+const { hasRoleAndAccess, currentUser } = useUserAccess()
+const savings = ref([])
+
+const fetchSavings = async () => {
+  const { data } = await useApi('/savings')
+
+  savings.value = data.value.data || []  
+}
+
+onMounted(fetchSavings)
+
+const saldos = computed(() => {
+  const map = {}
+
+  for (const s of savings.value) {
+    const st = s.admin_student
+    if (st && st.id) {
+      if (!map[st.id]) {
+        map[st.id] = {
+          id: st.id,
+          name: st.nickname || st.name || '',
+          debit: 0,
+          credit: 0,
+          saldo: 0,
+        }
+      }
+      map[st.id].debit += Number(s.debit) || 0
+      map[st.id].credit += Number(s.credit) || 0
+      map[st.id].saldo = map[st.id].credit - map[st.id].debit
+    }
+  }
+
+  return Object.values(map)
+})
+
+const getSaldoById = id => {
+  return saldos.value.find(s => s.id === id) || { debit: 0, credit: 0, saldo: 0 }
+}
+
+const isAlertVisible = ref(false)
+const alertMessage = ref('')
+const alertColor = ref('primary')
+
+const widgetData = computed(() => {
+  let summary = { credit: 0, debit: 0, saldo: 0 }
+
+  if (currentUser.value && currentUser.value.admin_student_id) {
+    summary = getSaldoById(currentUser.value.admin_student_id) || summary
+  } else {
+    const totalDeposit = savings.value.reduce((acc, s) => acc + Number(s.credit), 0)
+    const totalWithdraw = savings.value.reduce((acc, s) => acc + Number(s.debit), 0)
+
+    summary = {
+      credit: totalDeposit,
+      debit: totalWithdraw,
+      saldo: totalDeposit - totalWithdraw,
+    }
+  }
+
+  const items = [
+    { key: 'credit', title: 'Total Deposit', icon: 'tabler-credit-card-refund', desc: 'Penyimpanan', color: 'warning' },
+    { key: 'debit', title: 'Total Withdraw', icon: 'tabler-credit-card-pay', desc: 'Penarikan', color: 'info' },
+    { key: 'saldo', title: 'Total Balance', icon: 'tabler-wallet', desc: 'Saldo', color: 'success' },
+  ]
+
+  return items.map(item => ({
+    ...item,
+    value: summary[item.key].toLocaleString('id-ID'),
+  }))
+})
+
+const showAlert = (message, color = 'primary') => {
+  alertMessage.value = message
+  alertColor.value = color
+  isAlertVisible.value = true
+  setTimeout(() => {
+    isAlertVisible.value = false
+  }, 10000)
+}
+
+const savingData = computed(() => {
+  return savings.value
+    .slice()
+    .sort((a, b) => b.id - a.id) // 🔥 sort by id desc
+    .map((saving, index) => ({
+      no: index + 1,
+      id: saving.id || '',
+      invoice: saving.invoice || '',
+      date: saving.date || '',
+      admin_student_id: saving.admin_student?.id || '',
+      student: saving.admin_student?.nickname || '',
+      credit: saving.credit || '',
+      debit: saving.debit || '',
+      balance: saving.balance || '',
+      note: saving.note || '',
+      admin: saving.admin || '',
+    }))
+})
+
+const filteredSavingData = computed(() => {
+  // If the current user is a student, filter the savings data to show only their transactions.
+  if (currentUser.value && currentUser.value.admin_student_id) {
+    return savingData.value.filter(
+      s => s.admin_student_id === currentUser.value.admin_student_id,
+    )
+  }
+  
+  // Otherwise (if admin or other roles), show all savings data.
+  return savingData.value
+})
+
+
+const colors = ['primary', 'success', 'warning', 'error', 'info', 'secondary']
 
 const headers = [
-  {
-    title: 'Product',
-    key: 'product',
-  },
-  {
-    title: 'Category',
-    key: 'category',
-  },
-  {
-    title: 'Stock',
-    key: 'stock',
-    sortable: false,
-  },
-  {
-    title: 'SKU',
-    key: 'sku',
-  },
-  {
-    title: 'Price',
-    key: 'price',
-  },
-  {
-    title: 'QTY',
-    key: 'qty',
-  },
-  {
-    title: 'Status',
-    key: 'status',
-  },
-  {
-    title: 'Actions',
-    key: 'actions',
-    sortable: false,
-  },
+  { title: 'No', key: 'no' },
+  { title: 'Date', key: 'date' },
+  { title: 'Invoice', key: 'invoice' },
+  { title: 'Student', key: 'student' },
+  { title: 'Amount', key: 'balance' },
+  { title: 'Action', key: 'actions', sortable: false },
 ]
 
-const selectedStatus = ref()
-const selectedCategory = ref()
-const selectedStock = ref()
-const searchQuery = ref('')
-const isModalOpen = ref(false)
+const addNewData = async ({ action, data }) => {
+  console.log('Sending saving data:', data, 'action:', action)
+  try {
+    let url = '/savings'
+    let method = 'POST'
+    if (action === 'update' && data.id) {
+      url = `/savings/${data.id}`
+      method = 'PUT'
+    }
 
-const status = ref([
-  {
-    title: 'Scheduled',
-    value: 'Scheduled',
-  },
-  {
-    title: 'Publish',
-    value: 'Published',
-  },
-  {
-    title: 'Inactive',
-    value: 'Inactive',
-  },
-])
+    const { data: resData, response } = await useApi(url, {
+      method,
+      body: JSON.stringify(data),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    })
 
-const categories = ref([
-  {
-    title: 'Accessories',
-    value: 'Accessories',
-  },
-  {
-    title: 'Home Decor',
-    value: 'Home Decor',
-  },
-  {
-    title: 'Electronics',
-    value: 'Electronics',
-  },
-  {
-    title: 'Shoes',
-    value: 'Shoes',
-  },
-  {
-    title: 'Office',
-    value: 'Office',
-  },
-  {
-    title: 'Games',
-    value: 'Games',
-  },
-])
+    if (response.value.ok) {
+      const msg = action === 'create' ? 'Data berhasil ditambahkan' : 'Data berhasil diperbarui'
 
-const stockStatus = ref([
-  {
-    title: 'In Stock',
-    value: true,
-  },
-  {
-    title: 'Out of Stock',
-    value: false,
-  },
-])
+      showAlert(msg, 'success')
+      console.log('Response saving data:', resData)
+      fetchSavings()
+    } else {
+      showAlert(response.value.statusText || 'Gagal menyimpan data', 'error')
+    }
+  } catch (error) {
+    console.error('Save error:', error?.data?.errors || error)
+    showAlert(error.message || 'Gagal menyimpan data', 'error')
+  }
+}
 
-// Data table options
+const isDrawerOpen = ref(false)
+const mode = ref('add')
+const selectedData = ref({})
+
+const editData = data => {
+  selectedData.value = { ...data }
+  mode.value = 'edit'
+  isDrawerOpen.value = true
+}
+
+const addData = () => {
+  selectedData.value = {}
+  mode.value = 'add'
+  isDrawerOpen.value = true
+}
+
+const deleteData = async id => {
+  try {
+    if (confirm('Apakah kamu yakin ingin menghapus data ini?')) {
+      console.log('Deleting saving data with ID:', id)
+      await useApi(`/savings/${id}`, { method: 'DELETE' })
+      showAlert('Data berhasil dihapus', 'success')
+    }
+    fetchSavings()
+  } catch (err) {
+    showAlert(err.message || 'Gagal menghapus data', 'error')
+    console.error(err)
+  }
+}
+
 const itemsPerPage = ref(10)
 const page = ref(1)
-const sortBy = ref()
-const orderBy = ref()
-
-const updateOptions = options => {
-  page.value = options.page
-  sortBy.value = options.sortBy[0]?.key
-  orderBy.value = options.sortBy[0]?.order
-}
-
-const resolveCategory = category => {
-  if (category === 'Accessories')
-    return {
-      color: 'error',
-      icon: 'tabler-device-watch',
-    }
-  if (category === 'Home Decor')
-    return {
-      color: 'info',
-      icon: 'tabler-home',
-    }
-  if (category === 'Electronics')
-    return {
-      color: 'primary',
-      icon: 'tabler-device-imac',
-    }
-  if (category === 'Shoes')
-    return {
-      color: 'success',
-      icon: 'tabler-shoe',
-    }
-  if (category === 'Office')
-    return {
-      color: 'warning',
-      icon: 'tabler-briefcase',
-    }
-  if (category === 'Games')
-    return {
-      color: 'primary',
-      icon: 'tabler-device-gamepad-2',
-    }
-}
-
-const resolveStatus = statusMsg => {
-  if (statusMsg === 'Scheduled')
-    return {
-      text: 'Scheduled',
-      color: 'warning',
-    }
-  if (statusMsg === 'Published')
-    return {
-      text: 'Publish',
-      color: 'success',
-    }
-  if (statusMsg === 'Inactive')
-    return {
-      text: 'Inactive',
-      color: 'error',
-    }
-}
-
-const {
-  data: productsData,
-  execute: fetchProducts,
-} = await useFake(createUrl('/apps/ecommerce/products', {
-  query: {
-    q: searchQuery,
-    stock: selectedStock,
-    category: selectedCategory,
-    status: selectedStatus,
-    page,
-    itemsPerPage,
-    sortBy,
-    orderBy,
-  },
-}))
-
-const products = computed(() => productsData.value.products)
-const totalProduct = computed(() => productsData.value.total)
-
-const deleteProduct = async id => {
-  await $fake(`apps/ecommerce/products/${ id }`, { method: 'DELETE' })
-  fetchProducts()
-}
+const searchQuery = ref('')
 </script>
 
 <template>
@@ -229,9 +207,8 @@ const deleteProduct = async id => {
           >
             <VCol
               cols="12"
-              sm="6"
-              md="3"
-              class="px-6"
+              md="4"
+              class="px-8 position-relative"
             >
               <div
                 class="d-flex justify-space-between"
@@ -246,27 +223,20 @@ const deleteProduct = async id => {
                     {{ data.title }}
                   </div>
 
-                  <h4 class="text-h4 my-1">
-                    {{ data.value }}
+                  <h4 :class="id == 2 ? `text-h2` : `text-h4`">
+                    Rp. {{ data.value }}
                   </h4>
 
                   <div class="d-flex">
-                    <div class="me-2 text-disabled text-no-wrap">
+                    <div :class="`me-2 text-disabled text-no-wrap text-${data.color}`">
                       {{ data.desc }}
                     </div>
-
-                    <VChip
-                      v-if="data.change"
-                      label
-                      :color="data.change > 0 ? 'success' : 'error'"
-                    >
-                      {{ prefixWithPlus(data.change) }}%
-                    </VChip>
                   </div>
                 </div>
 
                 <VAvatar
                   variant="tonal"
+                  :color="data.color"
                   rounded
                   size="38"
                 >
@@ -276,253 +246,164 @@ const deleteProduct = async id => {
                   />
                 </VAvatar>
               </div>
+              <VDivider
+                v-if="($vuetify.display.mdAndUp && id < widgetData.length - 1) || ($vuetify.display.smOnly && id % 2 === 0)"
+                vertical
+                inset
+                class="position-absolute"
+                style=" block-size: 70%;inset-block-start: 50%; inset-inline-end: 0; transform: translateY(-50%);"
+              />
             </VCol>
-            <VDivider
-              v-if="$vuetify.display.mdAndUp ? id !== widgetData.length - 1
-                : $vuetify.display.smAndUp ? id % 2 === 0
-                  : false"
-              vertical
-              inset
-              length="95"
-            />
           </template>
         </VRow>
       </VCardText>
     </VCard>
 
-    <!-- 👉 products -->
-    <VCard
-      title="Filters"
+    <VAlert
+      v-model="isAlertVisible"
+      closable
       class="mb-6"
+      :color="alertColor"
     >
+      {{ alertMessage }}
+    </VAlert>
+
+    <VCard>
       <VCardText>
-        <VRow>
-          <!-- 👉 Select Status -->
-          <VCol
-            cols="12"
-            sm="4"
-          >
+        <div class="d-flex justify-sm-space-between flex-wrap gap-y-4 gap-x-6 justify-start">
+          <VTextField
+            v-model="searchQuery"
+            placeholder="Search"
+            density="compact"
+            style="max-inline-size: 200px; min-inline-size: 200px;"
+          />
+          <div class="d-flex align-center flex-wrap gap-4">
             <AppSelect
-              v-model="selectedStatus"
-              placeholder="Status"
-              :items="status"
-              clearable
-              clear-icon="tabler-x"
+              v-model="itemsPerPage"
+              :items="[5,10,15]"
             />
-          </VCol>
-
-          <!-- 👉 Select Category -->
-          <VCol
-            cols="12"
-            sm="4"
-          >
-            <AppSelect
-              v-model="selectedCategory"
-              placeholder="Category"
-              :items="categories"
-              clearable
-              clear-icon="tabler-x"
-            />
-          </VCol>
-
-          <!-- 👉 Select Stock Status -->
-          <VCol
-            cols="12"
-            sm="4"
-          >
-            <AppSelect
-              v-model="selectedStock"
-              placeholder="Stock"
-              :items="stockStatus"
-              clearable
-              clear-icon="tabler-x"
-            />
-          </VCol>
-        </VRow>
+            <VBtn
+              v-if="hasRoleAndAccess(2, 'Saving').value"
+              prepend-icon="tabler-plus"
+              @click="addData"
+            >
+              Add Data Saving
+            </VBtn>
+          </div>
+        </div>
       </VCardText>
 
-      <VDivider class="my-4" />
+      <VDivider />
 
-      <div class="d-flex flex-wrap gap-4 mx-5">
-        <div class="d-flex align-center">
-          <!-- 👉 Search  -->
-          <AppTextField
-            v-model="searchQuery"
-            placeholder="Search Product"
-            density="compact"
-            style="inline-size: 200px;"
-            class="me-3"
-          />
-        </div>
+      <div class="data-table">
+        <VDataTable
+          v-model:items-per-page="itemsPerPage"
+          v-model:page="page"
+          :headers="headers"
+          :items="filteredSavingData"
+          :search="searchQuery"
+          item-value="number"
+          class="text-no-wrap"
+          show-select
+        >
+          <template #item.date="{ item }">
+            {{ humanDate(item.date) }}
+          </template>
 
-        <VSpacer />
-        <div class="d-flex gap-4 flex-wrap align-center">
-          <AppSelect
-            v-model="itemsPerPage"
-            :items="[5, 10, 20, 25, 50]"
-          />
-          <!-- 👉 Export button -->
-          <VBtn
-            variant="tonal"
-            color="secondary"
-            prepend-icon="tabler-upload"
-          >
-            Export
-          </VBtn>
-
-          <VBtn
-            color="primary"
-            prepend-icon="tabler-plus"
-            @click="isModalOpen = !isModalOpen"
-          >
-            Add Product
-          </VBtn>
-        </div>
-      </div>
-
-      <VDivider class="mt-4" />
-
-      <!-- 👉 Datatable  -->
-      <VDataTableServer
-        v-model:items-per-page="itemsPerPage"
-        v-model:page="page"
-        :headers="headers"
-        show-select
-        :items="products"
-        :items-length="totalProduct"
-        class="text-no-wrap"
-        @update:options="updateOptions"
-      >
-        <!-- product  -->
-        <template #item.product="{ item }">
-          <div class="d-flex align-center gap-x-2">
-            <VAvatar
-              v-if="item.image"
-              size="38"
-              variant="tonal"
-              rounded
-              :image="item.image"
-            />
-            <div class="d-flex flex-column">
-              <span class="text-body-1 font-weight-medium">{{ item.productName }}</span>
-              <span class="text-sm text-disabled">{{ item.productBrand }}</span>
-            </div>
-          </div>
-        </template>
-
-        <!-- category -->
-        <template #item.category="{ item }">
-          <VAvatar
-            size="30"
-            variant="tonal"
-            :color="resolveCategory(item.category)?.color"
-            class="me-2"
-          >
-            <VIcon
-              :icon="resolveCategory(item.category)?.icon"
-              size="18"
-            />
-          </VAvatar>
-          <span class="text-body-1 font-weight-medium">{{ item.category }}</span>
-        </template>
-
-        <!-- stock -->
-        <template #item.stock="{ item }">
-          <VSwitch :model-value="item.stock" />
-        </template>
-
-        <!-- status -->
-        <template #item.status="{ item }">
-          <VChip
-            v-bind="resolveStatus(item.status)"
-            density="default"
-            label
-          />
-        </template>
-
-        <!-- Actions -->
-        <template #item.actions="{ item }">
-          <IconBtn>
-            <VIcon icon="tabler-edit" />
-          </IconBtn>
-
-          <IconBtn>
-            <VIcon icon="tabler-dots-vertical" />
-            <VMenu activator="parent">
-              <VList>
-                <VListItem
-                  value="download"
-                  prepend-icon="tabler-download"
-                >
-                  Download
-                </VListItem>
-
-                <VListItem
-                  value="delete"
-                  prepend-icon="tabler-trash"
-                  @click="deleteProduct(item.id)"
-                >
-                  Delete
-                </VListItem>
-
-                <VListItem
-                  value="duplicate"
-                  prepend-icon="tabler-copy"
-                >
-                  Duplicate
-                </VListItem>
-              </VList>
-            </VMenu>
-          </IconBtn>
-        </template>
-
-        <template #bottom>
-          <VDivider />
-
-          <div class="d-flex align-center justify-space-between flex-wrap gap-3 pa-5 pt-3">
-            <p class="text-sm text-medium-emphasis mb-0">
-              {{ paginationMeta({ page, itemsPerPage }, totalProduct) }}
-            </p>
-
-            <VPagination
-              v-model="page"
-              :length="Math.min(Math.ceil(totalProduct / itemsPerPage), 5)"
-              :total-visible="$vuetify.display.xs ? 1 : Math.min(Math.ceil(totalProduct / itemsPerPage), 5)"
+          <template #item.student="{ item }">
+            <VChip
+              :color="colors[item.admin_student_id % colors.length]"
+              size="small"
+              class="text-capitalize"
+              label
             >
-              <template #prev="slotProps">
-                <VBtn
-                  variant="tonal"
-                  color="default"
-                  v-bind="slotProps"
-                  :icon="false"
-                >
-                  Previous
-                </VBtn>
-              </template>
+              {{ item.student }}
+            </VChip>
+          </template>
 
-              <template #next="slotProps">
-                <VBtn
-                  variant="tonal"
-                  color="default"
-                  v-bind="slotProps"
-                  :icon="false"
-                >
-                  Next
-                </VBtn>
-              </template>
-            </VPagination>
-          </div>
-        </template>
-      </VDataTableServer>
+          <template #item.balance="{ item }">
+            <VAvatar
+              variant="tonal"
+              class="me-4"
+              size="38"
+              circle
+            >
+              <VIcon
+                :color="item.balance < 0 ? 'error' : 'primary'"
+                :icon="item.balance < 0 ? 'tabler-credit-card-pay' : 'tabler-credit-card-refund'"
+                size="18"
+              />
+            </VAvatar>
+            <span :class="item.balance < 0 ? 'text-error' : 'text-primary'">
+              {{ item.balance.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }) }}
+            </span>
+          </template>
+
+          <template #item.actions="{ item }">
+            <IconBtn
+              :disabled="!hasRoleAndAccess(4, 'Saving').value"
+              :color="hasRoleAndAccess(4, 'Saving').value ? 'error' : 'secondary'"
+              @click="deleteData(item.id)"
+            >
+              <VIcon icon="tabler-trash" />
+            </IconBtn>
+            <IconBtn
+              color="primary"
+              @click="editData(item)"
+            >
+              <VIcon :icon="hasRoleAndAccess(3, 'Saving').value ? 'tabler-edit' : 'tabler-eye'" />
+            </IconBtn>
+          </template>
+
+          <template #bottom>
+            <VDivider />
+            <div class="d-flex align-center justify-space-between flex-wrap gap-3 pa-5 pt-3">
+              <p class="text-sm text-medium-emphasis mb-0">
+                showing {{ itemsPerPage * (page - 1) + 1 }} to
+                {{ Math.min(itemsPerPage * page, filteredSavingData.length) }} of {{ filteredSavingData.length }} entries
+              </p>
+              <VPagination
+                v-model="page"
+                :length="Math.ceil(filteredSavingData.length / itemsPerPage)"
+                :total-visible="5"
+              >
+                <template #prev="slotProps">
+                  <VBtn
+                    variant="tonal"
+                    color="default"
+                    v-bind="slotProps"
+                    :icon="false"
+                  >
+                    Previous
+                  </VBtn>
+                </template>
+                <template #next="slotProps">
+                  <VBtn
+                    variant="tonal"
+                    color="default"
+                    v-bind="slotProps"
+                    :icon="false"
+                  >
+                    Next
+                  </VBtn>
+                </template>
+              </VPagination>
+            </div>
+          </template>
+        </VDataTable>
+      </div>
     </VCard>
-    
-    <ECommerceAddCategoryDrawer v-model:is-drawer-open="isModalOpen" />
+
+    <AddSavings
+      v-model:is-drawer-open="isDrawerOpen"
+      :mode="mode"
+      :selected-data="selectedData"
+      :get-saldo="getSaldoById"
+      @selected-data="addNewData"
+    />
   </div>
 </template>
 
-<style lang="scss" scoped>
-.product-widget{
-  border-block-end: 1px solid rgba(var(--v-theme-on-surface), var(--v-border-opacity));
-  padding-block-end: 1rem;
-}
+<style lang="scss">
+.ProseMirror-focused{ border: none; }
 </style>

@@ -1,4 +1,46 @@
 <script setup>
+import { computed } from 'vue'
+
+const props = defineProps({
+  data: {
+    type: Array,
+    default: () => [],
+  },
+})
+
+const monthNames = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+]
+
+const chartData = computed(() => {
+  const bulan = []
+  const official = []
+  const non_official = []
+
+  props.data.forEach(item => {
+    const [year, month] = item.month.split('-')
+
+    bulan.push(`${monthNames[parseInt(month) - 1]}-${year}`)
+    official.push(Number(item.official))
+    non_official.push(Number(item.non_official))
+  })
+
+  return { bulan, official, non_official }
+})
+
+console.log("chartData: ", chartData.value)
+
 const chartColors = {
   line: {
     series1: '#FFB400',
@@ -11,42 +53,20 @@ const headingColor = 'rgba(var(--v-theme-on-background), var(--v-high-emphasis-o
 const labelColor = 'rgba(var(--v-theme-on-background), var(--v-medium-emphasis-opacity))'
 const borderColor = 'rgba(var(--v-border-color), var(--v-border-opacity))'
 
-const series = [
+const series = computed(() => ([
   {
-    name: 'Shipment',
+    name: 'Kitchen',
     type: 'column',
-    data: [
-      38,
-      45,
-      33,
-      38,
-      32,
-      48,
-      45,
-      40,
-      42,
-      37,
-    ],
+    data: chartData.value.official,
   },
   {
-    name: 'Delivery',
+    name: 'Household',
     type: 'line',
-    data: [
-      23,
-      28,
-      23,
-      32,
-      25,
-      42,
-      32,
-      32,
-      26,
-      24,
-    ],
+    data: chartData.value.non_official,
   },
-]
+]))
 
-const shipmentConfig = {
+const shipmentConfig = computed(() => ({
   chart: {
     type: 'line',
     stacked: false,
@@ -116,18 +136,7 @@ const shipmentConfig = {
   dataLabels: { enabled: false },
   xaxis: {
     tickAmount: 10,
-    categories: [
-      '1 Jan',
-      '2 Jan',
-      '3 Jan',
-      '4 Jan',
-      '5 Jan',
-      '6 Jan',
-      '7 Jan',
-      '8 Jan',
-      '9 Jan',
-      '10 Jan',
-    ],
+    categories: chartData.value.bulan,
     labels: {
       style: {
         colors: labelColor,
@@ -140,8 +149,6 @@ const shipmentConfig = {
   },
   yaxis: {
     tickAmount: 4,
-    min: 10,
-    max: 50,
     labels: {
       style: {
         colors: labelColor,
@@ -149,7 +156,11 @@ const shipmentConfig = {
         fontWeight: 400,
       },
       formatter(val) {
-        return `${ val }%`
+        if (val >= 1000000) {
+          return `${(val / 1000000).toFixed(0)} jt`
+        }
+        
+        return val?.toLocaleString('id-ID') || 0
       },
     },
   },
@@ -188,7 +199,7 @@ const shipmentConfig = {
       },
     },
   ],
-}
+}))
 </script>
 
 <template>
