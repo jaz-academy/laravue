@@ -1,1 +1,0 @@
-import{a4 as t,H as e,a5 as s,br as n}from"./main-7a04a4cc.js";function i(){const o=t(!1);return e(()=>{window.requestAnimationFrame(()=>{o.value=!0})}),{ssrBootStyles:s(()=>o.value?void 0:{transition:"none !important"}),isBooted:n(o)}}export{i as u};

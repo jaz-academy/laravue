@@ -1,4 +1,14 @@
 <script setup>
+import { humanDate } from '@/@core/utils/helpers'
+
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => ({ expenses: [], outgoings: [], inputs: [] }),
+  },
+})
+
+
 const currentTab = ref('Input')
 
 const tabsData = [
@@ -37,94 +47,33 @@ const tabsData = [
         <VWindowItem>
           <div>
             <VTimeline
+              v-if="props.data.inputs.length"
               align="start"
               truncate-line="both"
               side="end"
               density="compact"
               line-thickness="1"
+              class="table-container"
             >
               <VTimelineItem
+                v-for="(item, index) in props.data.inputs"
+                :key="index"
                 icon="tabler-circle-check"
                 dot-color="rgba(var(--v-theme-surface))"
                 icon-color="success"
                 fill-dot
                 size="22"
                 :elevation="0"
+                class="text-no-wrap"
               >
                 <div class="text-caption text-uppercase text-success">
-                  Sender
+                  {{ item.remark }}
                 </div>
                 <div class="app-timeline-title">
-                  Myrtle Ullrich
+                  {{ new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.amount) }}
                 </div>
                 <div class="app-timeline-text">
-                  101 Boulder, California(CA), 95959
-                </div>
-              </VTimelineItem>
-              <VTimelineItem
-                icon="tabler-map-pin"
-                dot-color="rgba(var(--v-theme-surface))"
-                icon-color="primary"
-                fill-dot
-                size="22"
-                :elevation="0"
-              >
-                <div class="text-caption text-primary text-uppercase">
-                  Receiver
-                </div>
-                <div class="app-timeline-title">
-                  Barry Schowalter
-                </div>
-                <div class="app-timeline-text">
-                  939 Orange, California(CA), 92118
-                </div>
-              </VTimelineItem>
-            </VTimeline>
-            <VDivider
-              class="my-5"
-              style="border-style: dashed;"
-            />
-            <VTimeline
-              align="start"
-              truncate-line="both"
-              side="end"
-              density="compact"
-              line-thickness="1"
-            >
-              <VTimelineItem
-                icon="tabler-circle-check"
-                dot-color="rgba(var(--v-theme-surface))"
-                icon-color="success"
-                fill-dot
-                size="22"
-                :elevation="0"
-              >
-                <div class="text-caption text-uppercase text-success">
-                  Sender
-                </div>
-                <div class="app-timeline-title">
-                  Veronica Herman
-                </div>
-                <div class="app-timeline-text">
-                  162  Windsor, California(CA), 95492
-                </div>
-              </VTimelineItem>
-              <VTimelineItem
-                icon="tabler-map-pin"
-                dot-color="rgba(var(--v-theme-surface))"
-                icon-color="primary"
-                fill-dot
-                size="22"
-                :elevation="0"
-              >
-                <div class="text-caption text-primary text-uppercase">
-                  Receiver
-                </div>
-                <div class="app-timeline-title">
-                  Helen Jacobs
-                </div>
-                <div class="app-timeline-text">
-                  487 Sunset, California(CA), 94043
+                  {{ humanDate(item.date) }}
                 </div>
               </VTimelineItem>
             </VTimeline>
@@ -134,93 +83,33 @@ const tabsData = [
         <VWindowItem>
           <div>
             <VTimeline
+              v-if="props.data.outgoings.length"
               align="start"
               truncate-line="both"
               side="end"
               density="compact"
               line-thickness="1"
+              class="table-container"
             >
               <VTimelineItem
-                icon="tabler-circle-check"
+                v-for="(item, index) in props.data.outgoings"
+                :key="index"
+                icon="tabler-arrow-up-right"
                 dot-color="rgba(var(--v-theme-surface))"
-                icon-color="success"
+                icon-color="warning"
                 fill-dot
                 size="22"
                 :elevation="0"
+                class="text-no-wrap"
               >
-                <div class="text-caption text-uppercase text-success">
-                  Sender
+                <div class="text-caption text-uppercase text-warning">
+                  {{ item.remark }}
                 </div>
                 <div class="app-timeline-title">
-                  Barry Schowalter
+                  {{ new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.amount) }}
                 </div>
                 <div class="app-timeline-text">
-                  939 Orange, California(CA), 92118
-                </div>
-              </VTimelineItem>
-              <VTimelineItem
-                icon="tabler-map-pin"
-                dot-color="rgba(var(--v-theme-surface))"
-                icon-color="primary"
-                fill-dot
-                size="22"
-                :elevation="0"
-              >
-                <div class="text-caption text-primary text-uppercase">
-                  Receiver
-                </div>
-                <div class="app-timeline-title">
-                  Myrtle Ullrich
-                </div>
-                <div class="app-timeline-text">
-                  101 Boulder, California(CA), 95959
-                </div>
-              </VTimelineItem>
-            </VTimeline>
-
-            <VDivider class="my-6" />
-
-            <VTimeline
-              align="start"
-              truncate-line="both"
-              side="end"
-              density="compact"
-              line-thickness="1"
-            >
-              <VTimelineItem
-                icon="tabler-circle-check"
-                dot-color="rgba(var(--v-theme-surface))"
-                icon-color="success"
-                fill-dot
-                size="22"
-                :elevation="0"
-              >
-                <div class="text-caption text-uppercase text-success">
-                  Sender
-                </div>
-                <div class="app-timeline-title">
-                  Veronica Herman
-                </div>
-                <div class="app-timeline-text">
-                  162  Windsor, California(CA), 95492
-                </div>
-              </VTimelineItem>
-              <VTimelineItem
-                icon="tabler-map-pin"
-                dot-color="rgba(var(--v-theme-surface))"
-                icon-color="primary"
-                fill-dot
-                size="22"
-                :elevation="0"
-              >
-                <div class="text-caption text-primary text-uppercase">
-                  Receiver
-                </div>
-                <div class="app-timeline-title">
-                  Helen Jacobs
-                </div>
-                <div class="app-timeline-text">
-                  487 Sunset, California(CA), 94043
+                  {{ humanDate(item.date) }}
                 </div>
               </VTimelineItem>
             </VTimeline>
@@ -230,91 +119,33 @@ const tabsData = [
         <VWindowItem>
           <div>
             <VTimeline
+              v-if="props.data.expenses.length"
               align="start"
               truncate-line="both"
               side="end"
               density="compact"
               line-thickness="1"
+              class="table-container"
             >
               <VTimelineItem
-                icon="tabler-circle-check"
+                v-for="(item, index) in props.data.expenses"
+                :key="index"
+                icon="tabler-arrow-up-right-circle"
                 dot-color="rgba(var(--v-theme-surface))"
-                icon-color="success"
+                icon-color="error"
                 fill-dot
                 size="22"
                 :elevation="0"
+                class="text-no-wrap"
               >
-                <div class="text-caption text-uppercase text-success">
-                  Sender
+                <div class="text-caption text-uppercase text-error">
+                  {{ item.remark }}
                 </div>
                 <div class="app-timeline-title">
-                  Myrtle Ullrich
+                  {{ new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.amount) }}
                 </div>
                 <div class="app-timeline-text">
-                  101 Boulder, California(CA), 95959
-                </div>
-              </VTimelineItem>
-              <VTimelineItem
-                icon="tabler-map-pin"
-                dot-color="rgba(var(--v-theme-surface))"
-                icon-color="primary"
-                fill-dot
-                size="22"
-                :elevation="0"
-              >
-                <div class="text-caption text-primary text-uppercase">
-                  Receiver
-                </div>
-                <div class="app-timeline-title">
-                  Barry Schowalter
-                </div>
-                <div class="app-timeline-text">
-                  939 Orange, California(CA), 92118
-                </div>
-              </VTimelineItem>
-            </VTimeline>
-            <VDivider class="my-6" />
-            <VTimeline
-              align="start"
-              truncate-line="both"
-              side="end"
-              density="compact"
-              line-thickness="1"
-            >
-              <VTimelineItem
-                icon="tabler-circle-check"
-                dot-color="rgba(var(--v-theme-surface))"
-                icon-color="success"
-                fill-dot
-                size="22"
-                :elevation="0"
-              >
-                <div class="text-caption text-uppercase text-success">
-                  Sender
-                </div>
-                <div class="app-timeline-title">
-                  Veronica Herman
-                </div>
-                <div class="app-timeline-text">
-                  162  Windsor, California(CA), 95492
-                </div>
-              </VTimelineItem>
-              <VTimelineItem
-                icon="tabler-map-pin"
-                dot-color="rgba(var(--v-theme-surface))"
-                icon-color="primary"
-                fill-dot
-                size="22"
-                :elevation="0"
-              >
-                <div class="text-caption text-primary text-uppercase">
-                  Receiver
-                </div>
-                <div class="app-timeline-title">
-                  Helen Jacobs
-                </div>
-                <div class="app-timeline-text">
-                  487 Sunset, California(CA), 94043
+                  {{ humanDate(item.date) }}
                 </div>
               </VTimelineItem>
             </VTimeline>
@@ -329,6 +160,20 @@ const tabsData = [
 .country-order-card{
   .v-timeline .v-timeline-divider__dot .v-timeline-divider__inner-dot{
     box-shadow: none !important;
+  }
+}
+
+.table-container {
+  max-block-size: 290px;
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  &::-webkit-scrollbar {
+    display: none;
   }
 }
 </style>

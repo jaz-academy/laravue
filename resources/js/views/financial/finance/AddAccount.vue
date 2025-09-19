@@ -28,23 +28,12 @@ const form = reactive({
 
 const fetchAccounts = async () => {
   const { data } = await useApi('/accounts')
-  const raw = data.value.data || []
 
-  const seen = new Set()
-
-  accounts.value = raw
-    .filter(a => a.allocation) // skip allocation kosong
-    .filter(a => {
-      if (seen.has(a.allocation)) return false
-      seen.add(a.allocation)
-      
-      return true
-    })
-    .map(a => ({
-      number: a.number || '-',
-      description: a.description || '-',
-      allocation: a.allocation,
-    }))
+  accounts.value = data.value.data.map(a => ({
+    number: a.number || '-',
+    description: a.description || '-',
+    allocation: a.allocation,
+  }))
 }
 
 onMounted(fetchAccounts)

@@ -48,7 +48,6 @@ const discountData = computed(() => {
 const colors = ['primary', 'success', 'warning', 'error', 'info', 'secondary']
 
 const headers = [
-  { title: 'No', key: 'no' },
   { title: 'Student', key: 'student' },
   { title: 'Year', key: 'year' },
   { title: 'Billing', key: 'billing' },

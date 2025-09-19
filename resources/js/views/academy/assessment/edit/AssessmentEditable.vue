@@ -199,8 +199,9 @@ const isFormValid = computed(() => {
     }
   }
 
-  // Form valid jika semua siswa telah ditambahkan atau tidak ada siswa sama sekali.
-  return localData.value.studentScores.length > 0
+  // Form dianggap valid jika header sudah terisi, dan setiap baris siswa (jika ada) memiliki siswa yang dipilih.
+  // Ini memungkinkan penyimpanan dengan daftar siswa kosong (untuk menghapus semua skor).
+  return true
 })
 
 const isLoading = ref(false)

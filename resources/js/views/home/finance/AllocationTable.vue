@@ -1,70 +1,70 @@
 <script setup>
-import { paginationMeta } from '@api-utils/paginationMeta'
-import { VDataTableServer } from 'vuetify/labs/VDataTable'
+import { computed } from 'vue'
 
-// Data table options
-const itemsPerPage = ref(5)
-const page = ref(1)
-const sortBy = ref()
-const orderBy = ref()
-
-const updateOptions = options => {
-  page.value = options.page
-  sortBy.value = options.sortBy[0]?.key
-  orderBy.value = options.sortBy[0]?.order
-}
-
-const { data: vehiclesData } = await useFake(createUrl('/apps/logistics/vehicles', {
-  query: {
-    page,
-    itemsPerPage,
-    sortBy,
-    orderBy,
+const props = defineProps({
+  data: {
+    type: Array,
+    default: () => [],
   },
-}))
-
-const vehicles = computed(() => vehiclesData.value.vehicles)
-const totalVehicles = computed(() => vehiclesData.value.totalVehicles)
+})
 
 const headers = [
   {
-    title: 'ITEM',
-    key: 'location',
+    title: 'ACCOUNT',
+    key: 'description',
   },
   {
-    title: 'IN',
-    key: 'startRoute',
+    title: 'PAYMENT',
+    key: 'payment',
   },
   {
-    title: 'OUT',
-    key: 'endRoute',
+    title: 'EXPENSES',
+    key: 'amount',
   },
   {
     title: 'BALANCE',
-    key: 'warnings',
+    key: 'balance',
   },
   {
-    title: 'PERCENTAGE',
-    key: 'progress',
+    title: 'REMAIN',
+    key: 'percentage',
   },
 ]
 
-const resolveChipColor = warning => {
-  if (warning === 'No Warnings')
-    return 'success'
-  if (warning === 'fuel problems')
-    return 'primary'
-  if (warning === 'Temperature Not Optimal')
-    return 'warning'
-  if (warning === 'Ecu Not Responding')
-    return 'error'
-  if (warning === 'Oil Leakage')
-    return 'info'
+const formatCurrency = value => {
+  if (typeof value !== 'number')
+    return value
+
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+  }).format(value)
 }
+
+const resolveChipColor = balance => {
+  if (balance > 0)
+    return 'success'
+  if (balance < 0)
+    return 'error'
+  
+  return 'warning'
+}
+
+const resolvePercentageColor = percentage => {
+  if (percentage > 95)
+    return 'error'
+  if (percentage > 85)
+    return 'warning'
+  
+  return 'primary'
+}
+
+const totalBalance = computed(() => props.data.reduce((sum, item) => sum + item.balance, 0))
 </script>
 
 <template>
-  <VCard>
+  <VCard v-if="props.data.length">
     <VCardItem title="Allocation">
       <template #append>
         <MoreBtn />
@@ -72,115 +72,106 @@ const resolveChipColor = warning => {
     </VCardItem>
 
     <VDivider />
-    <VDataTableServer
-      v-model:items-per-page="itemsPerPage"
-      v-model:page="page"
-      :items-per-page-options="[
-        { value: 5, title: '5' },
-        { value: 10, title: '10' },
-        { value: 20, title: '20' },
-        { value: -1, title: '$vuetify.dataFooter.itemsPerPageAll' },
-      ]"
-      :items-length="totalVehicles"
-      :items="vehicles"
-      :headers="headers"
-      show-select
-      class="text-no-wrap"
-      @update:options="updateOptions"
-    >
-      <template #item.location="{ item }">
-        <VAvatar
-          variant="tonal"
-          class="me-2"
-          size="40"
-        >
-          <VIcon
-            icon="tabler-building-bank"
-            size="24"
-          />
-        </VAvatar>
-        <RouterLink
-          class="text-body-2 text-high-emphasis font-weight-medium"
-          :to="{ name: 'apps-logistics-fleet' }"
-        >
-          {{ item.startCity }}
-        </RouterLink>
-      </template>
 
-      <template #item.startRoute="{ item }">
-        {{ item.progress }}.000.000
-      </template>
-
-      <template #item.endRoute="{ item }">
-        {{ item.progress }}.000.000
-      </template>
-
-      <template #item.warnings="{ item }">
-        <VChip
-          :color="resolveChipColor(item.warnings)"
-          label
-        >
-          {{ item.progress }}.000.000
-        </VChip>
-      </template>
-
-      <template #item.progress="{ item }">
-        <div
-          class="d-flex align-center gap-x-4"
-          style="min-inline-size: 240px;"
-        >
-          <div class="w-100">
-            <VProgressLinear
-              :model-value="item.progress"
-              rounded
-              color="primary"
-              :height="8"
-            />
-          </div>
-          <div>
-            {{ item.progress }}%
-          </div>
-        </div>
-      </template>
-
-      <!-- pagination -->
-      <template #bottom>
-        <VDivider />
-
-        <div class="d-flex align-center justify-sm-space-between justify-center flex-wrap gap-3 pa-5 pt-3">
-          <p class="text-sm text-disabled mb-0">
-            {{ paginationMeta({ page, itemsPerPage }, totalVehicles) }}
-          </p>
-
-          <VPagination
-            v-model="page"
-            :length="Math.ceil(totalVehicles / itemsPerPage)"
-            :total-visible="$vuetify.display.xs ? 1 : Math.min(Math.ceil(totalVehicles / itemsPerPage), 5)"
+    <VTable class="text-no-wrap">
+      <thead>
+        <tr>
+          <th
+            v-for="header in headers"
+            :key="header.key"
+            scope="col"
+            class="text-uppercase"
           >
-            <template #prev="slotProps">
-              <VBtn
+            {{ header.title }}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          v-for="item in props.data"
+          :key="item.allocation"
+        >
+          <!-- ACCOUNT -->
+          <td>
+            <div class="d-flex align-center">
+              <VAvatar
+                :color="item.allocation === '' ? 'error' : 'primary'"
                 variant="tonal"
-                color="default"
-                v-bind="slotProps"
-                :icon="false"
+                class="me-2"
+                size="34"
               >
-                Previous
-              </VBtn>
-            </template>
+                <VIcon
+                  :icon="item.allocation === '' ? 'tabler-wallet' : 'tabler-building-bank'"
+                  size="22"
+                />
+              </VAvatar>
+              <span class="text-body-2 text-high-emphasis font-weight-medium">
+                {{ item.allocation || 'No Allocated' }}
+              </span>
+            </div>
+          </td>
 
-            <template #next="slotProps">
-              <VBtn
-                variant="tonal"
-                color="default"
-                v-bind="slotProps"
-                :icon="false"
-              >
-                Next
-              </VBtn>
-            </template>
-          </VPagination>
-        </div>
-      </template>
-    </VDataTableServer>
+          <!-- PAYMENT -->
+          <td>
+            {{ formatCurrency(Number(item.payment)) }}
+          </td>
+
+          <!-- EXPENSES -->
+          <td>
+            {{ formatCurrency(Number(item.amount)) }}
+          </td>
+
+          <!-- BALANCE -->
+          <td>
+            <VChip
+              :color="resolveChipColor(item.balance)"
+              label
+            >
+              {{ formatCurrency(item.balance) }}
+            </VChip>
+          </td>
+
+          <!-- REMAIN -->
+          <td>
+            <div
+              class="d-flex align-center gap-x-4"
+              style="min-inline-size: 200px;"
+            >
+              <div class="w-100">
+                <VProgressLinear
+                  :model-value="item.remain"
+                  rounded
+                  :color="resolvePercentageColor(item.remain)"
+                  :height="6"
+                />
+              </div>
+              <div class="text-body-2">
+                {{ Number(item.remain) }}%
+              </div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr class="text-body-1 bg-var-theme-background">
+          <th
+            colspan="3"
+            scope="row"
+            class="text-end text-high-emphasis"
+          >
+            Total Balance
+          </th>
+          <td class="font-weight-medium">
+            <VChip
+              :color="resolveChipColor(totalBalance)"
+              label
+            >
+              {{ formatCurrency(totalBalance) }}
+            </VChip>
+          </td>
+          <td />
+        </tr>
+      </tfoot>
+    </VTable>
   </VCard>
 </template>

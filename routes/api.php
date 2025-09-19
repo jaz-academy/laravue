@@ -25,7 +25,9 @@ use App\Http\Controllers\payment\PaymentController;
 use App\Http\Controllers\payment\DiscountController;
 use App\Http\Controllers\media\ParticipantController;
 use App\Http\Controllers\academy\CompetenceController;
+use App\Http\Controllers\finance\DepositController;
 use App\Http\Controllers\home\DashboardController;
+use App\Models\FinanceDeposit;
 use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
 /*
@@ -89,6 +91,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
   Route::get('dashboard-academic', [DashboardController::class, 'academy']);
   Route::get('dashboard-project', [DashboardController::class, 'project']);
+  Route::get('dashboard-finance', [DashboardController::class, 'finance']);
 
   Route::apiResource('likes', LikeController::class);
   Route::apiResource('comments', CommentController::class);
@@ -118,6 +121,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
   Route::get('scores-by-person', [ScoreController::class, 'scoreByPerson']);
 
   Route::apiResource('accounts', AccountController::class);
+  Route::apiResource('deposits', DepositController::class);
   Route::apiResource('finances', FinanceController::class);
   Route::get('finances-distinct', [FinanceController::class, 'distinct']);
   Route::get('finances-by-invoice/{invoice}', [FinanceController::class, 'financeByInvoice']);

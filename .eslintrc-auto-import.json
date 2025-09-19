@@ -410,6 +410,7 @@
     "useUserAccess": true,
     "getUserRole": true,
     "bayesianScore": true,
-    "periode": true
+    "periode": true,
+    "shorterName": true
   }
 }

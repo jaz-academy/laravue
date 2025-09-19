@@ -6,6 +6,22 @@ export const takePic = src => {
   return src ? `/storage/${src}` : avatar
 }
 
+export const shorterName = (name, num = 2) => {
+  const words = name
+    .trim()
+    .split(' ')
+    .filter(Boolean)
+
+  if (words.length === 1) {
+    return words[0].charAt(0).toUpperCase() + words[0].slice(1).toLowerCase()
+  }
+
+  return words
+    .slice(0, num)
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(' ')
+}
+
 export const periode = (newDate = new Date()) => {
   const date = new Date(newDate)
   const month = date.getMonth() + 1

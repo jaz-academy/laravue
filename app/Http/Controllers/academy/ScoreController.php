@@ -103,7 +103,7 @@ class ScoreController extends Controller
         $request->validate([
             'header' => 'required|array',
             'header.academy_competence_id' => 'required|exists:academy_competences,id',
-            'studentScores' => 'required|array|min:1',
+            'studentScores' => 'present|array',
             'studentScores.*.admin_student_id' => 'required|exists:admin_students,id',
         ]);
 
