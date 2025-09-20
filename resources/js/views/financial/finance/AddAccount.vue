@@ -1,35 +1,101 @@
 <script setup>
+import AppSelect from '@/@core/components/app-form-elements/AppSelect.vue'
+import { useUserAccess } from '@/@core/utils/helpers'
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
+import { VBtn } from 'vuetify/components/VBtn' // pastikan path benar
 import { VForm } from 'vuetify/components/VForm'
 
 const props = defineProps({
-  isDrawerOpen: {
-    type: Boolean,
-    required: true,
-  },
+  isDrawerOpen: { type: Boolean, required: true },
+  mode: { type: String, default: 'add' },
+  selectedData: { type: Object, default: () => ({}) },
 })
 
-const emit = defineEmits(['update:isDrawerOpen'])
+const emit = defineEmits(['update:isDrawerOpen', 'selectedData'])
+
+const accounts = ref()
+const refVForm = ref()
+const isFormValid = ref(false)
+const { hasRole } = useUserAccess()
+
+const form = reactive({
+  number: '',
+  unit: '',
+  description: '',
+  detail: '',
+  allocation: '',
+})
+
+const fetchAccounts = async () => {
+  const { data } = await useApi('/accounts')
+
+  accounts.value = data.value.data.map(a => ({
+    number: a.number || '-',
+    description: a.description || '-',
+    allocation: a.allocation,
+  }))
+}
+
+onMounted(fetchAccounts)
+
+watch(
+  () => [props.selectedData, props.mode],
+  () => {
+    if (props.mode === 'edit' && props.selectedData) {
+      Object.assign(form, {
+        number: props.selectedData.number || '',
+        unit: props.selectedData.unit || '',
+        description: props.selectedData.description || '',
+        detail: props.selectedData.detail || '',
+        allocation: props.selectedData.allocation || '',
+      })
+    } else {
+      Object.assign(form, {
+        number: '',
+        unit: '',
+        description: '',
+        detail: '',
+        allocation: '',
+      })
+    }
+  },
+  { immediate: true },
+)
+
+watch(
+  () => props.isDrawerOpen,
+  open => {
+    if (!open) {
+      refVForm.value?.reset()
+      refVForm.value?.resetValidation()
+    }
+  },
+)
 
 const handleDrawerModelValueUpdate = val => {
   emit('update:isDrawerOpen', val)
 }
 
-const refVForm = ref()
-const name = ref()
-const email = ref()
-const mobile = ref()
-const addressline1 = ref()
-const addressline2 = ref()
-const town = ref()
-const state = ref()
-const postCode = ref()
-const country = ref()
-const isBillingAddress = ref(false)
-
 const resetForm = () => {
   refVForm.value?.reset()
-  emit('update:isDrawerOpen', false)
+  refVForm.value?.resetValidation()
+}
+
+const onSubmit = () => {
+  refVForm.value?.validate().then(({ valid }) => {
+    if (!valid) return
+
+    const payload = { ...form }
+    if (props.mode === 'edit') {
+      payload.id = props.selectedData.id
+      emit('selectedData', { action: 'update', data: payload })
+    } else {
+      emit('selectedData', { action: 'create', data: payload })
+    }
+
+    emit('update:isDrawerOpen', false)
+    nextTick(resetForm)
+  })
 }
 </script>
 
@@ -39,142 +105,85 @@ const resetForm = () => {
     temporary
     location="end"
     width="370"
+    class="category-navigation-drawer scrollable-content"
     @update:model-value="handleDrawerModelValueUpdate"
   >
-    <!-- 👉 Header -->
     <AppDrawerHeaderSection
-      title="Add a Customer"
+      :title="props.mode === 'edit' ? 'Edit Account' : 'Add New Account'"
       @cancel="$emit('update:isDrawerOpen', false)"
     />
 
     <VDivider />
 
-    <VCard flat>
-      <PerfectScrollbar
-        :options="{ wheelPropagation: false }"
-        class="h-100"
-      >
-        <VCardText style="block-size: calc(100vh - 5rem);">
+    <PerfectScrollbar :options="{ wheelPropagation: false }">
+      <VCard flat>
+        <VCardText>
           <VForm
             ref="refVForm"
-            @submit.prevent=""
+            v-model="isFormValid"
+            @submit.prevent="onSubmit"
           >
             <VRow>
-              <VCol>
-                <div class="text-body-1 font-weight-medium text-high-emphasis">
-                  Basic Information
-                </div>
-              </VCol>
-
               <VCol cols="12">
                 <AppTextField
-                  v-model="name"
-                  label="Name*"
+                  v-model="form.number"
+                  label="Number"
                   :rules="[requiredValidator]"
-                  placeholder="John Doe"
+                  placeholder="Account Number"
                 />
               </VCol>
-
-              <VCol cols="12">
-                <AppTextField
-                  v-model="email"
-                  label="Email*"
-                  :rules="[requiredValidator, emailValidator]"
-                  placeholder="johndoe@email.com"
-                />
-              </VCol>
-
-              <VCol cols="12">
-                <AppTextField
-                  v-model="mobile"
-                  label="mobile*"
-                  :rules="[requiredValidator]"
-                  placeholder="+(123) 456-7890"
-                />
-              </VCol>
-
-              <VCol>
-                <div class="text-body-1 font-weight-medium text-high-emphasis">
-                  Shipping Information
-                </div>
-              </VCol>
-
-              <VCol cols="12">
-                <AppTextField
-                  v-model="addressline1"
-                  label="Address Line 1*"
-                  :rules="[requiredValidator]"
-                  placeholder="45, Rocker Terrace"
-                />
-              </VCol>
-
-              <VCol cols="12">
-                <AppTextField
-                  v-model="addressline2"
-                  placeholder="Empire Heights,"
-                  :rules="[requiredValidator]"
-                  label="Address Line 2*"
-                />
-              </VCol>
-
-              <VCol cols="12">
-                <AppTextField
-                  v-model="town"
-                  label="Town*"
-                  :rules="[requiredValidator]"
-                  placeholder="New York"
-                />
-              </VCol>
-
-              <VCol cols="12">
-                <AppTextField
-                  v-model="state"
-                  placeholder="Texas"
-                  :rules="[requiredValidator]"
-                  label="State/Province*"
-                />
-              </VCol>
-
-              <VCol cols="12">
-                <AppTextField
-                  v-model="postCode"
-                  label="Post Code*"
-                  type="number"
-                  :rules="[requiredValidator]"
-                  placeholder="982347"
-                />
-              </VCol>
-
+              
               <VCol cols="12">
                 <AppSelect
-                  v-model="country"
-                  placeholder="United States"
+                  v-model="form.unit"
+                  label="Account Unit"
                   :rules="[requiredValidator]"
-                  label="Country"
-                  :items="['United States', 'United Kingdom', 'Canada']"
+                  :items="['Pemasukan', 'Pengeluaran', 'Pembayaran', 'Lain-lain']"
+                  placeholder="Choose Account Unit"
+                />
+              </VCol>
+              
+              <VCol cols="12">
+                <AppTextField
+                  v-model="form.description"
+                  label="Description"
+                  :rules="[requiredValidator]"
+                  placeholder="Description"
+                />
+              </VCol>
+              
+              <VCol cols="12">
+                <AppTextField
+                  v-model="form.detail"
+                  label="Detail"
+                  placeholder="Detail"
+                />
+              </VCol>
+              
+              <VCol cols="12">
+                <AppSelect
+                  v-model="form.allocation"
+                  label="Allocation"
+                  placeholder="Allocation"
+                  :items="accounts"
+                  :item-title="item => (item?.number && item?.description) 
+                    ? `${item.number} - ${item.description}` 
+                    : ''"
+                  :item-value="item => item.number"
                 />
               </VCol>
 
-              <VCol cols="12">
-                <div class="d-flex justify-space-between">
-                  <div class="d-flex flex-column gap-y-1">
-                    <div class="text-body-2 font-weight-medium text-high-emphasis">
-                      Use as a billing address?
-                    </div>
-                    <span>Please check budget for more info</span>
-                  </div>
-                  <VSwitch v-model="isBillingAddress" />
-                </div>
-              </VCol>
-
-              <VCol cols="12">
+              <VCol
+                v-if="hasRole(4).value"
+                cols="12"
+              >
                 <div class="d-flex justify-start">
                   <VBtn
                     type="submit"
                     color="primary"
                     class="me-4"
                   >
-                    Add
+                    {{ props.mode === 'edit' ? 'Update' : 'Add' }}
                   </VBtn>
                   <VBtn
                     color="error"
@@ -188,13 +197,7 @@ const resetForm = () => {
             </VRow>
           </VForm>
         </VCardText>
-      </PerfectScrollbar>
-    </VCard>
+      </VCard>
+    </PerfectScrollbar>
   </VNavigationDrawer>
 </template>
-
-<style lang="scss">
-.v-navigation-drawer__content {
-  overflow-y: hidden !important;
-}
-</style>

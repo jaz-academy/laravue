@@ -1,151 +1,138 @@
 <script setup>
-import ECommerceAddCategoryDrawer from '@/views/academy/AddCompetence.vue'
-import product1 from '@images/ecommerce-images/product-1.png'
-import product10 from '@images/ecommerce-images/product-10.png'
-import product11 from '@images/ecommerce-images/product-11.png'
-import product12 from '@images/ecommerce-images/product-12.png'
-import product14 from '@images/ecommerce-images/product-14.png'
-import product17 from '@images/ecommerce-images/product-17.png'
-import product19 from '@images/ecommerce-images/product-19.png'
-import product2 from '@images/ecommerce-images/product-2.png'
-import product25 from '@images/ecommerce-images/product-25.png'
-import product28 from '@images/ecommerce-images/product-28.png'
-import product9 from '@images/ecommerce-images/product-9.png'
+import { useUserAccess } from '@/@core/utils/helpers'
+import AddCompetenceDrawer from '@/views/academy/assessment/AddCompetenceDrawer.vue'
 import { VDataTable } from 'vuetify/labs/VDataTable'
 
-const categoryData = ref([
-  {
-    id: 1,
-    categoryTitle: 'Smart Phone',
-    description: 'Choose from wide range of smartphones online at best prices.',
-    totalProduct: 12548,
-    totalEarning: 98784,
-    image: product1,
-  },
-  {
-    id: 2,
-    categoryTitle: 'Clothing, Shoes, and jewellery',
-    description: 'Fashion for a wide selection of clothing, shoes, jewellery and watches.',
-    totalProduct: 4689,
-    totalEarning: 45627,
-    image: product9,
-  },
-  {
-    id: 3,
-    categoryTitle: 'Home and Kitchen',
-    description: 'Browse through the wide range of Home and kitchen products.',
-    totalProduct: 12548,
-    totalEarning: 98784,
-    image: product10,
-  },
-  {
-    id: 4,
-    categoryTitle: 'Beauty and Personal Care',
-    description: 'Explore beauty and personal care products, shop makeup and etc.',
-    totalProduct: 12548,
-    totalEarning: 98784,
-    image: product19,
-  },
-  {
-    id: 5,
-    categoryTitle: 'Books',
-    description: 'Over 25 million titles across categories such as business  and etc.',
-    totalProduct: 12548,
-    totalEarning: 98784,
-    image: product25,
-  },
-  {
-    id: 6,
-    categoryTitle: 'Games',
-    description: 'Every month, get exclusive in-game loot, free games, a free subscription.',
-    totalProduct: 12548,
-    totalEarning: 98784,
-    image: product12,
-  },
-  {
-    id: 7,
-    categoryTitle: 'Baby Products',
-    description: 'Buy baby products across different categories from top brands.',
-    totalProduct: 12548,
-    totalEarning: 98784,
-    image: product14,
-  },
-  {
-    id: 8,
-    categoryTitle: 'Growsari',
-    description: 'Shop grocery Items through at best prices in India.',
-    totalProduct: 12548,
-    totalEarning: 98784,
-    image: product28,
-  },
-  {
-    id: 9,
-    categoryTitle: 'Computer Accessories',
-    description: 'Enhance your computing experience with our range of computer accessories.',
-    totalProduct: 9876,
-    totalEarning: 65421,
-    image: product17,
-  },
-  {
-    id: 10,
-    categoryTitle: 'Fitness Tracker',
-    description: 'Monitor your health and fitness goals with our range of advanced fitness trackers.',
-    totalProduct: 1987,
-    totalEarning: 32067,
-    image: product10,
-  },
-  {
-    id: 11,
-    categoryTitle: 'Smart Home Devices',
-    description: 'Transform your home into a smart home with our innovative smart home devices.',
-    totalProduct: 2345,
-    totalEarning: 87654,
-    image: product11,
-  },
-  {
-    id: 12,
-    categoryTitle: 'Audio Speakers',
-    description: 'Immerse yourself in rich audio quality with our wide range of speakers.',
-    totalProduct: 5678,
-    totalEarning: 32145,
-    image: product2,
-  },
-])
+const { hasRoleAndAccess } = useUserAccess()
+const competences = ref([])
+
+const fetchCompetences = async () => {
+  const { data } = await useApi('/competences')
+  
+  competences.value = data.value.data || []
+}
+
+onMounted(fetchCompetences)
+
+const isAlertVisible = ref(false)
+const alertMessage = ref('')
+const alertColor = ref('primary')
+
+const showAlert = (message, color = 'primary') => {
+  alertMessage.value = message
+  alertColor.value = color
+  isAlertVisible.value = true
+  setTimeout(() => {
+    isAlertVisible.value = false
+  }, 10000)
+}
+
+const competenceData = computed(() => {
+  return competences.value
+    .slice()
+    .sort((a, b) => b.id - a.id) // 🔥 sort by id desc
+    .map(competence => ({
+      id: competence.id || '',
+      academy_subject_id: competence.academy_subject_id || '',
+      semester: competence.semester || '',
+      admin_teacher_id: competence.admin_teacher_id || '',
+      competence_1: competence.competence_1 || '',
+      competence_2: competence.competence_2 || '',
+      competence_3: competence.competence_3 || '',
+      number: competence.academy_subject.number || '',
+      group: competence.academy_subject.group || '',
+      subject: competence.academy_subject.name || '',
+      teacher: competence.admin_teacher.nickname || '',
+    }))
+})
 
 const headers = [
-  {
-    title: 'Category',
-    key: 'categoryTitle',
-  },
-  {
-    title: 'Total Products',
-    key: 'totalProduct',
-  },
-  {
-    title: 'Total Earning',
-    key: 'totalEarning',
-  },
-  {
-    title: 'Action',
-    key: 'actions',
-    sortable: false,
-  },
+  { title: 'Subject', key: 'number' },
+  { title: 'Teacher', key: 'teacher' },
+  { title: 'SMT', key: 'semester' },
+  { title: 'Action', key: 'actions', sortable: false },
 ]
 
-const deleteCategory = id => {
-  const categoryIndex = categoryData.value.findIndex(category => category.id === id)
+const addNewData = async ({ action, data }) => {
+  console.log('Sending competence data:', data, 'action:', action)
+  try {
+    let url = '/competences'
+    let method = 'POST'
+    if (action === 'update' && data.id) {
+      url = `/competences/${data.id}`
+      method = 'PUT'
+    }
 
-  categoryData.value.splice(categoryIndex, 1)
+    const { data: resData, response } = await useApi(url, {
+      method,
+      body: JSON.stringify(data),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    })
+
+    if (response.value.ok) {
+      const msg = action === 'create' ? 'Data berhasil ditambahkan' : 'Data berhasil diperbarui'
+
+      showAlert(msg, 'success')
+      console.log('Response competence data:', resData)
+      fetchCompetences()
+    } else {
+      showAlert(response.value.statusText || 'Gagal menyimpan data', 'error')
+    }
+  } catch (error) {
+    console.error('Save error:', error?.data?.errors || error)
+    showAlert(error.message || 'Gagal menyimpan data', 'error')
+  }
+}
+
+const isDrawerOpen = ref(false)
+const mode = ref('add')
+const selectedData = ref({})
+
+const editData = data => {
+  selectedData.value = { ...data }
+  mode.value = 'edit'
+  isDrawerOpen.value = true
+}
+
+const addData = () => {
+  selectedData.value = {}
+  mode.value = 'add'
+  isDrawerOpen.value = true
+}
+
+const deleteData = async id => {
+  try {
+    if (confirm('Apakah kamu yakin ingin menghapus data ini?')) {
+      console.log('Deleting competence data with ID:', id)
+      await useApi(`/competences/${id}`, { method: 'DELETE' })
+      showAlert('Data berhasil dihapus', 'success')
+    }
+    fetchCompetences()
+  } catch (err) {
+    showAlert(err.message || 'Gagal menghapus data', 'error')
+    console.error(err)
+  }
 }
 
 const itemsPerPage = ref(10)
 const page = ref(1)
 const searchQuery = ref('')
-const isModalOpen = ref(false)
 </script>
 
 <template>
   <div>
+    <VAlert
+      v-model="isAlertVisible"
+      closable
+      class="mb-6"
+      :color="alertColor"
+    >
+      {{ alertMessage }}
+    </VAlert>
+
     <VCard>
       <VCardText>
         <div class="d-flex justify-sm-space-between flex-wrap gap-y-4 gap-x-6 justify-start">
@@ -155,17 +142,17 @@ const isModalOpen = ref(false)
             density="compact"
             style="max-inline-size: 200px; min-inline-size: 200px;"
           />
-
           <div class="d-flex align-center flex-wrap gap-4">
             <AppSelect
               v-model="itemsPerPage"
-              :items="[5, 10, 15]"
+              :items="[5,10,15]"
             />
             <VBtn
+              v-if="hasRoleAndAccess(2, 'Assessment').value"
               prepend-icon="tabler-plus"
-              @click="isModalOpen = !isModalOpen"
+              @click="addData"
             >
-              Add Category
+              Add Data Competence
             </VBtn>
           </div>
         </div>
@@ -173,72 +160,80 @@ const isModalOpen = ref(false)
 
       <VDivider />
 
-      <div class="category-table">
+      <div class="data-table">
         <VDataTable
           v-model:items-per-page="itemsPerPage"
           v-model:page="page"
           :headers="headers"
-          :items="categoryData"
-          item-value="categoryTitle"
+          :items="competenceData"
           :search="searchQuery"
-          show-select
+          item-value="number"
           class="text-no-wrap"
+          show-select
         >
           <template #item.actions="{ item }">
-            <IconBtn>
-              <VIcon
-                icon="tabler-trash"
-                @click="deleteCategory(item.id)"
-              />
+            <IconBtn
+              :disabled="!hasRoleAndAccess(4, 'Assessment').value"
+              :color="hasRoleAndAccess(4, 'Assessment').value ? 'error' : 'secondary'"
+              @click="deleteData(item.id)"
+            >
+              <VIcon icon="tabler-trash" />
             </IconBtn>
-            <IconBtn>
-              <VIcon icon="tabler-edit" />
+            <IconBtn
+              color="primary"
+              @click="editData(item)"
+            >
+              <VIcon :icon="hasRoleAndAccess(3, 'Assessment').value ? 'tabler-edit' : 'tabler-eye'" />
             </IconBtn>
           </template>
-          <template #item.categoryTitle="{ item }">
-            <div class="d-flex gap-x-3">
+
+          <template #item.number="{ item }">
+            <div class="d-flex align-center gap-x-4 py-2">
               <VAvatar
                 variant="tonal"
+                size="40"
                 rounded
-                size="38"
+                color="primary"
               >
-                <img
-                  :src="item.image"
-                  :alt="item.categoryTitle"
-                  width="38"
-                  height="38"
-                >
+                <VIcon :icon="item.number.substring(0, 1) == '1' ? 'tabler-square-number-1' : item.number.substring(0, 1) == '2' ? 'tabler-square-number-2' : item.number.substring(0, 1) == '3' ? 'tabler-square-number-3' : item.number.substring(0, 1) == '4' ? 'tabler-square-number-4' : 'tabler-square-number-5'" />
               </VAvatar>
+
               <div>
-                <h6 class="text-h6">
-                  {{ item.categoryTitle }}
-                </h6>
-                <div class="text-sm text-disabled">
-                  {{ item.description }}
+                <div class="text-base font-weight-medium mb-1">
+                  {{ item.group }} - {{ item.subject }}
+                </div>
+                <div class="d-flex align-center">
+                  <span class="text-sm text-disabled">
+                    {{ item.competence_1.substring(0, 100) }}
+                  </span>
                 </div>
               </div>
             </div>
           </template>
-          <template #item.totalEarning="{ item }">
-            <h6 class="text-h6 text-end pe-4">
-              {{ (item.totalEarning).toLocaleString("en-IN", { style: "currency", currency: 'USD' }) }}
-            </h6>
+
+          <template #item.teacher="{ item }">
+            <VChip
+              label
+              color="primary"
+            >
+              {{ item.teacher }}
+            </VChip>
           </template>
-          <template #item.totalProduct="{ item }">
-            <div class="text-end pe-4">
-              {{ (item.totalProduct).toLocaleString() }}
-            </div>
+
+          <template #item.semester="{ item }">
+            <VIcon :icon="item.semester == 1 ? 'tabler-circle-number-1' : item.semester == 2 ? 'tabler-circle-number-2' : item.semester == 3 ? 'tabler-circle-number-3' : item.semester == 4 ? 'tabler-circle-number-4' : item.semester == 5 ? 'tabler-circle-number-5' : 'tabler-circle-number-6'" />
           </template>
+
           <template #bottom>
             <VDivider />
             <div class="d-flex align-center justify-space-between flex-wrap gap-3 pa-5 pt-3">
               <p class="text-sm text-medium-emphasis mb-0">
                 showing {{ itemsPerPage * (page - 1) + 1 }} to
-                {{ Math.min(itemsPerPage * page, categoryData.length) }} of {{ categoryData.length }} entries
+                {{ Math.min(itemsPerPage * page, competenceData.length) }} of {{ competenceData.length }} entries
               </p>
               <VPagination
                 v-model="page"
-                :length="Math.ceil(categoryData.length / itemsPerPage)"
+                :length="Math.ceil(competenceData.length / itemsPerPage)"
                 :total-visible="5"
               >
                 <template #prev="slotProps">
@@ -268,22 +263,15 @@ const isModalOpen = ref(false)
       </div>
     </VCard>
 
-    <ECommerceAddCategoryDrawer v-model:is-drawer-open="isModalOpen" />
+    <AddCompetenceDrawer
+      v-model:is-drawer-open="isDrawerOpen"
+      :mode="mode"
+      :selected-data="selectedData"
+      @selected-data="addNewData"
+    />
   </div>
 </template>
 
 <style lang="scss">
-.ProseMirror-focused{
-  border: none;
-}
-
-.category-table{
-  .v-table {
-    th:nth-child(3), th:nth-child(4) {
-      .v-data-table-header__content{
-        justify-content: end ;
-      }
-    }
-  }
-}
+.ProseMirror-focused{ border: none; }
 </style>

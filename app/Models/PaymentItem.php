@@ -15,7 +15,7 @@ class PaymentItem extends Model
         'period',
         'admin_student_id',
         'finance_account_id',
-        'payment_billing_id',
+        'billing',
         'amount',
         'is_once',
         'is_monthly',
@@ -37,4 +37,3 @@ class PaymentItem extends Model
         return $this->belongsTo(PaymentBilling::class);
     }
 }
-

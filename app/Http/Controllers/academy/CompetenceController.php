@@ -11,15 +11,23 @@ class CompetenceController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $competences = AcademyCompetence::all();
+        $semester = $request->get('semester');
+        $query = AcademyCompetence::with('academySubject', 'adminTeacher');
+
+        if ($semester) {
+            $query->where('semester', $semester);
+        }
+
+        $competences = $query->get();
 
         return response()->json([
             'count' => $competences->count(),
             'data' => $competences
         ]);
     }
+
 
     /**
      * Store a newly created resource in storage.
@@ -48,6 +56,8 @@ class CompetenceController extends Controller
      */
     public function show(AcademyCompetence $competence)
     {
+        $competence->load('academySubject', 'adminTeacher');
+
         return response()->json([
             'message' => $competence->exists ? 'Competence founded' : 'Competence not found',
             'data' => $competence

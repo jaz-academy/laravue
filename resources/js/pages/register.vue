@@ -71,12 +71,18 @@ const register = async () => {
       },
     })
 
-    const { accessToken, userData, userAbilityRules } = res
+    const { accessToken, userData, userAbilityRules, participant } = res
 
     useCookie('userAbilityRules').value = userAbilityRules
     ability.update(userAbilityRules)
     useCookie('userData').value = userData
     useCookie('accessToken').value = accessToken
+
+    if (participant) {
+      const { password, ...safeData } = participant
+
+      localStorage.setItem('participant', JSON.stringify(safeData))
+    }
     await nextTick(() => {
       router.replace(route.query.to ? String(route.query.to) : '/login')
     })

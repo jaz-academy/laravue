@@ -20,6 +20,7 @@ class AcademyScore extends Model
         'month_4',
         'month_5',
         'month_6',
+        'final_score',
         'is_ok_1',
         'competence_1',
         'is_ok_2',

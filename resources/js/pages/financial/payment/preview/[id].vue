@@ -1,42 +1,28 @@
 <script setup>
-import InvoiceAddPaymentDrawer from '@/views/financial/payment/InvoiceAddPaymentDrawer.vue'
-import InvoiceSendInvoiceDrawer from '@/views/financial/payment/InvoiceSendInvoiceDrawer.vue'
+import { humanDate } from '@/@core/utils/helpers'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
 
+const { hasRoleAndAccess, currentUser } = useUserAccess()
 const route = useRoute('financial-payment-preview-id')
-const isAddPaymentSidebarVisible = ref(false)
+const invoiceNumber = computed(() => route.params.id)
 const isSendPaymentSidebarVisible = ref(false)
-const { data: invoiceData } = await useApi(`/apps/invoice/${ Number(route.params.id) }`)
-const invoice = invoiceData.value.invoice
-const paymentDetails = invoiceData.value.paymentDetails
+const invoice = ref([])
+const school = ref([])
 
-const purchasedProducts = [
-  {
-    name: 'Vuexy Admin Template',
-    description: 'HTML Admin Template',
-    qty: 1,
-    cost: 32,
-  },
-  {
-    name: 'Frest Admin Template',
-    description: 'Angular Admin Template',
-    qty: 1,
-    cost: 22,
-  },
-  {
-    name: 'Apex Admin Template',
-    description: 'HTML Admin Template',
-    qty: 2,
-    cost: 17,
-  },
-  {
-    name: 'Robust Admin Template',
-    description: 'React Admin Template',
-    qty: 1,
-    cost: 66,
-  },
-]
+const { data: invoiceData } = await useApi(`/payments-by-invoice/${invoiceNumber.value}`)
+const { data: schoolData } = await useApi('/schools')
+
+//! Console Log to check the raw data from the API
+console.log('Raw invoiceData from API:', invoiceData.value)
+
+invoice.value = invoiceData.value.data
+school.value = schoolData.value
+
+const totalAmount = computed(() => {
+  // Calculate the total amount from the invoice items
+  return invoice.value.reduce((total, item) => total + (Number(item.amount) || 0), 0)
+})
 
 const printInvoice = () => {
   window.print()
@@ -50,7 +36,7 @@ const printInvoice = () => {
         cols="12"
         md="9"
       >
-        <VCard>
+        <VCard v-if="invoiceNumber !== 'new'">
           <!-- SECTION Header -->
           <VCardText class="d-flex flex-wrap justify-space-between flex-column flex-sm-row print-row">
             <!-- 👉 Left Content -->
@@ -69,35 +55,34 @@ const printInvoice = () => {
               </div>
 
               <!-- 👉 Address -->
-              <p class="mb-0">
-                Office 149, 450 South Brand Brooklyn
-              </p>
-              <p class="my-2">
-                San Diego County, CA 91905, USA
-              </p>
-              <p class="mb-0">
-                +1 (123) 456 7891, +44 (876) 543 2198
-              </p>
+              <template v-if="school?.data?.length">
+                <p class="mb-0">
+                  {{ school.data[0].name }} ✪ <strong>{{ school.data[0].organization }}</strong>
+                </p>
+                <p class="my-2">
+                  {{ school.data[0].address }}
+                </p>
+                <p class="mb-0">
+                  <VIcon
+                    icon="tabler-phone"
+                    class="me-2"
+                  />
+                  {{ school.data[0].phone }}
+                  <VIcon
+                    icon="tabler-mail"
+                    class="mx-2"
+                  />
+                  {{ school.data[0].email }}
+                </p>
+              </template>
             </div>
 
             <!-- 👉 Right Content -->
             <div class="mt-4 ma-sm-4">
               <!-- 👉 Invoice ID -->
-              <h6 class="font-weight-medium text-h4">
-                Invoice #{{ invoice.id }}
+              <h6 class="font-weight-medium text-h5">
+                Invoice #{{ invoiceNumber }}
               </h6>
-
-              <!-- 👉 Issue Date -->
-              <p class="my-3">
-                <span>Date Issued: </span>
-                <span>{{ new Date(invoice.issuedDate).toLocaleDateString('en-GB') }}</span>
-              </p>
-
-              <!-- 👉 Due Date -->
-              <p class="mb-0">
-                <span>Due Date: </span>
-                <span>{{ new Date(invoice.dueDate).toLocaleDateString('en-GB') }}</span>
-              </p>
             </div>
           </VCardText>
           <!-- !SECTION -->
@@ -106,73 +91,46 @@ const printInvoice = () => {
 
           <!-- 👉 Payment Details -->
           <VCardText class="d-flex justify-space-between flex-wrap flex-column flex-sm-row print-row">
-            <div class="ma-sm-4">
-              <h6 class="text-base font-weight-medium mb-6">
-                Invoice To:
-              </h6>
-              <p class="mb-1">
-                {{ invoice.client.name }}
-              </p>
-              <p class="mb-1">
-                {{ invoice.client.company }}
-              </p>
-              <p class="mb-1">
-                {{ invoice.client.address }}, {{ invoice.client.country }}
-              </p>
-              <p class="mb-1">
-                {{ invoice.client.contact }}
-              </p>
-              <p class="mb-0">
-                {{ invoice.client.companyEmail }}
-              </p>
-            </div>
+            <div class="ma-sm-4" />
 
             <div class="mt-4 ma-sm-4">
               <h6 class="text-h6 font-weight-medium mb-6">
-                Bill To:
+                Payment Details:
               </h6>
               <table>
                 <tbody>
                   <tr>
                     <td class="pe-6 pb-1">
-                      Total Due:
+                      Date:
                     </td>
                     <td class="pb-1">
                       <span class="font-weight-medium">
-                        {{ paymentDetails.totalDue }}
+                        {{ humanDate(invoice[0]?.date) }}
                       </span>
                     </td>
                   </tr>
                   <tr>
                     <td class="pe-6 pb-1">
-                      Bank Name:
+                      Student:
                     </td>
                     <td class="pb-1">
-                      {{ paymentDetails.bankName }}
+                      {{ invoice[0]?.admin_student?.name }}
                     </td>
                   </tr>
                   <tr>
                     <td class="pe-6 pb-1">
-                      Country:
+                      Payment Category:
                     </td>
                     <td class="pb-1">
-                      {{ paymentDetails.country }}
+                      {{ invoice[0]?.admin_student?.payment_category }}
                     </td>
                   </tr>
                   <tr>
                     <td class="pe-6 pb-1">
-                      IBAN:
+                      Period:
                     </td>
                     <td class="pb-1">
-                      {{ paymentDetails.iban }}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="pe-6 pb-1">
-                      SWIFT Code:
-                    </td>
-                    <td class="pb-1">
-                      {{ paymentDetails.swiftCode }}
+                      {{ invoice[0]?.period }}
                     </td>
                   </tr>
                 </tbody>
@@ -186,53 +144,39 @@ const printInvoice = () => {
           <VTable class="invoice-preview-table">
             <thead>
               <tr>
+                <th class="d-none d-md-table-cell" />
                 <th scope="col">
-                  ITEM
+                  NO
                 </th>
                 <th scope="col">
                   DESCRIPTION
                 </th>
                 <th
                   scope="col"
-                  class="text-center"
+                  class="text-end"
                 >
-                  COST
+                  AMOUNT
                 </th>
-                <th
-                  scope="col"
-                  class="text-center"
-                >
-                  QTY
-                </th>
-                <th
-                  scope="col"
-                  class="text-center"
-                >
-                  PRICE
-                </th>
+                <th class="d-none d-md-table-cell" />
               </tr>
             </thead>
 
             <tbody>
               <tr
-                v-for="item in purchasedProducts"
-                :key="item.name"
+                v-for="(item, i) in invoice"
+                :key="i"
               >
+                <td class="d-none d-md-table-cell" />
                 <td class="text-no-wrap">
-                  {{ item.name }}
+                  {{ i+1 }}
                 </td>
                 <td class="text-no-wrap">
-                  {{ item.description }}
+                  {{ item.billing }}
                 </td>
-                <td class="text-center">
-                  ${{ item.cost }}
+                <td class="text-end">
+                  {{ Number(item.amount).toLocaleString('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }) }}
                 </td>
-                <td class="text-center">
-                  {{ item.qty }}
-                </td>
-                <td class="text-center">
-                  ${{ item.cost * item.qty }}
-                </td>
+                <td class="d-none d-md-table-cell" />
               </tr>
             </tbody>
           </VTable>
@@ -244,46 +188,27 @@ const printInvoice = () => {
             <div class="my-2 mx-sm-4 text-base">
               <div class="d-flex align-center mb-1">
                 <h6 class="text-base font-weight-medium me-1">
-                  Salesperson:
+                  Admin:
                 </h6>
-                <span>Alfie Solomons</span>
+                <span>{{ invoice[0]?.admin }}</span>
               </div>
-              <p>Thanks for your business</p>
+              <p>Thanks for your contribution</p>
             </div>
 
             <div class="my-2 mx-sm-4">
               <table>
                 <tbody>
-                  <tr>
+                  <tr class="text-end">
                     <td class="text-end">
                       <div class="me-5">
-                        <p class="mb-2">
-                          Subtotal:
-                        </p>
-                        <p class="mb-2">
-                          Discount:
-                        </p>
-                        <p class="mb-2">
-                          Tax:
-                        </p>
-                        <p class="mb-2">
+                        <p class="mb-0">
                           Total:
                         </p>
                       </div>
                     </td>
-
                     <td class="font-weight-medium text-high-emphasis">
-                      <p class="mb-2">
-                        $154.25
-                      </p>
-                      <p class="mb-2">
-                        $00.00
-                      </p>
-                      <p class="mb-2">
-                        $50.00
-                      </p>
-                      <p class="mb-2">
-                        $204.25
+                      <p class="mb-0">
+                        {{ Number(totalAmount).toLocaleString('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }) }}
                       </p>
                     </td>
                   </tr>
@@ -299,8 +224,13 @@ const printInvoice = () => {
               <h6 class="text-base font-weight-medium me-1">
                 Note:
               </h6>
-              <span>It was a pleasure working with you and your team. We hope you will keep us in mind for future freelance projects. Thank You!</span>
+              <span>{{ invoice[0]?.billing }}</span>
             </div>
+          </VCardText>
+        </VCard>
+        <VCard v-else>
+          <VCardText>
+            Select the payment you want to preview.
           </VCardText>
         </VCard>
       </VCol>
@@ -316,7 +246,7 @@ const printInvoice = () => {
             <VBtn
               block
               prepend-icon="tabler-send"
-              class="mb-2"
+              class="mb-2 d-none"
               @click="isSendPaymentSidebarVisible = true"
             >
               Send Invoice
@@ -324,17 +254,6 @@ const printInvoice = () => {
 
             <VBtn
               block
-              variant="tonal"
-              color="secondary"
-              class="mb-2"
-            >
-              Download
-            </VBtn>
-
-            <VBtn
-              block
-              variant="tonal"
-              color="secondary"
               class="mb-2"
               @click="printInvoice"
             >
@@ -342,6 +261,7 @@ const printInvoice = () => {
             </VBtn>
 
             <VBtn
+              v-if="hasRoleAndAccess(3, 'Payment').value"
               block
               color="secondary"
               variant="tonal"
@@ -350,25 +270,19 @@ const printInvoice = () => {
             >
               Edit Invoice
             </VBtn>
-
-            <!-- 👉  Add Payment trigger button  -->
+            
             <VBtn
               block
-              prepend-icon="tabler-currency-dollar"
-              @click="isAddPaymentSidebarVisible = true"
+              color="secondary"
+              variant="tonal"
+              :to="{ name: 'financial-payment-list' }"
             >
-              Add Payment
+              Exit
             </VBtn>
           </VCardText>
         </VCard>
       </VCol>
     </VRow>
-
-    <!-- 👉 Add Payment Sidebar -->
-    <InvoiceAddPaymentDrawer v-model:is-drawer-open="isAddPaymentSidebarVisible" />
-
-    <!-- 👉 Send Invoice Sidebar -->
-    <InvoiceSendInvoiceDrawer v-model:is-drawer-open="isSendPaymentSidebarVisible" />
   </section>
 </template>
 
