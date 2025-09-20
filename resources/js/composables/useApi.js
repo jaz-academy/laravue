@@ -6,6 +6,7 @@ export const useApi = createFetch({
   fetchOptions: {
     headers: {
       Accept: 'application/json',
+      ContentType: 'application/json',
     },
   },
   options: {

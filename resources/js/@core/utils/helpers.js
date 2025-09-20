@@ -6,6 +6,30 @@ export const takePic = src => {
   return src ? `/storage/${src}` : avatar
 }
 
+export const shorterName = (name, num = 2) => {
+  const words = name
+    .trim()
+    .split(' ')
+    .filter(Boolean)
+
+  if (words.length === 1) {
+    return words[0].charAt(0).toUpperCase() + words[0].slice(1).toLowerCase()
+  }
+
+  return words
+    .slice(0, num)
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(' ')
+}
+
+export const periode = (newDate = new Date()) => {
+  const date = new Date(newDate)
+  const month = date.getMonth() + 1
+  const year = date.getFullYear()
+  
+  return (month >= 7 ? year : year - 1).toString()
+}
+
 // useUserAccess
 export function useUserAccess() {
   const currentUser = useCookie('userData') // reactive cookie
@@ -135,23 +159,23 @@ export const rateNumberIcon = rate => {
 }
 
 // Format Date
-export function humanDate(date, format = 'dd MMM yyyy') {
+export function humanDate(date, format = 'd MMM yyyy') {
   if (!date) return '-'
   const d = new Date(date)
 
   const monthNames = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
+    'Januari',
+    'Februari',
+    'Maret',
+    'April',
     'Mei',
-    'Jun',
-    'Jul',
-    'Agu',
-    'Sep',
-    'Okt',
-    'Nov',
-    'Des',
+    'Juni',
+    'Juli',
+    'Agustus',
+    'September',
+    'Oktober',
+    'November',
+    'Desember',
   ]
 
   const dayNames = [
@@ -168,7 +192,8 @@ export function humanDate(date, format = 'dd MMM yyyy') {
     'ddd': dayNames[d.getDay()],
     'dd': String(d.getDate()).padStart(2, '0'),
     'd': d.getDate(),
-    'MMM': monthNames[d.getMonth()],
+    'MMMM': monthNames[d.getMonth()],
+    'MMM': monthNames[d.getMonth()].substring(0, 3),
     'MM': String(d.getMonth() + 1).padStart(2, '0'),
     'M': d.getMonth() + 1,
     'yyyy': d.getFullYear(),
@@ -178,6 +203,6 @@ export function humanDate(date, format = 'dd MMM yyyy') {
     'ss': String(d.getSeconds()).padStart(2, '0'),
   }
 
-  return format.replace(/\b(ddd|dd|d|MMM|MM|M|yyyy|yy|HH|mm|ss)\b/g, match => optionsMap[match])
+  return format.replace(/\b(ddd|dd|d|MMMM|MMM|MM|M|yyyy|yy|HH|mm|ss)\b/g, match => optionsMap[match])
 }
 

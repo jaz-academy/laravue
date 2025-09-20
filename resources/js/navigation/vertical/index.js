@@ -15,7 +15,7 @@ let navigationRoutes
 if ((currentUser.value?.role ?? 0) === 5) {
   navigationRoutes = [...dashboard, ...profile, ...academy, ...finance, ...xDashboard, ...uiElements, ...forms, ...charts, ...others, ...appsAndPages]
 } else {
-  navigationRoutes = [...dashboard, ...profile, ...academy]
+  navigationRoutes = [...dashboard, ...profile, ...academy, ...finance]
 }
 
 export default navigationRoutes

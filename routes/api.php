@@ -25,7 +25,9 @@ use App\Http\Controllers\payment\PaymentController;
 use App\Http\Controllers\payment\DiscountController;
 use App\Http\Controllers\media\ParticipantController;
 use App\Http\Controllers\academy\CompetenceController;
+use App\Http\Controllers\finance\DepositController;
 use App\Http\Controllers\home\DashboardController;
+use App\Models\FinanceDeposit;
 use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
 /*
@@ -69,6 +71,7 @@ Route::group(['prefix' => 'public'], function () {
   Route::post('update-task-accepted/{task}', [TaskController::class, 'updateTaskAccepted']);
   Route::apiResource('bookmarks', BookmarkController::class);
   Route::apiResource('participants', ParticipantController::class);
+  Route::get('students/years', [StudentController::class, 'years']);
 });
 
 Route::group(['prefix' => 'auth'], function () {
@@ -88,6 +91,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
   Route::get('dashboard-academic', [DashboardController::class, 'academy']);
   Route::get('dashboard-project', [DashboardController::class, 'project']);
+  Route::get('dashboard-finance', [DashboardController::class, 'finance']);
 
   Route::apiResource('likes', LikeController::class);
   Route::apiResource('comments', CommentController::class);
@@ -111,13 +115,32 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
   Route::apiResource('subjects', SubjectController::class);
   Route::apiResource('competences', CompetenceController::class);
   Route::apiResource('scores', ScoreController::class);
+  Route::get('scores-distinct', [ScoreController::class, 'distinct']);
+  Route::get('scores-by-serial/{serial}', [ScoreController::class, 'scoreBySerial']);
+  Route::post('scores/bulk-store', [ScoreController::class, 'bulkStore']);
+  Route::get('scores-by-person', [ScoreController::class, 'scoreByPerson']);
 
   Route::apiResource('accounts', AccountController::class);
+  Route::apiResource('deposits', DepositController::class);
   Route::apiResource('finances', FinanceController::class);
-  Route::apiResource('billings', BillingController::class);
-  Route::apiResource('discounts', DiscountController::class);
-  Route::apiResource('payments', PaymentController::class);
+  Route::get('finances-distinct', [FinanceController::class, 'distinct']);
+  Route::get('finances-by-invoice/{invoice}', [FinanceController::class, 'financeByInvoice']);
+  Route::post('finances/bulk-store', [FinanceController::class, 'bulkStore']);
+
   Route::apiResource('savings', SavingController::class);
+  Route::apiResource('discounts', DiscountController::class);
+  Route::get('discounts-by-year/{year}/{studentId}', [DiscountController::class, 'discountByYear']);
+  Route::apiResource('billings', BillingController::class);
+  Route::get('billings-distinct', [BillingController::class, 'distinct']);
+  Route::get('billings-by-year/{year}/{category}', [BillingController::class, 'billingByYear']);
+  Route::post('billings/bulk-store', [BillingController::class, 'bulkStore']);
+
+  Route::apiResource('payments', PaymentController::class);
+  Route::get('payments-distinct', [PaymentController::class, 'distinct']);
+  Route::get('payments-by-invoice/{invoice}', [PaymentController::class, 'paymentByInvoice']);
+  Route::get('payments-by-year/{year}/{studentId}', [PaymentController::class, 'paymentByYear']);
+  Route::get('payments-by-student/{studentId}', [PaymentController::class, 'paymentByStudent']);
+  Route::post('payments/bulk-store', [PaymentController::class, 'bulkStore']);
 
   Route::get('/notifications', function () {
     return response()->json(auth()->user()->notifications);

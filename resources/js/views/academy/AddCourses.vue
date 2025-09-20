@@ -1,6 +1,15 @@
 <script setup>
 import AppTextField from '@/@core/components/app-form-elements/AppTextField.vue'
 import { useUserAccess } from '@/@core/utils/helpers'
+import { Image } from '@tiptap/extension-image'
+import { Link } from '@tiptap/extension-link'
+import { Placeholder } from '@tiptap/extension-placeholder'
+import { Underline } from '@tiptap/extension-underline'
+import { StarterKit } from '@tiptap/starter-kit'
+import {
+  EditorContent,
+  useEditor,
+} from '@tiptap/vue-3'
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 import { VForm } from 'vuetify/components/VForm'
 
@@ -11,10 +20,30 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:isDrawerOpen', 'courseData'])
+
+const editor = useEditor({
+  content: '',
+  extensions: [
+    StarterKit,
+    Image,
+    Placeholder.configure({ placeholder: 'Write something here...' }),
+    Underline,
+    Link.configure({ openOnClick: false }),
+  ],
+  onUpdate: ({ editor }) => {
+    form.description = editor.getHTML()
+  },
+})
+
 const subjectsData = await useApi('/subjects')
 
 const subjectsDataOptions = computed(() => {
-  const groups = [...new Set(subjectsData?.data.value.data?.map(s => s.group))]
+  const groups = [
+    ...new Set(subjectsData?.data.value.data?.map(s => s.group)),
+    'Entrepreneur',
+    'Leadership',
+    'Other',
+  ]
   
   return groups.map(g => ({ value: g, label: g }))
 })
@@ -53,6 +82,9 @@ watch(
         video_url: props.courseData.video_url || '',
         video_duration: props.courseData.video_duration || '',
       })
+      if (editor.value) {
+        editor.value.commands.setContent(form.description, false)
+      }
     } else {
       Object.assign(form, {
         name: '',
@@ -65,6 +97,9 @@ watch(
         video_url: '',
         video_duration: '',
       })
+      if (editor.value) {
+        editor.value.commands.setContent('', false)
+      }
     }
   },
   { immediate: true },
@@ -190,12 +225,63 @@ const onSubmit = () => {
               </VCol>
 
               <VCol cols="12">
-                <AppTextarea
-                  v-model="form.description"
-                  label="Description"
-                  placeholder="Write Description"
-                  auto-grow
-                />
+                <p class="mb-2">
+                  Description
+                </p>
+                <div class="border rounded py-2 px-4">
+                  <EditorContent :editor="editor" />
+                  <div
+                    v-if="editor"
+                    class="d-flex justify-end flex-wrap gap-x-2"
+                  >
+                    <VIcon
+                      icon="tabler-bold"
+                      :color="editor.isActive('bold') ? 'primary' : ''"
+                      size="20"
+                      @click="editor.chain().focus().toggleBold().run()"
+                    />
+
+                    <VIcon
+                      :color="editor.isActive('underline') ? 'primary' : ''"
+                      icon="tabler-underline"
+                      size="20"
+                      @click="editor.commands.toggleUnderline()"
+                    />
+
+                    <VIcon
+                      :color="editor.isActive('italic') ? 'primary' : ''"
+                      icon="tabler-italic"
+                      size="20"
+                      @click="editor.chain().focus().toggleItalic().run()"
+                    />
+
+                    <VIcon
+                      :color="editor.isActive('bulletList') ? 'primary' : ''"
+                      icon="tabler-list"
+                      size="20"
+                      @click="editor.chain().focus().toggleBulletList().run()"
+                    />
+
+                    <VIcon
+                      :color="editor.isActive('orderedList') ? 'primary' : ''"
+                      icon="tabler-list-numbers"
+                      size="20"
+                      @click="editor.chain().focus().toggleOrderedList().run()"
+                    />
+
+                    <VIcon
+                      icon="tabler-link"
+                      size="20"
+                      @click="setLink"
+                    />
+
+                    <VIcon
+                      icon="tabler-photo"
+                      size="20"
+                      @click="addImage"
+                    />
+                  </div>
+                </div>
               </VCol>
 
               <VCol cols="12">

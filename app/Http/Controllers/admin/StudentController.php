@@ -141,6 +141,18 @@ class StudentController extends Controller
         ]);
     }
 
+    // data tahun regisater
+    public function years()
+    {
+        $years = Student::select('registered as year')
+            ->distinct()
+            ->orderBy('registered', 'desc')
+            ->get();
+
+        return response()->json($years);
+    }
+
+
     /**
      * Update the specified resource in storage.
      */

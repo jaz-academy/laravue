@@ -67,9 +67,9 @@ const handleSigninParticipant = async () => {
         },
       })
 
-      console.log(responseData)
-          
-      localStorage.setItem('participant', JSON.stringify(responseData))
+      const { password, ...safeData } = responseData
+
+      localStorage.setItem('participant', JSON.stringify(safeData))
       participant.value = responseData
       showModalSignin.value = false
       emit('loginStatus', true)

@@ -1,11 +1,82 @@
 <script setup>
+import { useUserAccess } from '@/@core/utils/helpers'
+import { useApi } from '@/composables/useApi'
 import { paginationMeta } from '@api-utils/paginationMeta'
+import { onMounted } from 'vue'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
+const { hasRoleAndAccess, currentUser } = useUserAccess()
+
+const widgetData = ref([
+  {
+    title: 'In-Store Sales',
+    value: '$5,345.43',
+    icon: 'tabler-home',
+    desc: '5k orders',
+    change: 5.7,
+  },
+  {
+    title: 'Website Sales',
+    value: '$674,347.12',
+    icon: 'tabler-device-laptop',
+    desc: '21k orders',
+    change: 12.4,
+  },
+  {
+    title: 'Discount',
+    value: '$14,235.12',
+    icon: 'tabler-gift',
+    desc: '6k orders',
+  },
+  {
+    title: 'Affiliate',
+    value: '$8,345.23',
+    icon: 'tabler-wallet',
+    desc: '150 orders',
+    change: -3.5,
+  },
+])
+
+const headers = [
+  {
+    title: 'Invoice',
+    key: 'invoice',
+  },
+  {
+    title: 'Date',
+    key: 'date',
+  },
+  {
+    title: 'Period',
+    key: 'period',
+  },
+  {
+    title: 'Student',
+    key: 'student',
+  },
+  {
+    title: 'Item',
+    key: 'total_items',
+  },
+  {
+    title: 'Amount',
+    key: 'total_amount',
+  },
+  {
+    title: 'Actions',
+    key: 'actions',
+    sortable: false,
+  },
+]
+
+const dates = ref([])
+const students = ref([])
+const amounts = ref([])
+
+const selectedDate = ref()
+const selectedStudent = ref()
+const selectedAmount = ref()
 const searchQuery = ref('')
-const dateRange = ref('')
-const selectedStatus = ref(null)
-const selectedRows = ref([])
 
 // Data table options
 const itemsPerPage = ref(10)
@@ -19,454 +90,310 @@ const updateOptions = options => {
   orderBy.value = options.sortBy[0]?.order
 }
 
-const widgetData = ref([
-  {
-    title: 'Clients',
-    value: 24,
-    icon: 'tabler-user',
-  },
-  {
-    title: 'Invoices',
-    value: 165,
-    icon: 'tabler-file-invoice',
-  },
-  {
-    title: 'Paid',
-    value: '$2.46k',
-    icon: 'tabler-checks',
-  },
-  {
-    title: 'Unpaid',
-    value: '$876',
-    icon: 'tabler-currency-dollar-off',
-  },
-])
+const fetchFilterOptions = async () => {
+  // Idealnya, ini adalah endpoint terpisah di backend, e.g., /payments/filter-options
+  // Untuk sementara, kita ambil dari data yang sudah ada jika memungkinkan,
+  // atau lakukan panggilan terpisah jika diperlukan.
+  const { data: paymentsForFilter } = await useApi('/payments')
+  if (paymentsForFilter.value?.data) {
+    const allPayments = paymentsForFilter.value.data
 
-// 👉 headers
-const headers = [
-  {
-    title: '#ID',
-    key: 'id',
-  },
-  {
-    title: 'Trending',
-    key: 'trending',
-    sortable: false,
-  },
-  {
-    title: 'Client',
-    key: 'client',
-  },
-  {
-    title: 'Total',
-    key: 'total',
-  },
-  {
-    title: 'Issued Date',
-    key: 'date',
-  },
-  {
-    title: 'Balance',
-    key: 'balance',
-  },
-  {
-    title: 'Actions',
-    key: 'actions',
-    sortable: false,
-  },
-]
-
-const selectedDateRange = computed(() => {
-  const [start, end] = dateRange.value ? dateRange.value.split('to') : ''
-  
-  return {
-    start,
-    end,
+    dates.value = [...new Set(allPayments.map(f => f.date))].sort((a, b) => b.localeCompare(a))
+    students.value = [...new Set(allPayments.map(f => f.admin_student.name))].sort((a, b) => a.localeCompare(b))
+    amounts.value = [...new Set(allPayments.map(f => f.amount))].sort((a, b) => b - a)
   }
-})
+}
+
+onMounted(fetchFilterOptions)
 
 const {
-  data: invoiceData,
-  execute: fetchInvoices,
-} = await useApi(createUrl('/apps/invoice', {
+  data: paymentsData,
+} = await useApi(createUrl('/payments-distinct', {
   query: {
     q: searchQuery,
-    status: selectedStatus,
-    selectedDateRange,
-    itemsPerPage,
+    date: selectedDate,
+    student: selectedStudent,
+    amount: selectedAmount,
     page,
+    itemsPerPage,
     sortBy,
     orderBy,
   },
 }))
 
-const invoices = computed(() => invoiceData.value.invoices)
-const totalInvoices = computed(() => invoiceData.value.totalInvoices)
+console.log('paymentsData', paymentsData.value?.data)
 
-// 👉 Invoice balance variant resolver
-const resolveInvoiceBalanceVariant = (balance, total) => {
-  if (balance === total)
-    return {
-      status: 'Unpaid',
-      chip: { color: 'error' },
-    }
-  if (balance === 0)
-    return {
-      status: 'Paid',
-      chip: { color: 'success' },
-    }
-  
-  return {
-    status: balance,
-    chip: { variant: 'text' },
-  }
-}
-
-const resolveInvoiceStatusVariantAndIcon = status => {
-  if (status === 'Partial Payment')
-    return {
-      variant: 'success',
-      icon: 'tabler-circle-half-2',
-    }
-  if (status === 'Paid')
-    return {
-      variant: 'warning',
-      icon: 'tabler-chart-pie',
-    }
-  if (status === 'Downloaded')
-    return {
-      variant: 'info',
-      icon: 'tabler-arrow-down-circle',
-    }
-  if (status === 'Draft')
-    return {
-      variant: 'primary',
-      icon: 'tabler-device-floppy',
-    }
-  if (status === 'Sent')
-    return {
-      variant: 'secondary',
-      icon: 'tabler-circle-check',
-    }
-  if (status === 'Past Due')
-    return {
-      variant: 'error',
-      icon: 'tabler-alert-circle',
-    }
-  
-  return {
-    variant: 'secondary',
-    icon: 'tabler-x',
-  }
-}
-
-const computedMoreList = computed(() => {
-  return paramId => [
-    {
-      title: 'Download',
-      value: 'download',
-      prependIcon: 'tabler-download',
-    },
-    {
-      title: 'Edit',
-      value: 'edit',
-      prependIcon: 'tabler-pencil',
-      to: {
-        name: 'apps-invoice-edit-id',
-        params: { id: paramId },
-      },
-    },
-    {
-      title: 'Duplicate',
-      value: 'duplicate',
-      prependIcon: 'tabler-layers-intersect',
-    },
-  ]
-})
-
-const deleteInvoice = async id => {
-  await $api(`/apps/invoice/${ id }`, { method: 'DELETE' })
-  fetchInvoices()
-}
+const paymentsList = computed(() => paymentsData.value?.data || [])
+const totalpayments = computed(() => paymentsData.value?.total || 0)
 </script>
 
 <template>
-  <section v-if="invoices">
-    <!-- 👉 Invoice Widgets -->
-    <VCard class="mb-6">
+  <div>
+    <!-- 👉 widgets -->
+    <VCard class="mb-6 d-none">
       <VCardText>
         <VRow>
-          <template
+          <VCol
             v-for="(data, id) in widgetData"
             :key="id"
+            cols="12"
+            sm="6"
+            md="3"
+            class="px-6 position-relative"
           >
-            <VCol
-              cols="12"
-              sm="6"
-              md="3"
-              class="px-6"
+            <div
+              class="d-flex justify-space-between"
+              :class="$vuetify.display.xs
+                ? 'product-widget'
+                : $vuetify.display.sm
+                  ? id < 2 ? 'product-widget' : ''
+                  : ''"
             >
-              <div class="d-flex justify-space-between">
-                <div class="d-flex flex-column gap-y-1">
-                  <h4 class="text-h4 text-high-emphasis">
-                    {{ data.value }}
-                  </h4>
-                  <div class="text-body-1 text-capitalize">
-                    {{ data.title }}
-                  </div>
+              <div class="d-flex flex-column gap-y-1">
+                <div class="text-body-1 font-weight-medium text-capitalize">
+                  {{ data.title }}
                 </div>
 
-                <VAvatar
-                  color="rgba(var(--v-theme-on-background), var(--v-hover-opacity))"
-                  rounded
-                  class="text-high-emphasis"
-                  size="38"
-                >
-                  <VIcon
-                    :icon="data.icon"
-                    size="26"
-                  />
-                </VAvatar>
+                <h4 class="text-h4 my-1">
+                  {{ data.value }}
+                </h4>
+
+                <div class="d-flex">
+                  <div class="me-2 text-disabled text-no-wrap">
+                    {{ data.desc }}
+                  </div>
+
+                  <VChip
+                    v-if="data.change"
+                    label
+                    :color="data.change > 0 ? 'success' : 'error'"
+                  >
+                    {{ data.change }}%
+                  </VChip>
+                </div>
               </div>
-            </VCol>
+
+              <VAvatar
+                variant="tonal"
+                rounded
+                size="38"
+              >
+                <VIcon
+                  :icon="data.icon"
+                  size="28"
+                />
+              </VAvatar>
+            </div>
             <VDivider
-              v-if="$vuetify.display.mdAndUp ? id !== widgetData.length - 1
-                : $vuetify.display.smAndUp ? id % 2 === 0
-                  : false"
+              v-if="($vuetify.display.mdAndUp && id < widgetData.length - 1) || ($vuetify.display.smOnly && id % 2 === 0)"
               vertical
               inset
+              class="position-absolute"
+              style=" block-size: 70%;inset-block-start: 50%; inset-inline-end: 0; transform: translateY(-50%);"
             />
-          </template>
+          </VCol>
         </VRow>
       </VCardText>
     </VCard>
-    <!-- 👉 Invoice Filters  -->
+
+    <!-- 👉 payment items -->
     <VCard
       title="Filters"
       class="mb-6"
     >
       <VCardText>
         <VRow>
-          <!-- 👉 Status filter -->
+          <!-- 👉 Select Date -->
           <VCol
             cols="12"
-            md="6"
+            sm="4"
           >
             <AppSelect
-              v-model="selectedStatus"
-              label="Select Status"
-              placeholder="Select Status"
+              v-model="selectedDate"
+              placeholder="Date"
+              :items="dates"
               clearable
               clear-icon="tabler-x"
-              :items="['Downloaded', 'Draft', 'Sent', 'Paid', 'Partial Payment', 'Past Due']"
             />
           </VCol>
 
-          <!-- 👉 DateRange filter -->
+          <!-- 👉 Select Student -->
           <VCol
             cols="12"
-            md="6"
+            sm="4"
           >
-            <AppDateTimePicker
-              v-model="dateRange"
-              label="Invoice Date"
-              clear-icon="tabler-x"
+            <AppSelect
+              v-model="selectedStudent"
+              placeholder="Student"
+              :items="students"
+              item-title="name"
+              item-value="id"
               clearable
-              :config="{ mode: 'range' }"
-              placeholder="Select Date"
+              clear-icon="tabler-x"
+            />
+          </VCol>
+
+          <!-- 👉 Select Amount -->
+          <VCol
+            cols="12"
+            sm="4"
+          >
+            <AppSelect
+              v-model="selectedAmount"
+              placeholder="Amount"
+              :items="amounts"
+              clearable
+              clear-icon="tabler-x"
             />
           </VCol>
         </VRow>
       </VCardText>
-    </VCard>
 
-    <VCard id="invoice-list">
-      <VCardText class="d-flex align-center flex-wrap gap-4">
-        <div class="me-3 d-flex gap-3 align-center">
-          <AppSelect
-            :model-value="itemsPerPage"
-            :items="[
-              { value: 10, title: '10' },
-              { value: 25, title: '25' },
-              { value: 50, title: '50' },
-              { value: 100, title: '100' },
-              { value: -1, title: 'All' },
-            ]"
-            style="inline-size: 6.25rem;"
-            @update:model-value="itemsPerPage = parseInt($event, 10)"
+      <VDivider class="my-4" />
+
+      <div class="d-flex flex-wrap gap-4 mx-5">
+        <div class="d-flex align-center">
+          <!-- 👉 Search  -->
+          <AppTextField
+            v-model="searchQuery"
+            placeholder="Search Product"
+            density="compact"
+            style="inline-size: 200px;"
+            class="me-3"
           />
-          <!-- 👉 Create invoice -->
-          <VBtn
-            prepend-icon="tabler-plus"
-            :to="{ name: 'apps-invoice-add' }"
-          >
-            Create invoice
-          </VBtn>
         </div>
 
         <VSpacer />
+        <div class="d-flex gap-4 flex-wrap align-center">
+          <AppSelect
+            v-model="itemsPerPage"
+            :items="[5, 10, 20, 25, 50]"
+          />
+          <!-- 👉 Export button -->
+          <VBtn
+            variant="tonal"
+            color="secondary"
+            prepend-icon="tabler-upload"
+          >
+            Export
+          </VBtn>
 
-        <div class="d-flex align-center flex-wrap gap-4">
-          <!-- 👉 Search  -->
-          <div class="invoice-list-filter">
-            <AppTextField
-              v-model="searchQuery"
-              placeholder="Search Invoice"
-              density="compact"
-            />
-          </div>
-
-          <!-- 👉 Select status -->
-          <div class="invoice-list-filter">
-            <AppSelect
-              v-model="selectedStatus"
-              placeholder="Select Status"
-              clearable
-              clear-icon="tabler-x"
-              single-line
-              :items="['Downloaded', 'Draft', 'Sent', 'Paid', 'Partial Payment', 'Past Due']"
-            />
-          </div>
+          <VBtn
+            v-if="hasRoleAndAccess(2, 'Payment').value"
+            color="primary"
+            prepend-icon="tabler-plus"
+            @click="$router.push('/financial/payment/edit/new')"
+          >
+            New Inputs
+          </VBtn>
         </div>
-      </VCardText>
-      <VDivider />
+      </div>
 
-      <!-- SECTION Datatable -->
+      <VDivider class="mt-4" />
+
+      <!-- 👉 Datatable  -->
       <VDataTableServer
-        v-model="selectedRows"
         v-model:items-per-page="itemsPerPage"
         v-model:page="page"
-        show-select
-        :items-length="totalInvoices"
         :headers="headers"
-        :items="invoices"
+        show-select
+        :items="paymentsList"
+        :items-length="totalpayments"
         class="text-no-wrap"
         @update:options="updateOptions"
       >
-        <!-- Trending Header -->
-        <template #column.trending>
-          <VIcon
-            size="22"
-            icon="tabler-trending-up"
-          />
-        </template>
-
-        <!-- id -->
-        <template #item.id="{ item }">
-          <RouterLink :to="{ name: 'financial-payment-preview-id', params: { id: item.id } }">
-            #{{ item.id }}
-          </RouterLink>
-        </template>
-
-        <!-- trending -->
-        <template #item.trending="{ item }">
-          <VTooltip>
-            <template #activator="{ props }">
-              <VAvatar
-                :size="30"
-                v-bind="props"
-                :color="resolveInvoiceStatusVariantAndIcon(item.invoiceStatus).variant"
-                variant="tonal"
-              >
-                <VIcon
-                  :size="20"
-                  :icon="resolveInvoiceStatusVariantAndIcon(item.invoiceStatus).icon"
-                />
-              </VAvatar>
-            </template>
-            <p class="mb-0">
-              {{ item.invoiceStatus }}
-            </p>
-            <p class="mb-0">
-              Balance: {{ item.balance }}
-            </p>
-            <p class="mb-0">
-              Due date: {{ item.dueDate }}
-            </p>
-          </VTooltip>
-        </template>
-
-        <!-- client -->
-        <template #item.client="{ item }">
-          <div class="d-flex align-center">
-            <VAvatar
+        <!-- invoice  -->
+        <template #item.invoice="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <VAvatar 
+              v-if="item.invoice" 
               size="38"
-              :color="!item.avatar.length ? resolveInvoiceStatusVariantAndIcon(item.invoiceStatus).variant : undefined"
-              :variant="!item.avatar.length ? 'tonal' : undefined"
-              class="me-3"
+              variant="tonal"
+              :color="item.total_amount < 0 ? 'error' : 'info'"
+              rounded
             >
-              <VImg
-                v-if="item.avatar.length"
-                :src="item.avatar"
-              />
-              <span v-else>{{ avatarText(item.client.name) }}</span>
+              <VIcon icon="tabler-file-text" />
             </VAvatar>
             <div class="d-flex flex-column">
-              <RouterLink class="text-link font-weight-medium">
-                {{ item.client.name }}
-              </RouterLink>
-              <span class="text-sm text-disabled">{{ item.client.companyEmail }}</span>
+              <div class="text-body-1 font-weight-medium">
+                {{ item.invoice }}
+              </div>
+              <span class="text-sm text-disabled">{{ item.billing }}</span>
             </div>
           </div>
         </template>
 
-        <!-- Total -->
-        <template #item.total="{ item }">
-          ${{ item.total }}
-        </template>
-
-        <!-- Date -->
-        <template #item.date="{ item }">
-          {{ item.issuedDate }}
-        </template>
-
-        <!-- Balance -->
-        <template #item.balance="{ item }">
+        <template #item.period="{ item }">
           <VChip
-            v-if="typeof ((resolveInvoiceBalanceVariant(item.balance, item.total)).status) === 'string'"
-            :color="resolveInvoiceBalanceVariant(item.balance, item.total).chip.color"
+            v-if="hasRoleAndAccess(2, 'Payment').value"
+            :to="`/financial/payment/recap/${item.admin_student_id}/${item.period}`"
+            target="_blank"
+            color="info"
+            variant="tonal"
+            size="small"
             label
           >
-            {{ (resolveInvoiceBalanceVariant(item.balance, item.total)).status }}
+            {{ item.period }}
           </VChip>
+          <VChip
+            v-else
+            color="info"
+            variant="tonal"
+            size="small"
+            label
+          >
+            {{ item.period }}
+          </VChip>
+        </template>
 
-          <template v-else>
-            <span class="text-base">
-              {{ Number((resolveInvoiceBalanceVariant(item.balance, item.total)).status) > 0 ? `$${(resolveInvoiceBalanceVariant(item.balance, item.total)).status}` : `-$${Math.abs(Number((resolveInvoiceBalanceVariant(item.balance, item.total)).status))}` }}
-            </span>
-          </template>
+        <template #item.total_amount="{ item }">
+          <span :class="`text-${item.total_amount < 0 ? 'error' : 'info'}`">
+            {{ Number(item.total_amount).toLocaleString('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }) }}
+          </span>
         </template>
 
         <!-- Actions -->
         <template #item.actions="{ item }">
-          <IconBtn @click="deleteInvoice(item.id)">
-            <VIcon icon="tabler-trash" />
+          <IconBtn>
+            <RouterLink :to="'/financial/payment/preview/' + item.invoice">
+              <VIcon icon="tabler-eye" />
+            </RouterLink>
           </IconBtn>
 
-          <IconBtn :to="{ name: 'apps-invoice-preview-id', params: { id: item.id } }">
-            <VIcon icon="tabler-eye" />
-          </IconBtn>
+          <IconBtn>
+            <VIcon icon="tabler-dots-vertical" />
+            <VMenu activator="parent">
+              <VList>
+                <VListItem
+                  value="download"
+                  prepend-icon="tabler-download"
+                >
+                  Download
+                </VListItem>
 
-          <MoreBtn
-            :menu-list="computedMoreList(item.id)"
-            item-props
-            color="undefined"
-          />
+                <VListItem
+                  value="duplicate"
+                  prepend-icon="tabler-copy"
+                >
+                  Duplicate
+                </VListItem>
+              </VList>
+            </VMenu>
+          </IconBtn>
         </template>
-
-        <!-- pagination -->
 
         <template #bottom>
           <VDivider />
-          <div class="d-flex align-center justify-sm-space-between justify-center flex-wrap gap-3 pa-5 pt-3">
-            <p class="text-sm text-disabled mb-0">
-              {{ paginationMeta({ page, itemsPerPage }, totalInvoices) }}
+
+          <div class="d-flex align-center justify-space-between flex-wrap gap-3 pa-5 pt-3">
+            <p class="text-sm text-medium-emphasis mb-0">
+              {{ paginationMeta({ page, itemsPerPage }, totalpayments) }}
             </p>
 
             <VPagination
               v-model="page"
-              :length="Math.ceil(totalInvoices / itemsPerPage)"
-              :total-visible="$vuetify.display.xs ? 1 : Math.ceil(totalInvoices / itemsPerPage)"
+              :length="Math.ceil(totalpayments / itemsPerPage)"
+              :total-visible="$vuetify.display.xs ? 1 : Math.min(Math.ceil(totalpayments / itemsPerPage), 5)"
             >
               <template #prev="slotProps">
                 <VBtn
@@ -493,24 +420,13 @@ const deleteInvoice = async id => {
           </div>
         </template>
       </VDataTableServer>
-    <!-- !SECTION -->
     </VCard>
-  </section>
-  <section v-else>
-    <VCard>
-      <VCardTitle>No Invoice Found</VCardTitle>
-    </VCard>
-  </section>
+  </div>
 </template>
 
-<style lang="scss">
-#invoice-list {
-  .invoice-list-actions {
-    inline-size: 8rem;
-  }
-
-  .invoice-list-filter {
-    inline-size: 12rem;
-  }
+<style lang="scss" scoped>
+.product-widget{
+  border-block-end: 1px solid rgba(var(--v-theme-on-surface), var(--v-border-opacity));
+  padding-block-end: 1rem;
 }
 </style>
