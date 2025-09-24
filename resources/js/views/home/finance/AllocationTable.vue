@@ -52,9 +52,9 @@ const resolveChipColor = balance => {
 }
 
 const resolvePercentageColor = percentage => {
-  if (percentage > 95)
+  if (percentage > 100)
     return 'error'
-  if (percentage > 85)
+  if (percentage > 90)
     return 'warning'
   
   return 'primary'
@@ -140,14 +140,12 @@ const totalBalance = computed(() => props.data.reduce((sum, item) => sum + item.
               <div class="w-100">
                 <VProgressLinear
                   :model-value="item.remain"
-                  rounded
                   :color="resolvePercentageColor(item.remain)"
-                  :height="6"
+                  :height="10"
+                  rounded
                 />
               </div>
-              <div class="text-body-2">
-                {{ Number(item.remain) }}%
-              </div>
+              <div class="text-body-2" />
             </div>
           </td>
         </tr>
@@ -155,10 +153,10 @@ const totalBalance = computed(() => props.data.reduce((sum, item) => sum + item.
       <tfoot>
         <tr class="text-body-1 bg-var-theme-background">
           <th
-            colspan="3"
+            colspan="2"
             scope="row"
-            class="text-end text-high-emphasis"
-          >
+          />
+          <th class="font-weight-medium text-high-emphasis">
             Total Balance
           </th>
           <td class="font-weight-medium">

@@ -95,6 +95,8 @@ const addItem = () => {
 const removeItem = id => {
   emit('remove', id)
 }
+
+console.log('localData child', localData.value)
 </script>
 
 <template>

@@ -14,7 +14,7 @@ export default [
         title: 'Projects',
         to: 'home-projects',
       },
-      ...((currentUser.value?.role ?? 0) >= 4 ? [{
+      ...(currentUser.admin_teacher_id !== null ? [{
         title: 'Finance',
         to: 'home-finance',
       }] : []),

@@ -50,20 +50,16 @@ class ScoreController extends Controller
             ->join('academy_subjects', 'academy_competences.academy_subject_id', '=', 'academy_subjects.id')
             ->join('admin_teachers', 'academy_competences.admin_teacher_id', '=', 'admin_teachers.id')
             ->select(
-                'academy_scores.serial',
-                'academy_scores.semester',
-                'academy_subjects.name as subject',
-                'admin_teachers.name as teacher',
-                DB::raw('ANY_VALUE(admin_students.registered) as year'),
+                'academy_scores.serial as serial',
+                DB::raw('MIN(academy_scores.semester) as semester'),
+                DB::raw('MIN(academy_subjects.name) as subject'),
+                DB::raw('MIN(admin_teachers.name) as teacher'),
+                DB::raw('MIN(admin_students.registered) as year'),
                 DB::raw('COUNT(*) as count'),
                 DB::raw('MIN(academy_scores.created_at) as created_at')
             )
             ->groupBy(
-                'academy_scores.serial',
-                'academy_scores.semester',
-                'academy_subjects.name',
-                'admin_teachers.name',
-                'admin_students.registered'
+                'academy_scores.serial'
             );
 
         if ($search) {
@@ -85,8 +81,11 @@ class ScoreController extends Controller
             $query->where('academy_subjects.id', $subject);
         }
 
-        if ($sortBy) {
-            $query->orderBy($sortBy, $orderBy);
+        // Whitelist kolom yang bisa di-sort untuk keamanan dan mencegah error
+        $sortableColumns = ['serial', 'semester', 'subject', 'teacher', 'year', 'count', 'created_at'];
+        if ($sortBy && in_array($sortBy, $sortableColumns)) {
+            // Pastikan orderBy adalah 'asc' atau 'desc'
+            $query->orderBy($sortBy, $orderBy === 'desc' ? 'desc' : 'asc');
         } else {
             $query->orderBy('created_at', 'desc');
         }

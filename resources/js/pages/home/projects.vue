@@ -79,7 +79,7 @@ const topicsChartConfig = computed(() => ({
     offsetX: 0,
     dropShadow: { enabled: false },
     formatter(val, opt) {
-      return tasks.value.media.name[opt.dataPointIndex] || ''
+      return tasks.value.media?.name?.[opt.dataPointIndex] || ''
     },
   },
   xaxis: {

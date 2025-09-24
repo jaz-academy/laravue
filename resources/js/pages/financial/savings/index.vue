@@ -70,7 +70,7 @@ const widgetData = computed(() => {
 
   return items.map(item => ({
     ...item,
-    value: summary[item.key].toLocaleString('id-ID'),
+    value: summary[item.key] || 0,
   }))
 })
 
@@ -224,7 +224,7 @@ const searchQuery = ref('')
                   </div>
 
                   <h4 :class="id == 2 ? `text-h2` : `text-h4`">
-                    Rp. {{ data.value }}
+                    {{ data.value.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }) }}
                   </h4>
 
                   <div class="d-flex">
@@ -335,7 +335,7 @@ const searchQuery = ref('')
               />
             </VAvatar>
             <span :class="item.balance < 0 ? 'text-error' : 'text-primary'">
-              {{ item.balance.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }) }}
+              {{ Number(item.balance).toLocaleString('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }) }}
             </span>
           </template>
 

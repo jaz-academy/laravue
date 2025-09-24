@@ -94,12 +94,9 @@ const dialogModelValueUpdate = val => {
 
     <VCard class="pa-sm-8 pa-5">
       <VCardItem class="text-center">
-        <VCardTitle class="text-h3 mb-3">          
+        <VCardTitle class="text-h3">          
           {{ dialogTitle }}
         </VCardTitle>
-        <p class="mb-0">
-          Tambahkan Deposit Saldo baru.
-        </p>
       </VCardItem>
 
       <VCardText>
@@ -178,7 +175,7 @@ const dialogModelValueUpdate = val => {
             <!-- 👉 Submit and Cancel -->
             <VCol
               cols="12"
-              class="d-flex flex-wrap justify-center gap-4 mt-6"
+              class="d-flex flex-wrap justify-center gap-2 mt-6"
             >
               <VBtn type="submit">
                 {{ submitButtonText }}

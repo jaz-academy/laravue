@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 const props = defineProps({
   data: {
@@ -7,6 +7,8 @@ const props = defineProps({
     default: () => [],
   },
 })
+
+const emit = defineEmits(['year-selected'])
 
 const monthNames = [
   'Jan',
@@ -23,6 +25,27 @@ const monthNames = [
   'Dec',
 ]
 
+const selectedYear = ref('All')
+
+watch(selectedYear, newYear => {
+  // Jika 'All' dipilih, kirim string kosong agar tidak ada filter tahun di API
+  // Jika tahun spesifik dipilih, kirim tahun tersebut.
+  const yearToFilter = newYear === 'All' ? '' : newYear
+
+  emit('yearSelected', yearToFilter)
+})
+
+const years = computed(() => {
+  const startYear = 2023
+  const endYear = new Date().getFullYear()
+  const yearList = []
+  for (let i = endYear; i >= startYear; i--) {
+    yearList.push(i)
+  }
+  
+  return yearList
+})
+
 const chartData = computed(() => {
   const bulan = []
   const official = []
@@ -32,14 +55,13 @@ const chartData = computed(() => {
     const [year, month] = item.month.split('-')
 
     bulan.push(`${monthNames[parseInt(month) - 1]}-${year}`)
+    bulan.push(`${monthNames[parseInt(month) - 1]}`)
     official.push(Number(item.official))
     non_official.push(Number(item.non_official))
   })
 
   return { bulan, official, non_official }
 })
-
-console.log("chartData: ", chartData.value)
 
 const chartColors = {
   line: {
@@ -209,12 +231,29 @@ const shipmentConfig = computed(() => ({
       subtitle="Monthly expenses"
     >
       <template #append>
-        <VBtn
-          variant="tonal"
-          append-icon="tabler-chevron-down"
-        >
-          January
-        </VBtn>
+        <VMenu offset-y>
+          <template #activator="{ props: menuProps }">
+            <VBtn
+              v-bind="menuProps"
+              variant="tonal"
+              append-icon="tabler-chevron-down"
+            >
+              {{ selectedYear }}
+            </VBtn>
+          </template>
+          <VList>
+            <VListItem @click="selectedYear = 'All'">
+              <VListItemTitle>All</VListItemTitle>
+            </VListItem>
+            <VListItem
+              v-for="year in years"
+              :key="year"
+              @click="selectedYear = year"
+            >
+              <VListItemTitle>{{ year }}</VListItemTitle>
+            </VListItem>
+          </VList>
+        </VMenu>
       </template>
     </VCardItem>
 

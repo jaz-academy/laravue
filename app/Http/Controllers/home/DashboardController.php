@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers\home;
 
-use App\Models\ProjectTask;
-use App\Models\AcademyScore;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\Controller;
-use App\Models\AdminStudent;
 use App\Models\FinanceItem;
-use App\Models\PaymentBilling;
 use App\Models\PaymentItem;
 use App\Models\ProjectPlan;
+use App\Models\ProjectTask;
+use Illuminate\Support\Str;
+use App\Models\AcademyScore;
+use App\Models\AdminStudent;
+use Illuminate\Http\Request;
+use App\Models\PaymentBilling;
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use SebastianBergmann\CodeCoverage\Report\Xml\Project;
 
@@ -174,51 +175,74 @@ class DashboardController extends Controller
         ]);
     }
 
+
     public function finance(Request $request)
     {
+        $year = $request->query('year');
+
+        // range tahun ajaran (July - June)
+        $rangeStart = $year ? $year . '-07-01' : null;
+        $rangeEnd   = $year ? ($year + 1) . '-06-30' : null;
+
+        // Non Kitchen
         $nonKitchen = FinanceItem::with('financeAccount')
             ->select('finance_account_id', DB::raw('SUM(amount) as amount'))
-            ->whereHas('financeAccount', function ($q) {
-                $q->where('allocation', '<>', '117569');
-            })
-            ->groupBy('finance_account_id')
-            ->get();
+            ->whereHas('financeAccount', fn($q) => $q->where('allocation', '<>', '117569'));
 
+        if ($year) {
+            $nonKitchen->whereBetween('date', [$rangeStart, $rangeEnd]);
+        }
+
+        $nonKitchen = $nonKitchen->groupBy('finance_account_id')->get();
+
+        // Household (official vs non_official)
         $houseHold = FinanceItem::query()
             ->selectRaw("
+            MAX(date) as date,
             DATE_FORMAT(date, '%Y-%m') as month,
             SUM(CASE WHEN finance_account_id = 12 THEN amount ELSE 0 END) as official,
             SUM(CASE WHEN finance_account_id = 14 THEN amount ELSE 0 END) as non_official
-        ")
-            ->groupBy('month')
+        ");
+
+        if ($year) {
+            $houseHold->whereBetween('date', [$rangeStart, $rangeEnd]);
+        }
+
+        $houseHold = $houseHold->groupBy('month')
             ->orderByDesc('month')
-            ->limit(12) // ambil 12 bulan terakhir dari data yang ada
+            ->limit(12)
             ->get()
-            ->sortBy('month') // urutkan kembali ascending
+            ->sortBy('month')
             ->values();
 
-
-        // Mengambil data pembayaran berdasarkan periode tagihan (billing) untuk bulan ini.
-        // Format billing diasumsikan mengandung 'M-Y', contoh: 'SPP Jul-2024'.
+        // current month payments
         $currentBillingPeriod = now()->format('M-Y');
         $payCurrentMonth = PaymentItem::where('billing', 'LIKE', '%' . $currentBillingPeriod . '%')->get();
 
+        // Students
         $students = AdminStudent::whereNull('graduation')->orderBy('name')->get();
 
+        // Billing (non monthly)
         $billingByName = PaymentBilling::select(
             'name',
             'category',
+            DB::raw('MAX(year) as year'),
             DB::raw('COUNT(name) as count'),
             DB::raw('SUM(amount) as amount')
         )
             ->where('is_monthly', 0)
-            ->where('amount', '>', 0)
-            ->groupBy('name', 'category')
-            ->get();
+            ->where('amount', '>', 0);
+
+        if ($year) {
+            $billingByName->where('year', $year);
+        }
+
+        $billingByName = $billingByName->groupBy('name', 'category')->get();
 
         $payDelivery = array_map(function ($billing) use ($students) {
             return [
                 'billing'    => $billing->name,
+                'year'       => $billing->year,
                 'category'   => $billing->category,
                 'count'      => $students->where('payment_category', $billing->category)->count(),
                 'amount'     => $billing->amount * $students->where('payment_category', $billing->category)->count(),
@@ -227,54 +251,67 @@ class DashboardController extends Controller
             ];
         }, $billingByName->all());
 
+        // Expenses (kitchen)
         $expenses = FinanceItem::with('financeAccount')
             ->select('invoice', DB::raw('MAX(date) as date'), DB::raw('MAX(remark) as remark'), DB::raw('SUM(amount) as amount'))
-            ->whereHas('financeAccount', function ($q) {
-                $q->where('allocation', '117569');
-            })
-            ->groupBy('invoice')
-            ->orderBy('date', 'desc')
-            ->limit(10)
-            ->get();
+            ->whereHas('financeAccount', fn($q) => $q->where('allocation', '117569'));
 
+        if ($year) {
+            $expenses->whereBetween('date', [$rangeStart, $rangeEnd]);
+        }
+
+        $expenses = $expenses->groupBy('invoice')->orderBy('date', 'desc')->limit(10)->get();
+
+        // Outgoings (non kitchen)
         $outgoings = FinanceItem::with('financeAccount')
             ->select('invoice', DB::raw('MAX(date) as date'), DB::raw('MAX(remark) as remark'), DB::raw('SUM(amount) as amount'))
-            ->whereHas('financeAccount', function ($q) {
-                $q->where('allocation', '<>', '117569');
-            })
-            ->groupBy('invoice')
-            ->orderBy('date', 'desc')
-            ->limit(10)
-            ->get();
+            ->whereHas('financeAccount', fn($q) => $q->where('allocation', '<>', '117569'));
 
+        if ($year) {
+            $outgoings->whereBetween('date', [$rangeStart, $rangeEnd]);
+        }
+
+        $outgoings = $outgoings->groupBy('invoice')->orderBy('date', 'desc')->limit(10)->get();
+
+        // Inputs (pemasukan)
         $inputs = FinanceItem::with('financeAccount')
             ->select('invoice', DB::raw('MAX(date) as date'), DB::raw('MAX(remark) as remark'), DB::raw('SUM(amount) as amount'))
-            ->whereHas('financeAccount', function ($q) {
-                $q->where('unit', 'Pemasukan');
-            })
-            ->groupBy('invoice')
-            ->orderBy('date', 'desc')
-            ->limit(10)
-            ->get();
+            ->whereHas('financeAccount', fn($q) => $q->where('unit', 'Pemasukan'));
 
-        $allocation = [
-            'payments' => PaymentItem::join('finance_accounts', 'payment_items.finance_account_id', '=', 'finance_accounts.id')
-                ->select(
-                    'finance_accounts.number',
-                    'finance_accounts.description',
-                    DB::raw('SUM(amount) as amount')
-                )
-                ->groupBy('finance_accounts.number', 'finance_accounts.description')
-                ->get(),
-            'finances' => FinanceItem::join('finance_accounts', 'finance_items.finance_account_id', '=', 'finance_accounts.id')
-                ->select(
-                    'finance_accounts.allocation',
-                    'finance_accounts.description',
-                    DB::raw('SUM(finance_items.amount) as amount')
-                )
-                ->groupBy('finance_accounts.allocation', 'finance_accounts.description')
-                ->get(),
-        ];
+        if ($year) {
+            $inputs->whereBetween('date', [$rangeStart, $rangeEnd]);
+        }
+
+        $inputs = $inputs->groupBy('invoice')->orderBy('date', 'desc')->limit(10)->get();
+
+        // Payments
+        $payments = PaymentItem::join('finance_accounts', 'payment_items.finance_account_id', '=', 'finance_accounts.id')
+            ->select(
+                'finance_accounts.number',
+                'finance_accounts.description',
+                DB::raw('SUM(amount) as amount')
+            );
+
+        if ($year) {
+            $payments->where('period', $year);
+        }
+
+        $payments = $payments->groupBy('finance_accounts.number', 'finance_accounts.description')->get();
+
+        // Finances
+        $finances = FinanceItem::join('finance_accounts', 'finance_items.finance_account_id', '=', 'finance_accounts.id')
+            ->select(
+                'finance_accounts.allocation',
+                'finance_accounts.description',
+                DB::raw('MAX(date) as date'),
+                DB::raw('SUM(finance_items.amount) as amount')
+            );
+
+        if ($year) {
+            $finances->whereBetween('date', [$rangeStart, $rangeEnd]);
+        }
+
+        $finances = $finances->groupBy('finance_accounts.allocation', 'finance_accounts.description')->get();
 
         return response()->json([
             'nonKitchen' => $nonKitchen,
@@ -285,7 +322,10 @@ class DashboardController extends Controller
             'expenses' => $expenses,
             'outgoings' => $outgoings,
             'inputs' => $inputs,
-            'allocation' => $allocation,
+            'allocation' => [
+                'payments' => $payments,
+                'finances' => $finances,
+            ],
         ]);
     }
 }
