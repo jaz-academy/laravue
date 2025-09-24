@@ -22,6 +22,8 @@ if (invoiceNumber.value && invoiceNumber.value !== 'new') {
   // Panggil API yang benar untuk mengambil data finance berdasarkan serial
   const { data: paymentsResponse } = await useApi(`/payments-by-invoice/${invoiceNumber.value}`)
 
+  console.log('Raw invoiceData from API:', paymentsResponse.value)
+
   if (paymentsResponse.value && paymentsResponse.value.data.length > 0) {
     const payments = paymentsResponse.value.data
     

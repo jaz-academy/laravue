@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\AcademyCourse;
 use App\Http\Controllers\Controller;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Storage;
 
 class CourseController extends Controller
 {
@@ -144,7 +145,27 @@ class CourseController extends Controller
             'video_duration' => 'nullable|string|max:255',
         ]);
 
+        // validasi file tapi jangan ikut ke $fields
+        $request->validate([
+            'photo' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
+        ]);
+
+        // simpan data course
         $course = AcademyCourse::create($fields);
+
+        // jika ada file photo
+        if ($request->hasFile('photo')) {
+            $filename = $request->name . '.png';
+            $path = "courses/$filename";
+
+            // hapus file lama kalau ada
+            if (Storage::disk('public')->exists($path)) {
+                Storage::disk('public')->delete($path);
+            }
+
+            // simpan file baru
+            $request->file('photo')->storeAs('courses', $filename, 'public');
+        }
 
         return response()->json([
             'message' => 'Course created Successfully.',
@@ -202,7 +223,23 @@ class CourseController extends Controller
             'video_duration' => 'nullable|string|max:255',
         ]);
 
+        // validasi file tapi jangan ikut ke $fields
+        $request->validate([
+            'photo' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
+        ]);
+
         $course->update($fields);
+
+        if ($request->hasFile('photo')) {
+            $filename = $request->name . '.png';
+            $path = "courses/$filename";
+
+            if (Storage::disk('public')->exists($path)) {
+                Storage::disk('public')->delete($path);
+            }
+
+            $request->file('photo')->storeAs('courses', $filename, 'public');
+        }
 
         return response()->json([
             'message' => 'Course updated Successfully.',

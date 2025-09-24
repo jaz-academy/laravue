@@ -2,6 +2,7 @@
 import { useApi } from '@/composables/useApi'
 import AddDepositDialog from '@/views/financial/finance/AddDepositDialog.vue'
 
+const currentUser = useCookie('userData')
 const deposits = ref([])
 const depositDialogVisible = ref(false)
 const dialogMode = ref('add')
@@ -179,7 +180,7 @@ const handleDelete = async id => {
             </div>
             <div class="d-flex gap-x-2">
               <h6 class="text-h6 font-weight-medium">
-                {{ (data.change > 0) ? '+' : '' }} {{ data.change }}%
+                {{ data.change }}%
               </h6>
               <span class="text-disabled">from Total</span>
             </div>
@@ -190,9 +191,9 @@ const handleDelete = async id => {
 
     <!-- TAMBAH DEPOSIT BARU -->
     <VCol
-      cols="12"
+      v-if="deposits.length == 0 || deposits.length % 2 !== 0 || currentUser.admin_teacher_id"
       :md="deposits.length <= 2 ? 6 : deposits.length <= 4 ? 3 : deposits.length <= 6 ? 2 : 6"
-      :class="deposits.length % 2 === 0 ? 'd-none' : ''"
+      cols="12"
       sm="6"
       @click="openAddDepositDialog"
     >
@@ -219,6 +220,7 @@ const handleDelete = async id => {
 
     <!-- 👉 Edit user info dialog -->
     <AddDepositDialog
+      v-if="currentUser.admin_teacher_id"
       v-model:is-dialog-visible="depositDialogVisible"
       :mode="dialogMode"
       :selected-data="selectedDeposit"

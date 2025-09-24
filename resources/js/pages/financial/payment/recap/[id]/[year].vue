@@ -119,14 +119,22 @@ const paymentRecap = computed(() => {
 
 const recapTotals = computed(() => {
   return paymentRecap.value.reduce((totals, item) => {
-    totals.billed += item.billed || 0
-    totals.discount += item.discount || 0
-    totals.paid += item.paid || 0
-    totals.remain += item.remain || 0
+    totals.billed += Number(item.billed) || 0
+    totals.discount += Number(item.discount) || 0
+    totals.paid += Number(item.paid) || 0
+    totals.remain += Number(item.remain) || 0
     
     return totals
   }, { billed: 0, discount: 0, paid: 0, remain: 0 })
 })
+
+const formatCurrency = value => {
+  if (typeof value !== 'number') {
+    value = Number(value) || 0
+  }
+  
+  return value.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+}
 </script>
 
 <template>
@@ -273,16 +281,16 @@ const recapTotals = computed(() => {
                   {{ item.description }}
                 </td>
                 <td class="text-end">
-                  {{ item.billed.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) }}
+                  {{ formatCurrency(item.billed) }}
                 </td>
                 <td class="text-end">
-                  {{ item.paid.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) }}
+                  {{ formatCurrency(item.paid) }}
                 </td>
                 <td class="text-end">
-                  {{ item.discount.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) }}
+                  {{ formatCurrency(item.discount) }}
                 </td>
                 <td class="text-end">
-                  {{ item.remain.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) }}
+                  {{ formatCurrency(item.remain) }}
                 </td>
                 <td class="d-none d-md-table-cell" />
               </tr>
@@ -298,16 +306,16 @@ const recapTotals = computed(() => {
                   Total
                 </th>
                 <td class="text-end font-weight-bold">
-                  {{ recapTotals.billed.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) }}
+                  {{ formatCurrency(recapTotals.billed) }}
                 </td>
                 <td class="text-end font-weight-bold">
-                  {{ recapTotals.paid.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) }}
+                  {{ formatCurrency(recapTotals.paid) }}
                 </td>
                 <td class="text-end font-weight-bold">
-                  {{ recapTotals.discount.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) }}
+                  {{ formatCurrency(recapTotals.discount) }}
                 </td>
                 <td class="text-end font-weight-bold text-error">
-                  {{ recapTotals.remain.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) }}
+                  {{ formatCurrency(recapTotals.remain) }}
                 </td>
                 <th class="d-none d-md-table-cell" />
               </tr>

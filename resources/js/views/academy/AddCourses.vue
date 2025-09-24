@@ -1,6 +1,8 @@
 <script setup>
 import AppTextField from '@/@core/components/app-form-elements/AppTextField.vue'
 import { useUserAccess } from '@/@core/utils/helpers'
+import { requiredValidator } from '@core/utils/validators'
+import noPhoto from '@images/avatars/no-photo.png'
 import { Image } from '@tiptap/extension-image'
 import { Link } from '@tiptap/extension-link'
 import { Placeholder } from '@tiptap/extension-placeholder'
@@ -65,6 +67,7 @@ const form = reactive({
   description: '',
   video_url: '',
   video_duration: '',
+  photo: null,
 })
 
 watch(
@@ -96,6 +99,7 @@ watch(
         description: '',
         video_url: '',
         video_duration: '',
+        photo: null,
       })
       if (editor.value) {
         editor.value.commands.setContent('', false)
@@ -139,6 +143,46 @@ const onSubmit = () => {
     emit('update:isDrawerOpen', false)
     nextTick(resetForm)
   })
+}
+
+const courseImage = ref(noPhoto)
+
+watch(
+  () => form.name,
+  newName => {
+    const trimmedName = newName?.trim() || ''
+    if (trimmedName) {
+      courseImage.value = `/storage/courses/${trimmedName}.png`
+    } else {
+      courseImage.value = noPhoto
+    }
+  },
+)
+
+const fileSizeValidator = fileList => {
+  if (!fileList || !fileList.length) return true
+  const file = fileList[0]
+  if (file.size > 2 * 1024 * 1024) { // 2 MB
+    return 'File size should not exceed 2 MB.'
+  }
+  
+  return true
+}
+
+const onFileChange = event => {
+  const file = event.target.files[0]
+  if (file) {
+    form.photo = file
+    courseImage.value = URL.createObjectURL(file)
+  } else {
+    form.photo = null
+
+
+    // Revert to default image if file is cleared
+    const trimmedName = form.name?.trim() || ''
+
+    courseImage.value = trimmedName ? `/storage/courses/${trimmedName}.png` : noPhoto
+  }
 }
 </script>
 
@@ -299,6 +343,23 @@ const onSubmit = () => {
                   label="Write Video Duration"
                   :rules="[requiredValidator]"
                   placeholder="Courses Video Duration"
+                />
+              </VCol>
+
+              <VCol cols="12">
+                <VImg
+                  cover
+                  :src="courseImage"
+                  class="cursor-pointer mb-5 rounded"
+                  @error="courseImage = noPhoto"
+                />
+                <VFileInput
+                  v-model="form.photo"
+                  label="File input"
+                  prepend-icon="tabler-camera"
+                  accept="image/*"
+                  :rules="[fileSizeValidator]"
+                  @change="onFileChange"
                 />
               </VCol>
 

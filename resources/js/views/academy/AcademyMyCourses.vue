@@ -1,11 +1,6 @@
 <script setup>
-import tutorImg1 from '@images/pages/app-academy-tutor-1.png'
-import tutorImg2 from '@images/pages/app-academy-tutor-2.png'
-import tutorImg3 from '@images/pages/app-academy-tutor-3.png'
-import tutorImg4 from '@images/pages/app-academy-tutor-4.png'
-import tutorImg5 from '@images/pages/app-academy-tutor-5.png'
-import tutorImg6 from '@images/pages/app-academy-tutor-6.png'
 import { rand } from '@vueuse/core'
+import CourseImage from './CourseImage.vue'
 
 const props = defineProps({
   searchQuery: {
@@ -13,8 +8,6 @@ const props = defineProps({
     required: true,
   },
 })
-
-const tutorImgs = [tutorImg1, tutorImg2, tutorImg3, tutorImg4, tutorImg5, tutorImg6]
 
 const subject = ref('')
 const page = ref(1)
@@ -90,7 +83,7 @@ const resolveChipColor = tags => {
       <div class="mb-6">
         <VRow>
           <template
-            v-for="(course, index) in courses"
+            v-for="course in courses"
             :key="course.id"
           >
             <VCol
@@ -103,11 +96,7 @@ const resolveChipColor = tags => {
                 border
               >
                 <div class="pa-2">
-                  <VImg
-                    :src="tutorImgs[index % tutorImgs.length]"
-                    class="cursor-pointer"
-                    @click="() => $router.push({ name: 'academy-course-list' })"
-                  />
+                  <CourseImage :name="course.name" />
                 </div>
                 <VCardText>
                   <div class="d-flex justify-space-between align-center mb-4">
@@ -130,7 +119,7 @@ const resolveChipColor = tags => {
                   </div>
                   <h5 class="text-h5 mb-1">
                     <RouterLink
-                      :to="{ name: 'academy-course-list' }"
+                      :to="`/academy/course/details?name=${course.name}&id=${course.first_id}`"
                       class="course-title"
                     >
                       {{ course.name }}

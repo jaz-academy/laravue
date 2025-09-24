@@ -221,9 +221,9 @@ const ability = isOk => {
                   {{ getPredicate(item.final_score) }}
                 </td>
                 <td class="d-none d-md-table-cell">
-                  {{ item.competence_1 ? ability(item.is_ok_1) + ' ' + (item.competence_1.endsWith('.') || item.competence_1.endsWith(',') ? item.competence_1 : item.competence_1 + '.') : '' }}
-                  {{ item.competence_2 ? ability(item.is_ok_2) + ' ' + (item.competence_2.endsWith('.') || item.competence_2.endsWith(',') ? item.competence_2 : item.competence_2 + '.') : '' }}
-                  {{ item.competence_3 ? ability(item.is_ok_3) + ' ' + (item.competence_3.endsWith('.') || item.competence_3.endsWith(',') ? item.competence_3 : item.competence_3 + '.') : '' }}
+                  {{ item.competence_1 ? ability(Number(item.is_ok_1)) + ' ' + (item.competence_1.endsWith('.') || item.competence_1.endsWith(',') ? item.competence_1 : item.competence_1 + '.') : '' }}
+                  {{ item.competence_2 ? ability(Number(item.is_ok_2)) + ' ' + (item.competence_2.endsWith('.') || item.competence_2.endsWith(',') ? item.competence_2 : item.competence_2 + '.') : '' }}
+                  {{ item.competence_3 ? ability(Number(item.is_ok_3)) + ' ' + (item.competence_3.endsWith('.') || item.competence_3.endsWith(',') ? item.competence_3 : item.competence_3 + '.') : '' }}
                 </td>
                 <td class="d-none d-md-table-cell" />
               </tr>
@@ -237,7 +237,7 @@ const ability = isOk => {
             <div class="my-4 mx-sm-4">
               <h6 class="text-base font-weight-medium">
                 Nilai Rata-rata:
-                <span class="font-weight-bold">{{ averageScore }}</span>
+                <span class="font-weight-bold">{{ Number(averageScore).toFixed(2) }}</span>
               </h6>
             </div>
             <VSpacer />

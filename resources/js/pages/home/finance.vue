@@ -9,6 +9,7 @@ import PaymentPerformance from '@/views/home/finance/PaymentPerformance.vue'
 import SaldoCardStatistics from '@/views/home/finance/SaldoCardStatistics.vue'
 import { ref } from 'vue'
 
+const currentUser = useCookie('userData')
 const nonKitchen = ref([])
 const houseHold = ref([])
 const students = ref([])
@@ -18,9 +19,10 @@ const inputs = ref([])
 const payCurrentMonth = ref([])
 const payPercentages = ref({ text: [], value: [] })
 const allocation = ref([])
+const selectedYear = ref('')
 
-async function fetchFinances() {
-  const res = await useApi('/dashboard-finance')
+async function fetchFinances(year = '') {
+  const res = await useApi(`/dashboard-finance?year=${year}`)
 
   const financeData = res.data.value
   if (!financeData) return
@@ -62,8 +64,11 @@ async function fetchFinances() {
   })
 }
 
-onMounted(fetchFinances)
-console.log('allocation: ', allocation.value)
+const handleYearChange = year => {
+  fetchFinances(year)
+}
+
+onMounted(() => fetchFinances())
 </script>
 
 <template>
@@ -85,10 +90,14 @@ console.log('allocation: ', allocation.value)
       md="6"
     >
       <!-- Pembelanjaan -->
-      <ExpenseStatistics :data="houseHold" />
+      <ExpenseStatistics
+        :data="houseHold"
+        @year-selected="handleYearChange"
+      />
     </VCol>
 
     <VCol
+      v-if="currentUser.admin_teacher_id"
       cols="12"
       md="4"
     >
@@ -101,7 +110,7 @@ console.log('allocation: ', allocation.value)
 
     <VCol
       cols="12"
-      md="4"
+      :md="currentUser.admin_teacher_id ? 4 : 6"
     >
       <!-- Chart Pembayaran -->
       <PaymentDelivery :data="payPercentages" />
@@ -109,7 +118,7 @@ console.log('allocation: ', allocation.value)
 
     <VCol
       cols="12"
-      md="4"
+      :md="currentUser.admin_teacher_id ? 4 : 6"
     >
       <!-- Riwayat Transaksi -->
       <FinanceHistory :data="{ expenses, outgoings, inputs }" />
@@ -117,7 +126,10 @@ console.log('allocation: ', allocation.value)
 
     <VCol cols="12">
       <!-- Alokasi -->
-      <AllocationTable :data="allocation" />
+      <AllocationTable 
+        v-if="currentUser.admin_teacher_id"
+        :data="allocation" 
+      />
     </VCol>
   </VRow>
 </template>
