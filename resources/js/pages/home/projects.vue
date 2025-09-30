@@ -205,10 +205,10 @@ const timeSpendingChartSeries = computed(() => {
 
 const topicsData = computed(() => {
   const counts = tasks.value.media?.count || []
-  const total = counts.reduce((a, b) => a + b, 0) || 1 // supaya nggak div 0
+  const total = counts.reduce((a, b) => Number(a) + Number(b), 0) || 1 // supaya nggak div 0
 
   return (tasks.value.media?.name || []).map((name, i) => {
-    const percent = Math.round(((Number(counts[i]) || 0) / total) * 100)
+    const percent = Math.round((((Number(counts[i]) || 0) / total) * 100), 0)
     
     return {
       title: name,
@@ -401,7 +401,7 @@ onUnmounted(() => clearInterval(interval))
                         {{ topic.title }}
                       </div>
                       <h4 class="text-h4">
-                        {{ Number(topic.value) }}%
+                        {{ topic.value }}%
                       </h4>
                     </div>
                   </div>

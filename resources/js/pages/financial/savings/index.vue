@@ -10,6 +10,8 @@ const fetchSavings = async () => {
   const { data } = await useApi('/savings')
 
   savings.value = data.value.data || []  
+  console.log('Savings data fetched:', savings.value)
+  
 }
 
 onMounted(fetchSavings)
@@ -39,7 +41,7 @@ const saldos = computed(() => {
 })
 
 const getSaldoById = id => {
-  return saldos.value.find(s => s.id === id) || { debit: 0, credit: 0, saldo: 0 }
+  return saldos.value.find(s => s.id == Number(id)) || { debit: 0, credit: 0, saldo: 0 }
 }
 
 const isAlertVisible = ref(false)
@@ -58,7 +60,7 @@ const widgetData = computed(() => {
     summary = {
       credit: totalDeposit,
       debit: totalWithdraw,
-      saldo: totalDeposit - totalWithdraw,
+      saldo: Number(totalDeposit) - Number(totalWithdraw),
     }
   }
 
@@ -96,7 +98,7 @@ const savingData = computed(() => {
       student: saving.admin_student?.nickname || '',
       credit: saving.credit || '',
       debit: saving.debit || '',
-      balance: saving.balance || '',
+      balance: Number(saving.credit) - Number(saving.debit),
       note: saving.note || '',
       admin: saving.admin || '',
     }))
@@ -106,7 +108,7 @@ const filteredSavingData = computed(() => {
   // If the current user is a student, filter the savings data to show only their transactions.
   if (currentUser.value && currentUser.value.admin_student_id) {
     return savingData.value.filter(
-      s => s.admin_student_id === currentUser.value.admin_student_id,
+      s => s.admin_student_id == currentUser.value.admin_student_id,
     )
   }
   
@@ -131,7 +133,7 @@ const addNewData = async ({ action, data }) => {
   try {
     let url = '/savings'
     let method = 'POST'
-    if (action === 'update' && data.id) {
+    if (action == 'update' && data.id) {
       url = `/savings/${data.id}`
       method = 'PUT'
     }
@@ -146,7 +148,7 @@ const addNewData = async ({ action, data }) => {
     })
 
     if (response.value.ok) {
-      const msg = action === 'create' ? 'Data berhasil ditambahkan' : 'Data berhasil diperbarui'
+      const msg = action == 'create' ? 'Data berhasil ditambahkan' : 'Data berhasil diperbarui'
 
       showAlert(msg, 'success')
       console.log('Response saving data:', resData)
@@ -247,7 +249,7 @@ const searchQuery = ref('')
                 </VAvatar>
               </div>
               <VDivider
-                v-if="($vuetify.display.mdAndUp && id < widgetData.length - 1) || ($vuetify.display.smOnly && id % 2 === 0)"
+                v-if="($vuetify.display.mdAndUp && id < widgetData.length - 1) || ($vuetify.display.smOnly && id % 2 == 0)"
                 vertical
                 inset
                 class="position-absolute"

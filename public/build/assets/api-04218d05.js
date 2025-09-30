@@ -1,1 +1,0 @@
-import{o}from"./index-8d9cdf1e.js";import{$ as s}from"./main-d9f3424d.js";const t=o.create({baseURL:"/api",async onRequest({options:e}){const a=s("accessToken").value;a&&(e.headers={...e.headers,Authorization:`Bearer ${a}`})}});export{t as $};

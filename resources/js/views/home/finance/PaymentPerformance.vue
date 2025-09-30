@@ -19,10 +19,9 @@ const deliveryData = computed(() => {
     return []
   }
 
-  console.log('deliveryData: ', deliveryData)
-
-  return props.students.map(student => {
-    const studentPayments = props.payments.filter(payment => payment.admin_student_id === student.id && payment.billing && payment.billing.includes(currentBillingPeriod))
+  // 1. Hitung hasil pemetaan dan simpan ke dalam variabel `finalData`
+  const finalData = props.students.map(student => {
+    const studentPayments = props.payments.filter(payment => Number(payment.admin_student_id) === Number(student.id) && payment.billing && payment.billing.includes(currentBillingPeriod))
     const hasPaid = studentPayments.length > 0
     
     return {
@@ -34,6 +33,12 @@ const deliveryData = computed(() => {
       color: !hasPaid ? 'warning' : studentPayments.length >= 3 ? 'success' : 'primary',
     }
   })
+
+  // 2. Lakukan console.log pada variabel `finalData` di sini untuk debugging
+  console.log('Hasil akhir deliveryData:', finalData)
+
+  // 3. Kembalikan variabel tersebut
+  return finalData
 })
 </script>
 
@@ -82,9 +87,7 @@ const deliveryData = computed(() => {
               </div>
             </VListItemSubtitle>
             <template #append>
-              <span class="text-high-emphasis text-body-1 font-weight-medium">
-                {{ data.date }}
-              </span>
+              <small>{{ data.date }}</small>
             </template>
           </VListItem>
         </VList>
