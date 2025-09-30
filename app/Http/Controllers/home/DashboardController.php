@@ -215,8 +215,10 @@ class DashboardController extends Controller
             ->sortBy('month')
             ->values();
 
-        // current month payments
-        $currentBillingPeriod = now()->format('M-Y');
+        // current month payments - Robust approach for 'M-Y' format
+        // Force locale to 'en' to ensure month name (M) is always in English (e.g., May, Jun)
+        // This prevents issues where server locale might be different (e.g., Indonesian 'Mei')
+        $currentBillingPeriod = now()->locale('en')->format('M-Y');
         $payCurrentMonth = PaymentItem::where('billing', 'LIKE', '%' . $currentBillingPeriod . '%')->get();
 
         // Students
@@ -303,15 +305,22 @@ class DashboardController extends Controller
             ->select(
                 'finance_accounts.allocation',
                 'finance_accounts.description',
+                'finance_accounts.unit',
                 DB::raw('MAX(date) as date'),
-                DB::raw('SUM(finance_items.amount) as amount')
+                DB::raw("SUM(CASE 
+                    WHEN finance_accounts.unit = 'Pemasukan' 
+                    THEN finance_items.amount * -1
+                    ELSE finance_items.amount
+                END) as amount")
+
             );
 
         if ($year) {
             $finances->whereBetween('date', [$rangeStart, $rangeEnd]);
         }
 
-        $finances = $finances->groupBy('finance_accounts.allocation', 'finance_accounts.description')->get();
+
+        $finances = $finances->groupBy('finance_accounts.allocation', 'finance_accounts.description', 'finance_accounts.unit')->get();
 
         return response()->json([
             'nonKitchen' => $nonKitchen,

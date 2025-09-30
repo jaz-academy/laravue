@@ -26,6 +26,8 @@ const deliveryData = computed(() => {
     }
   })
 })
+
+console.log('deliveryData: ', deliveryData.value)
 </script>
 
 <template>

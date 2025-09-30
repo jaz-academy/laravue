@@ -29,7 +29,9 @@ const form = reactive({
 const fetchAccounts = async () => {
   const { data } = await useApi('/accounts')
 
-  accounts.value = data.value.data.map(a => ({
+  const filteredAccounts = data.value.data.filter(account => account.unit !== 'Pengeluaran')
+
+  accounts.value = filteredAccounts.map(a => ({
     number: a.number || '-',
     description: a.description || '-',
     allocation: a.allocation,

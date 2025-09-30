@@ -25,6 +25,9 @@ async function fetchFinances(year = '') {
   const res = await useApi(`/dashboard-finance?year=${year}`)
 
   const financeData = res.data.value
+
+  console.log('financeData: ', financeData)
+  
   if (!financeData) return
 
   nonKitchen.value = financeData.nonKitchen || []
@@ -46,20 +49,33 @@ async function fetchFinances(year = '') {
   const finances = financeData.allocation?.finances || []
   const payments = financeData.allocation?.payments || []
 
+  // hitung total dari finance saja
   const totalFinance = finances.reduce((sum, item) => sum + Number(item.amount), 0)
 
-  allocation.value = finances.map(item => {
-    const paymentData = payments.find(p => p.number === item.allocation)
+  // bikin set unik dari semua allocation (gabungan dari finances + payments)
+  const allKeys = Array.from(new Set([
+    ...finances.map(f => f.allocation),
+    ...payments.map(p => p.number),
+  ]))
+
+  allocation.value = allKeys.map(key => {
+    const financeData = finances.find(f => f.allocation === key)
+    const paymentData = payments.find(p => p.number === key)
+
+    const financeAmount = Number(financeData?.amount || 0)
     const paymentAmount = Number(paymentData?.amount || 0)
-    const itemAmount = Number(item.amount)
 
     return {
-      ...item,
+      ...financeData,
+      ...paymentData,
+      allocation: paymentData?.description || financeData?.description || '',
       payment: paymentAmount,
-      allocation: paymentData?.description || '',
-      balance: paymentAmount - itemAmount,
-      percentage: totalFinance > 0 ? (itemAmount / totalFinance) * 100 : 0,
-      remain: 100 - Math.round(((paymentAmount - itemAmount) / itemAmount * 100)),
+      expense: financeAmount,
+      balance: paymentAmount - financeAmount,
+      percentage: totalFinance > 0 ? (financeAmount / totalFinance) * 100 : 0,
+      remain: financeAmount > 0 
+        ? 100 - Math.round(((paymentAmount - financeAmount) / financeAmount * 100))
+        : 100,
     }
   })
 }

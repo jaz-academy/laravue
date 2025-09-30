@@ -19,7 +19,7 @@ const headers = [
   },
   {
     title: 'EXPENSES',
-    key: 'amount',
+    key: 'expense',
   },
   {
     title: 'BALANCE',
@@ -95,13 +95,13 @@ const totalBalance = computed(() => props.data.reduce((sum, item) => sum + item.
           <td>
             <div class="d-flex align-center">
               <VAvatar
-                :color="item.allocation === '' ? 'error' : 'primary'"
+                :color="item.payment > 0 ? 'primary' : 'error'"
                 variant="tonal"
                 class="me-2"
                 size="34"
               >
                 <VIcon
-                  :icon="item.allocation === '' ? 'tabler-wallet' : 'tabler-building-bank'"
+                  :icon="item.payment > 0 ? 'tabler-building-bank' : 'tabler-wallet'"
                   size="22"
                 />
               </VAvatar>
@@ -112,13 +112,13 @@ const totalBalance = computed(() => props.data.reduce((sum, item) => sum + item.
           </td>
 
           <!-- PAYMENT -->
-          <td>
+          <td :class="Number(item.payment) < 0 ? 'text-error' : 'text-secondary'">
             {{ formatCurrency(Number(item.payment)) }}
           </td>
 
           <!-- EXPENSES -->
-          <td>
-            {{ formatCurrency(Number(item.amount)) }}
+          <td :class="Number(item.expense) < 0 ? 'text-success' : 'text-secondary'">
+            {{ formatCurrency(Number(item.expense)) }}
           </td>
 
           <!-- BALANCE -->
