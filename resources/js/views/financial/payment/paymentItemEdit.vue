@@ -85,7 +85,7 @@ const fetchBillings = async (year, category, registeredYear) => {
       const months = ["Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun"]
 
       billingOptions.value = data.value.data.flatMap(item => {
-        if (item.is_monthly) {
+        if (item.is_monthly == 1) {
           return months.map((m, i) => {
             const monthYear = i < 6 ? year : Number(year) + 1
             const title = `${item.name} ${m}-${monthYear}`
@@ -93,7 +93,7 @@ const fetchBillings = async (year, category, registeredYear) => {
             return { title, value: title, amount: item.amount, finance_account_id: Number(item.finance_account_id) }
           })
         }
-        if (item.is_once) {
+        if (item.is_once == 1) {
           const title = `${item.name} ${registeredYear}`
           
           return { title, value: title, amount: item.amount, finance_account_id: Number(item.finance_account_id) }

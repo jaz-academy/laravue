@@ -1,1 +1,0 @@
-import{aJ as u,aK as i,a5 as f}from"./main-d9f3424d.js";const m=(n,t,s,o,e=!1)=>{const r=u(),{global:a}=i();return f(()=>{if(a.name.value==="light")return r.skin==="bordered"&&e?s:n;if(a.name.value==="dark")return r.skin==="bordered"&&e?o:t})};export{m as u};

@@ -31,9 +31,9 @@ const averageScore = computed(() => {
   if (!scoreData.value?.data || scoreData.value.data.length === 0)
     return 0
   
-  const total = scoreData.value.data.reduce((sum, item) => sum + (item.final_score || 0), 0)
+  const total = scoreData.value.data.reduce((sum, item) => Number(sum) + (Number(item.final_score) || 0), 0)
   
-  return (total / scoreData.value.data.length).toFixed(2)
+  return (Number(total) / scoreData.value.data.length).toFixed(2)
 })
 
 console.log(scoreData.value?.data)
@@ -237,7 +237,7 @@ const ability = isOk => {
             <div class="my-4 mx-sm-4">
               <h6 class="text-base font-weight-medium">
                 Nilai Rata-rata:
-                <span class="font-weight-bold">{{ Number(averageScore).toFixed(2) }}</span>
+                <span class="font-weight-bold">{{ averageScore }}</span>
               </h6>
             </div>
             <VSpacer />
