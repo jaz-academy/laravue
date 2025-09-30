@@ -215,11 +215,15 @@ class DashboardController extends Controller
             ->sortBy('month')
             ->values();
 
-        // current month payments - Robust approach for 'M-Y' format
-        // Force locale to 'en' to ensure month name (M) is always in English (e.g., May, Jun)
-        // This prevents issues where server locale might be different (e.g., Indonesian 'Mei')
-        $currentBillingPeriod = now()->locale('en')->format('M-Y');
-        $payCurrentMonth = PaymentItem::where('billing', 'LIKE', '%' . $currentBillingPeriod . '%')->get();
+        // Send all payments for the selected academic year. Filtering will be done on the frontend.
+        $payCurrentMonth = PaymentItem::query();
+        if ($year) {
+            $payCurrentMonth->whereBetween('date', [$rangeStart, $rangeEnd]);
+        } else {
+            // If no year is selected, get payments for the current calendar year as a fallback.
+            $payCurrentMonth->whereYear('date', now()->year);
+        }
+        $payCurrentMonth = $payCurrentMonth->get();
 
         // Students
         $students = AdminStudent::whereNull('graduation')->orderBy('name')->get();

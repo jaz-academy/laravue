@@ -6,14 +6,23 @@ const props = defineProps({
   students: { type: Array, required: true },
   payments: { type: Array, required: true },
 })
+  
+// Create the filter string for the current month, e.g., "May-2024"
+// This is now done reliably on the client-side.
+const now = new Date()
+const currentMonthString = now.toLocaleString('en-US', { month: 'short' }) // "May"
+const currentYear = now.getFullYear() // 2024
+const currentBillingPeriod = `${currentMonthString}-${currentYear}` // "May-2024"
 
 const deliveryData = computed(() => {
   if (!props.students || props.students.length === 0) {
     return []
   }
-  
+
+  console.log('deliveryData: ', deliveryData)
+
   return props.students.map(student => {
-    const studentPayments = props.payments.filter(payment => payment.admin_student_id === student.id)
+    const studentPayments = props.payments.filter(payment => payment.admin_student_id === student.id && payment.billing && payment.billing.includes(currentBillingPeriod))
     const hasPaid = studentPayments.length > 0
     
     return {
@@ -26,15 +35,13 @@ const deliveryData = computed(() => {
     }
   })
 })
-
-console.log('deliveryData: ', deliveryData.value)
 </script>
 
 <template>
   <VCard>
     <VCardItem
       title="Monthly overview"
-      subtitle="Payment delivery"
+      :subtitle="currentBillingPeriod"
     >
       <template #append>
         <MoreBtn />
