@@ -166,7 +166,11 @@ console.log('localData child child', localData.value)
           <AppSelect 
             v-model="localData.finance_account_id"
             :items="accounts"
-            :item-title="item => `${item?.number || ''} - ${item?.description || ''}`"
+            :item-title="item => {
+              const account = accounts.find(a => a.id === (item.id || item));
+              if (account) return `${account.number} - ${account.description}`;
+              return item.id || item;
+            }"
             item-value="id"
             label="Account"
           />

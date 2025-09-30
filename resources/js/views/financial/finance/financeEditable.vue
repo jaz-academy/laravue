@@ -62,7 +62,7 @@ const fetchAccounts = async () => {
   else
 
     // Filter out accounts where the unit is 'Pembayaran'
-    accounts.value = data.value.data.filter(account => account.unit !== 'Pembayaran')
+    accounts.value = data.value.data.filter(account => account.unit === 'Pengeluaran')
 }
 
 onMounted(() => {
@@ -190,7 +190,11 @@ const removeItem = id => {
           <AppSelect
             v-model="localData.header.finance_account_id"
             :items="accounts"
-            item-title="number"
+            :item-title="item => {
+              const account = accounts.find(a => a.id === (item.id || item));
+              if (account) return `${account.number} - ${account.description}`;
+              return item.id || item;
+            }"
             item-value="id"
             label="Account"
           />

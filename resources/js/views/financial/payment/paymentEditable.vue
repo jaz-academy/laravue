@@ -68,8 +68,11 @@ watch(() => localData.value.header.date, newDate => {
   localData.value.header.period = newDate ? periode(newDate) : ''
 })
 
-// watch for changes in student selection to automatically fill payment category
-watch(() => localData.value.header.admin_student_id, studentId => {
+// watch for changes in student selection or students list to automatically fill payment category
+watch([() => localData.value.header.admin_student_id, students], ([studentId, studentList]) => {
+  if (!studentId || studentList.length === 0) {
+    return
+  }
   if (studentId) {
     const selectedStudent = students.value.find(s => s.id === studentId)
     if (selectedStudent) {
@@ -197,7 +200,10 @@ console.log('localData child', localData.value)
           <AppSelect
             v-model="localData.header.admin_student_id"
             :items="students"
-            item-title="nickname"
+            :item-title="item => {
+              const student = students.find(s => s.id === (item.id || item));
+              return student ? student.nickname : (item.id || item);
+            }"
             item-value="id"
             label="Student"
             density="compact"
