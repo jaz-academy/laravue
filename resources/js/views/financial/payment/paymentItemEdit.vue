@@ -90,18 +90,18 @@ const fetchBillings = async (year, category, registeredYear) => {
             const monthYear = i < 6 ? year : Number(year) + 1
             const title = `${item.name} ${m}-${monthYear}`
             
-            return { title, value: title, amount: item.amount, finance_account_id: item.finance_account_id }
+            return { title, value: title, amount: item.amount, finance_account_id: Number(item.finance_account_id) }
           })
         }
         if (item.is_once) {
           const title = `${item.name} ${registeredYear}`
           
-          return { title, value: title, amount: item.amount, finance_account_id: item.finance_account_id }
+          return { title, value: title, amount: item.amount, finance_account_id: Number(item.finance_account_id) }
         }
         
         const title = `${item.name} ${year}`
         
-        return { title, value: title, amount: item.amount, finance_account_id: item.finance_account_id }
+        return { title, value: title, amount: item.amount, finance_account_id: Number(item.finance_account_id) }
       })
     } else {
       billingOptions.value = []
@@ -134,7 +134,7 @@ watch(() => localData.value.billing, selectedBillingName => {
     const selectedBillingObject = billingOptions.value.find(b => b.value === selectedBillingName)
     if (selectedBillingObject) {
       localData.value.amount = selectedBillingObject.amount
-      localData.value.finance_account_id = selectedBillingObject.finance_account_id
+      localData.value.finance_account_id = Number(selectedBillingObject.finance_account_id)
     }
   } else {
     // If billing is cleared, reset amount and finance_account_id
@@ -163,22 +163,6 @@ console.log('localData child child', localData.value)
           cols="12"
           sm="5"
         >
-          <AppSelect 
-            v-model="localData.finance_account_id"
-            :items="accounts"
-            :item-title="item => {
-              const account = accounts.find(a => a.id === (item.id || item));
-              if (account) return `${account.number} - ${account.description}`;
-              return item.id || item;
-            }"
-            item-value="id"
-            label="Account"
-          />
-        </VCol>
-        <VCol
-          cols="12"
-          sm="4"
-        >
           <AppSelect
             v-model="localData.billing"
             label="Description"
@@ -186,6 +170,23 @@ console.log('localData child child', localData.value)
             :items="billingOptions"
             item-title="title"
             item-value="value"
+          />
+        </VCol>
+        <VCol
+          cols="12"
+          sm="4"
+        >
+          <AppSelect 
+            v-model="localData.finance_account_id"
+            :items="accounts"
+            :item-title="item => {
+              // Find account using loose equality '==' to handle string/number mismatch
+              const account = accounts.find(a => a.id == (item.id || item));
+              if (account) return `${account.number} - ${account.description}`;
+              return item.id || item; // Fallback to show the ID if not found yet
+            }"
+            item-value="id"
+            label="Account"
           />
         </VCol>
         <VCol

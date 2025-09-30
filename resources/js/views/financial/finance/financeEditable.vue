@@ -22,6 +22,11 @@ const emit = defineEmits([
 
 // 👉 Create a local ref to avoid mutating props directly
 const localData = ref(structuredClone(toRaw(props.data)))
+
+// Ensure finance_account_id is a number
+if (localData.value.header.finance_account_id) {
+  localData.value.header.finance_account_id = Number(localData.value.header.finance_account_id)
+}
 let isUpdatingFromProp = false
 
 // 👉 Watch for changes in localData and emit them to the parent
@@ -35,6 +40,11 @@ watch(localData, newValues => {
 watch(() => props.data, newValues => {
   isUpdatingFromProp = true
   localData.value = structuredClone(toRaw(newValues))
+
+  // Ensure finance_account_id is a number after prop update
+  if (localData.value.header.finance_account_id) {
+    localData.value.header.finance_account_id = Number(localData.value.header.finance_account_id)
+  }
   nextTick(() => {
     isUpdatingFromProp = false
   })
@@ -190,8 +200,8 @@ const removeItem = id => {
           <AppSelect
             v-model="localData.header.finance_account_id"
             :items="accounts"
-            :item-title="item => {
-              const account = accounts.find(a => a.id === (item.id || item));
+            :item-title="item => { // Keep robust item-title for race conditions
+              const account = accounts.find(a => a.id == (item.id || item));
               if (account) return `${account.number} - ${account.description}`;
               return item.id || item;
             }"
