@@ -24,6 +24,11 @@ const emit = defineEmits([
 
 // 👉 Create a local ref to avoid mutating props directly
 const localData = ref(structuredClone(toRaw(props.data)))
+
+// Ensure admin_student_id is a number for v-select to work correctly
+if (localData.value.header.admin_student_id) {
+  localData.value.header.admin_student_id = Number(localData.value.header.admin_student_id)
+}
 let isUpdatingFromProp = false
 
 // 👉 Watch for changes in localData and emit them to the parent
@@ -37,6 +42,11 @@ watch(localData, newValues => {
 watch(() => props.data, newValues => {
   isUpdatingFromProp = true
   localData.value = structuredClone(toRaw(newValues))
+
+  // Ensure admin_student_id is a number after prop update
+  if (localData.value.header.admin_student_id) {
+    localData.value.header.admin_student_id = Number(localData.value.header.admin_student_id)
+  }
   nextTick(() => {
     isUpdatingFromProp = false
   })
@@ -71,7 +81,7 @@ watch(() => localData.value.header.date, newDate => {
 // watch for changes in student selection to automatically fill payment category
 watch(() => localData.value.header.admin_student_id, studentId => {
   if (studentId) {
-    const selectedStudent = students.value.find(s => s.id === studentId)
+    const selectedStudent = students.value.find(s => s.id === Number(studentId))
     if (selectedStudent) {
       paymentCategory.value = selectedStudent.payment_category
       studentRegistered.value = selectedStudent.registered || 0
@@ -84,7 +94,7 @@ watch(() => localData.value.header.admin_student_id, studentId => {
     paymentCategory.value = '' // Reset if no student is selected
     studentRegistered.value = 0
   }
-}, { immediate: true }) // Use immediate to run on initial load for edit pages
+}, { immediate: true }) // Add immediate to run on initial load for edit pages
 
 
 // 👉 Add item function
@@ -95,6 +105,8 @@ const addItem = () => {
 const removeItem = id => {
   emit('remove', id)
 }
+
+console.log('localData child', localData.value)
 </script>
 
 <template>
@@ -195,7 +207,12 @@ const removeItem = id => {
           <AppSelect
             v-model="localData.header.admin_student_id"
             :items="students"
-            item-title="nickname"
+            :item-title="item => {
+              // This robust item-title is still useful for race conditions
+              // where items are not yet loaded, but the v-model value is present.
+              const student = students.find(s => s.id == (item.id || item));
+              return student ? student.nickname : (item.id || item);
+            }"
             item-value="id"
             label="Student"
             density="compact"

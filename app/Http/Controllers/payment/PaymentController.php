@@ -57,7 +57,7 @@ class PaymentController extends Controller
                 COUNT(payment_items.id) as total_items,
                 SUM(amount) as total_amount
             ")
-            ->groupBy('invoice', 'admin_student_id');
+            ->groupBy('invoice', 'admin_student_id', 'admin_students.name');
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -84,8 +84,12 @@ class PaymentController extends Controller
             $query->orderBy('date', 'desc');
         }
 
-        $payments = $query->paginate($itemsPerPage);
-        return response()->json($payments);
+        try {
+            $payments = $query->paginate($itemsPerPage);
+            return response()->json($payments);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error fetching payments: ' . $e->getMessage()], 500);
+        }
     }
 
     /**

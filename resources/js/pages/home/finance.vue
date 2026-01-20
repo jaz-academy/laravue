@@ -9,6 +9,7 @@ import PaymentPerformance from '@/views/home/finance/PaymentPerformance.vue'
 import SaldoCardStatistics from '@/views/home/finance/SaldoCardStatistics.vue'
 import { ref } from 'vue'
 
+const currentUser = useCookie('userData')
 const nonKitchen = ref([])
 const houseHold = ref([])
 const students = ref([])
@@ -18,11 +19,15 @@ const inputs = ref([])
 const payCurrentMonth = ref([])
 const payPercentages = ref({ text: [], value: [] })
 const allocation = ref([])
+const selectedYear = ref('')
 
-async function fetchFinances() {
-  const res = await useApi('/dashboard-finance')
+async function fetchFinances(year = '') {
+  const res = await useApi(`/dashboard-finance?year=${year}`)
 
   const financeData = res.data.value
+
+  console.log('financeData: ', financeData)
+  
   if (!financeData) return
 
   nonKitchen.value = financeData.nonKitchen || []
@@ -44,26 +49,42 @@ async function fetchFinances() {
   const finances = financeData.allocation?.finances || []
   const payments = financeData.allocation?.payments || []
 
+  // hitung total dari finance saja
   const totalFinance = finances.reduce((sum, item) => sum + Number(item.amount), 0)
 
-  allocation.value = finances.map(item => {
-    const paymentData = payments.find(p => p.number === item.allocation)
+  // bikin set unik dari semua allocation (gabungan dari finances + payments)
+  const allKeys = Array.from(new Set([
+    ...finances.map(f => f.allocation),
+    ...payments.map(p => p.number),
+  ]))
+
+  allocation.value = allKeys.map(key => {
+    const financeData = finances.find(f => f.allocation === key)
+    const paymentData = payments.find(p => p.number === key)
+
+    const financeAmount = Number(financeData?.amount || 0)
     const paymentAmount = Number(paymentData?.amount || 0)
-    const itemAmount = Number(item.amount)
 
     return {
-      ...item,
+      ...financeData,
+      ...paymentData,
+      allocation: paymentData?.description || financeData?.description || '',
       payment: paymentAmount,
-      allocation: paymentData?.description || '',
-      balance: paymentAmount - itemAmount,
-      percentage: totalFinance > 0 ? (itemAmount / totalFinance) * 100 : 0,
-      remain: 100 - Math.round(((paymentAmount - itemAmount) / itemAmount * 100)),
+      expense: financeAmount,
+      balance: paymentAmount - financeAmount,
+      percentage: totalFinance > 0 ? (financeAmount / totalFinance) * 100 : 0,
+      remain: financeAmount > 0 
+        ? 100 - Math.round(((paymentAmount - financeAmount) / financeAmount * 100))
+        : 100,
     }
   })
 }
 
-onMounted(fetchFinances)
-console.log('allocation: ', allocation.value)
+const handleYearChange = year => {
+  fetchFinances(year)
+}
+
+onMounted(() => fetchFinances())
 </script>
 
 <template>
@@ -85,10 +106,14 @@ console.log('allocation: ', allocation.value)
       md="6"
     >
       <!-- Pembelanjaan -->
-      <ExpenseStatistics :data="houseHold" />
+      <ExpenseStatistics
+        :data="houseHold"
+        @year-selected="handleYearChange"
+      />
     </VCol>
 
     <VCol
+      v-if="currentUser.admin_teacher_id"
       cols="12"
       md="4"
     >
@@ -101,7 +126,7 @@ console.log('allocation: ', allocation.value)
 
     <VCol
       cols="12"
-      md="4"
+      :md="currentUser.admin_teacher_id ? 4 : 6"
     >
       <!-- Chart Pembayaran -->
       <PaymentDelivery :data="payPercentages" />
@@ -109,7 +134,7 @@ console.log('allocation: ', allocation.value)
 
     <VCol
       cols="12"
-      md="4"
+      :md="currentUser.admin_teacher_id ? 4 : 6"
     >
       <!-- Riwayat Transaksi -->
       <FinanceHistory :data="{ expenses, outgoings, inputs }" />
@@ -117,7 +142,10 @@ console.log('allocation: ', allocation.value)
 
     <VCol cols="12">
       <!-- Alokasi -->
-      <AllocationTable :data="allocation" />
+      <AllocationTable 
+        v-if="currentUser.admin_teacher_id"
+        :data="allocation" 
+      />
     </VCol>
   </VRow>
 </template>

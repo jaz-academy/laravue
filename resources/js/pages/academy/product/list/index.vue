@@ -175,41 +175,47 @@ const resolveSubject = subject => {
     }
 }
 
-// menambah Course baru
 const addNewCourse = async ({ action, data }) => {
   if (!hasRoleAndAccess(2, 'Courses').value) {
     showAlert('You do not have permission to modify plans', 'error')
-
+    
     return
   }
 
-  const sanitizedData = {
-    ...data,
+  const formData = new FormData()
+
+  Object.keys(data).forEach(key => {
+    if (data[key] !== null && data[key] !== undefined) {
+      formData.append(key, data[key])
+    }
+  })
+
+  let url = '/courses'
+  let method = 'POST'
+
+  if (action === 'update' && data.id) {
+    url = `/courses/${data.id}`
+
+    // Laravel tidak bisa handle PUT multipart langsung
+    // jadi tetap pakai POST + spoof _method
+    formData.append('_method', 'PUT')
   }
 
-  console.log('Sending CourseData:', sanitizedData, 'action:', action)
   try {
-    let url = '/courses'
-    let method = 'POST'
-    if (action === 'update' && data.id) {
-      url = `/courses/${data.id}`
-      method = 'PUT'
-    }
-
     const { data: resData, response } = await useApi(url, {
-      method,
-      body: JSON.stringify(sanitizedData),
+      method: 'POST',
+      body: formData,
       headers: {
-        'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
     })
 
     if (response.value.ok) {
-      const msg = action === 'create' ? 'Data berhasil ditambahkan' : 'Data berhasil diperbarui'
+      const msg = action === 'create'
+        ? 'Data berhasil ditambahkan'
+        : 'Data berhasil diperbarui'
 
       showAlert(msg, 'success')
-      console.log('Course response:', resData)
       fetchCourses()
     } else {
       showAlert(response.value.statusText || 'Gagal menyimpan data', 'error')
@@ -219,6 +225,7 @@ const addNewCourse = async ({ action, data }) => {
     showAlert(error.message || 'Gagal menyimpan data', 'error')
   }
 }
+
 
 const deleteCourse = async id => {
   try {

@@ -6,14 +6,22 @@ const props = defineProps({
   students: { type: Array, required: true },
   payments: { type: Array, required: true },
 })
+  
+// Create the filter string for the current month, e.g., "May-2024"
+// This is now done reliably on the client-side.
+const now = new Date()
+const currentMonthString = now.toLocaleString('en-US', { month: 'short' }) // "May"
+const currentYear = now.getFullYear() // 2024
+const currentBillingPeriod = `${currentMonthString}-${currentYear}` // "May-2024"
 
 const deliveryData = computed(() => {
   if (!props.students || props.students.length === 0) {
     return []
   }
-  
-  return props.students.map(student => {
-    const studentPayments = props.payments.filter(payment => payment.admin_student_id === student.id)
+
+  // 1. Hitung hasil pemetaan dan simpan ke dalam variabel `finalData`
+  const finalData = props.students.map(student => {
+    const studentPayments = props.payments.filter(payment => Number(payment.admin_student_id) === Number(student.id) && payment.billing && payment.billing.includes(currentBillingPeriod))
     const hasPaid = studentPayments.length > 0
     
     return {
@@ -25,6 +33,12 @@ const deliveryData = computed(() => {
       color: !hasPaid ? 'warning' : studentPayments.length >= 3 ? 'success' : 'primary',
     }
   })
+
+  // 2. Lakukan console.log pada variabel `finalData` di sini untuk debugging
+  console.log('Hasil akhir deliveryData:', finalData)
+
+  // 3. Kembalikan variabel tersebut
+  return finalData
 })
 </script>
 
@@ -32,7 +46,7 @@ const deliveryData = computed(() => {
   <VCard>
     <VCardItem
       title="Monthly overview"
-      subtitle="Payment delivery"
+      :subtitle="currentBillingPeriod"
     >
       <template #append>
         <MoreBtn />
@@ -73,9 +87,7 @@ const deliveryData = computed(() => {
               </div>
             </VListItemSubtitle>
             <template #append>
-              <span class="text-high-emphasis text-body-1 font-weight-medium">
-                {{ data.date }}
-              </span>
+              <small>{{ data.date }}</small>
             </template>
           </VListItem>
         </VList>

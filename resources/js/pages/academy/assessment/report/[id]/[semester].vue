@@ -31,9 +31,9 @@ const averageScore = computed(() => {
   if (!scoreData.value?.data || scoreData.value.data.length === 0)
     return 0
   
-  const total = scoreData.value.data.reduce((sum, item) => sum + (item.final_score || 0), 0)
+  const total = scoreData.value.data.reduce((sum, item) => Number(sum) + (Number(item.final_score) || 0), 0)
   
-  return (total / scoreData.value.data.length).toFixed(2)
+  return (Number(total) / scoreData.value.data.length).toFixed(2)
 })
 
 console.log(scoreData.value?.data)
@@ -221,9 +221,9 @@ const ability = isOk => {
                   {{ getPredicate(item.final_score) }}
                 </td>
                 <td class="d-none d-md-table-cell">
-                  {{ item.competence_1 ? ability(item.is_ok_1) + ' ' + (item.competence_1.endsWith('.') || item.competence_1.endsWith(',') ? item.competence_1 : item.competence_1 + '.') : '' }}
-                  {{ item.competence_2 ? ability(item.is_ok_2) + ' ' + (item.competence_2.endsWith('.') || item.competence_2.endsWith(',') ? item.competence_2 : item.competence_2 + '.') : '' }}
-                  {{ item.competence_3 ? ability(item.is_ok_3) + ' ' + (item.competence_3.endsWith('.') || item.competence_3.endsWith(',') ? item.competence_3 : item.competence_3 + '.') : '' }}
+                  {{ item.competence_1 ? ability(Number(item.is_ok_1)) + ' ' + (item.competence_1.endsWith('.') || item.competence_1.endsWith(',') ? item.competence_1 : item.competence_1 + '.') : '' }}
+                  {{ item.competence_2 ? ability(Number(item.is_ok_2)) + ' ' + (item.competence_2.endsWith('.') || item.competence_2.endsWith(',') ? item.competence_2 : item.competence_2 + '.') : '' }}
+                  {{ item.competence_3 ? ability(Number(item.is_ok_3)) + ' ' + (item.competence_3.endsWith('.') || item.competence_3.endsWith(',') ? item.competence_3 : item.competence_3 + '.') : '' }}
                 </td>
                 <td class="d-none d-md-table-cell" />
               </tr>
