@@ -1,35 +1,35 @@
-# vue
+# JazMedia
 
-This template should help get you started developing with Vue 3 in Vite.
+**JazMedia** is an integrated education management platform designed to manage
+courses, academic activities, assessments, projects, and financial operations
+in one unified dashboard.
 
-## Recommended IDE Setup
+## 🚀 Overview
+JazMedia helps educational institutions and academies streamline learning,
+monitor student progress, manage projects, and handle financial records
+efficiently.
 
-[VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=johnsoncodehk.volar) (and disable Vetur).
+Target users:
+- Training centers
+- Academies
+- Educational startups
+- Internal education teams
 
-## Type Support for `.vue` Imports in TS
+## 🧩 Core Features
+- 📚 Course Management
+- 🎓 Academic Dashboard
+- 🧪 Assessment & Evaluation
+- 🗂 Project Tracking
+- 💰 Finance & Payment Monitoring
+- 📊 Admin & Analytics Dashboard
+- 👥 User Roles (Admin, Mentor, Student)
 
-Since TypeScript cannot handle type information for `.vue` imports, they are shimmed to be a generic Vue component type by default. In most cases this is fine if you don't really care about component prop types outside of templates.
+## Preview
+![Preview](public/images/preview.png)
 
-However, if you wish to get actual prop types in `.vue` imports (for example to get props validation when using manual `h(...)` calls), you can run `Volar: Switch TS Plugin on/off` from VS Code command palette.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vitejs.dev/config/).
-
-## Project Setup
-
-```sh
-npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Type-Check, Compile and Minify for Production
-
-```sh
-npm run build
-```
+## 🏗 Tech Stack
+- **Frontend:** Vue.Js / Vuetify / Vite
+- **Backend:** Node.js / Laravel (PHP)
+- **Database:** MySQL
+- **Auth:** JWT / Session-based
+- **Deployment:** Docker / VP
