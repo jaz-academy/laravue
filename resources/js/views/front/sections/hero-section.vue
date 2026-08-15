@@ -12,17 +12,18 @@ import { useTheme } from 'vuetify'
 const videos = [
   {
     src: "https://www.youtube.com/embed/7dng663ogik",
-    title: "Welcome To Jaz Academy! 🌟 Komunitas Belajar yang mengintegrasikan pembelajaran Al-Qur'an, IT, dan entrepreneurship."
+    title: "Welcome To Jaz Academy! 🌟 Komunitas Belajar yang mengintegrasikan pembelajaran Al-Qur'an, IT, dan entrepreneurship.",
   },
   {
     src: "https://www.youtube.com/embed/WkS-n5enYqg",
-    title: "Mabar di Jaz Academy : Main Game Itu Boleh, Asal Gak Toxic dan Tau Waktu!"
+    title: "Mabar di Jaz Academy : Main Game Itu Boleh, Asal Gak Toxic dan Tau Waktu!",
   },
   {
     src: "https://www.youtube.com/embed/Hp8bYnD7-No",
-    title: "Swimming : Renang adalah Skill Basic Survive Seorang Muslim"
-  }
-];
+    title: "Swimming : Renang adalah Skill Basic Survive Seorang Muslim",
+  },
+]
+
 const randomVideo = ref(videos[Math.floor(Math.random() * videos.length)])
 
 const theme = useTheme()
@@ -97,11 +98,14 @@ const featuresData = [
               but also building a Productivity
             </h5>
             <div class="position-relative">
-              <RouterLink to="?search=">
-                <VBtn height="36">
-                  Search Project
-                </VBtn>
-              </RouterLink>
+              <VBtn 
+                height="36"
+                href="https://media.jazacademy.id"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Explore Projects
+              </VBtn>
             </div>
           </div>
         </VContainer>

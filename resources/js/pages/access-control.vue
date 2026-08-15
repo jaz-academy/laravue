@@ -15,7 +15,7 @@ definePage({
     >
       <VCard title="Welcome Aboard! 🚀">
         <VCardText class="text-primary">
-          You already registered in <strong>Jazmedia.</strong> What next?
+          You already registered in <strong>Jaz Academy.</strong> What next?
         </VCardText>
         <VCardText>
           Contact your administrator in Jaz Academy to assign you the necessary access data, menu and permissions.

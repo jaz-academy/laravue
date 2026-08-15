@@ -141,43 +141,50 @@ const isPageActive = computed(() => menuItems.some(item => item.navItems.some(li
         <RouterLink
           class="nav-link font-weight-medium ms-2 mt-4"
           :to="{ name: 'front' }"
-          :class="[ $route.path == '/' ? 'active-link' : '']"
+          :class="[ $route.path === '/' ? 'active-link' : '']"
         >
           Home
         </RouterLink>
 
         <RouterLink
           class="nav-link font-weight-medium ms-2 mt-3"
-          :to="{ name: 'front-upload' }"
-          :class="[ $route.path == '/front/upload' ? 'active-link' : '']"
+          :to="{ name: 'front-project' }"
+          :class="[ $route.path === '/front/project' ? 'active-link' : '']"
         >
           Project
         </RouterLink>
 
         <RouterLink
           class="nav-link font-weight-medium ms-2 mt-3"
-          :to="{ name: 'front-instagram' }"
-          :class="[ $route.path == '/front/instagram' ? 'active-link' : '']"
+          :to="{ name: 'front-about' }"
+          :class="[ $route.path === '/front/about' ? 'active-link' : '']"
         >
-          Instagram
+          About
         </RouterLink>
 
         <RouterLink
           class="nav-link font-weight-medium ms-2 mt-3"
-          :to="{ name: 'front-bookmark' }"
-          :class="[ $route.path == '/front/bookmark' ? 'active-link' : '']"
+          :to="{ name: 'front-learning' }"
+          :class="[ $route.path === '/front/learning' ? 'active-link' : '']"
         >
-          Bookmark
+          Learning
         </RouterLink>
 
-        <a
-          href="https://info.jazacademy.id"
-          rel="noopener noreferrer"
-          target="_blank"
-          class="nav-link font-weight-medium px-2 px-lg-4 py-2"
+        <RouterLink
+          class="nav-link font-weight-medium ms-2 mt-3"
+          :to="{ name: 'front-contact' }"
+          :class="[ $route.path === '/front/contact' ? 'active-link' : '']"
         >
-          About Us
-        </a>
+          Contact
+        </RouterLink>
+
+        <RouterLink
+          class="nav-link font-weight-medium ms-2 mt-3"
+          :to="{ name: 'login' }"
+          :class="[ $route.path === '/front/login' ? 'active-link' : '']"
+        >
+          Login
+        </RouterLink>
       </div>
     </div>
 
@@ -231,49 +238,48 @@ const isPageActive = computed(() => menuItems.some(item => item.navItems.some(li
           <RouterLink
             class="nav-link font-weight-medium px-2 px-lg-4 py-2"
             :to="{ name: 'front' }"
-            :class="[ $route.path == '/' ? 'active-link' : '']"
+            :class="[ $route.path === '/' ? 'active-link' : '']"
           >
             Home
           </RouterLink>
 
           <RouterLink
             class="nav-link font-weight-medium px-2 px-lg-4 py-2"
-            :to="{ name: 'front-instagram' }"
-            :class="[ $route.path == '/front/instagram' ? 'active-link' : '']"
-          >
-            Instagram
-          </RouterLink>
-
-          <RouterLink
-            class="nav-link font-weight-medium px-2 px-lg-4 py-2"
-            :to="{ name: 'front-upload' }"
-            :class="[ $route.path == '/front/upload' ? 'active-link' : '']"
+            :to="{ name: 'front-project' }"
+            :class="[ $route.path === '/front/project' ? 'active-link' : '']"
           >
             Project
           </RouterLink>
 
           <RouterLink
             class="nav-link font-weight-medium px-2 px-lg-4 py-2"
-            :to="{ name: 'front-bookmark' }"
-            :class="[ $route.path == '/front/bookmark' ? 'active-link' : '']"
+            :to="{ name: 'front-about' }"
+            :class="[ $route.path === '/front/about' ? 'active-link' : '']"
           >
-            Bookmark
+            About
           </RouterLink>
 
-          <a
-            href="https://info.jazacademy.id"
-            rel="noopener noreferrer"
-            target="_blank"
+          <RouterLink
             class="nav-link font-weight-medium px-2 px-lg-4 py-2"
+            :to="{ name: 'front-learning' }"
+            :class="[ $route.path === '/front/learning' ? 'active-link' : '']"
           >
-            About Us
-          </a>
+            Learning
+          </RouterLink>
+
+          <RouterLink
+            class="nav-link font-weight-medium px-2 px-lg-4 py-2"
+            :to="{ name: 'front-contact' }"
+            :class="[ $route.path === '/front/contact' ? 'active-link' : '']"
+          >
+            Contact
+          </RouterLink>
         </div>
       </div>
 
       <VSpacer />
 
-      <div class="d-flex gap-x-4">
+      <div class="d-none d-md-flex gap-x-4">
         <NavbarThemeSwitcher />
 
         <VBtn

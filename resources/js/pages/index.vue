@@ -4,74 +4,52 @@ import Footer from '@/views/front/front-page-footer.vue'
 import Navbar from '@/views/front/front-page-navbar.vue'
 import HeroSection from '@/views/front/sections/hero-section.vue'
 import HomeCard from '@/views/front/sections/HomeCard.vue'
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
 const router = useRouter()
 const searchQuery = ref(route.query.search || '')
 const hasQuery = computed(() => Object.keys(route.query).length > 0)
-const tasks = ref([])
-const page = ref(1)
-const perPage = ref(3)
-const search = ref(route.query.search || '')
-const loading = ref(false)
-const hasMore = ref(true)
 const activeSectionId = ref(null)
 
-const scrollContainer = ref(null)
-const loadMoreTrigger = ref(null)
+const tasks = ref([])
+const loading = ref(true)
+
+const fetchTasks = async () => {
+  const cachedTasks = localStorage.getItem('jaz_best_tasks')
+  if (cachedTasks) {
+    try {
+      tasks.value = JSON.parse(cachedTasks).slice(0, 6)
+      loading.value = false
+    } catch(e) {}
+  } else {
+    loading.value = true
+  }
+
+  try {
+    const { data } = await useApi('/public/tasks/best')
+    if (data.value && data.value.data) {
+      localStorage.setItem('jaz_best_tasks', JSON.stringify(data.value.data))
+      tasks.value = data.value.data.slice(0, 6)
+    }
+  } catch (error) {
+    console.error('Failed to fetch tasks:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchTasks()
+})
 
 const applySearch = () => {
   router.push({ query: { ...route.query, search: searchQuery.value } })
 }
 
-const loadTasks = async () => {
-  if (loading.value || !hasMore.value) return
-
-  loading.value = true
-
-  const { data } = await useApi(`/public/tasks?page=${page.value}&perPage=${perPage.value}&search=${search.value}&rates=5`)
-  const newTasks = data.value?.data || []
-
-  if (newTasks.length) {
-    tasks.value.push(...newTasks)
-    page.value++
-  } else {
-    hasMore.value = false
-  }
-
-  loading.value = false
-}
-
-watch(() => route.query.search, async val => {
+watch(() => route.query.search, val => {
   searchQuery.value = val || ''
-  page.value = 1
-  tasks.value = []
-  hasMore.value = true
-  await loadTasks()
-  console.log(tasks.value)
-})
-
-// Pakai IntersectionObserver biar lebih smooth
-let observer
-
-onMounted(async () => {
-  await loadTasks()
-
-  await nextTick()
-  if (loadMoreTrigger.value) {
-    observer = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting) loadTasks()
-    })
-    observer.observe(loadMoreTrigger.value)
-  }
-})
-
-onUnmounted(() => {
-  if (observer && loadMoreTrigger.value) {
-    observer.unobserve(loadMoreTrigger.value)
-  }
 })
 </script>
 
@@ -81,91 +59,50 @@ onUnmounted(() => {
 
     <!-- 👉 Hero Section  -->
     <HeroSection
-      v-if="!hasQuery"
       ref="refHome"
       class="mb-16"
     />
-
-    <div
-      v-if="hasQuery"
-      class="text-center sticky-header bg-background pb-8"
-    >
-      <br><br>
-      <div
-        class="input-group mt-16 justify-center"
-        style="display: flex; align-items: center; gap: 0.5rem;"
-      >
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Search by Id, Name, Mentor, Theme..."
-          class="border w-50 px-3 py-2 rounded"
-          @keyup.enter="applySearch"
-        >
-        <a
-          :href="`?search=${encodeURIComponent(searchQuery)}`"
-          class="btn btn-primary"
-        ><VBtn>
-          <VIcon icon="tabler-search" />
-        </VBtn></a>
-      </div>
-    </div>
-    <div
-      v-else
-      class="text-center my-16 py-2"
-    >
+    <div class="text-center my-16 py-2">
       .
     </div>
 
     <div
+      v-if="loading"
+      class="text-center py-10 w-100"
+    >
+      <VProgressCircular
+        indeterminate
+        color="primary"
+      />
+    </div>
+    <div
+      v-else-if="tasks.length === 0"
+      class="text-center py-10 w-100"
+    >
+      No tasks available.
+    </div>
+    <div
       id="content-post"
-      ref="scrollContainer"
+      class="masonry-container homecard"
     >
       <div
         v-for="task in tasks"
-        :key="task.id"
+        :key="task._id"
+        class="masonry-item"
       >
         <HomeCard
           class="card-post"
-          :task-id="task.id"
-          :task-name="task.name"
-          :description="task.description"
-          :subject="task.project_plan.subject"
-          :theme="task.project_plan.theme"
-          :stars="task.rate"
-          :media="task.media"
-          :post-id="task.media == 'Instagram' ? task.link?.match(/\/(?:p|reel)\/([\w-]+)/)?.[1] : task.link?.match(/\/d\/(.*?)\//)?.[1] || 'N/A'"
-          :students="task.students"
-          :mentor="task.admin_teacher?.nickname || 'Not Accepted'"
-          :review="task?.review || null"
-          :teacher="task.admin_teacher ? { id: task.admin_teacher.id, name: task.admin_teacher.nickname } : 'Not Accepted'"
-          :teacher-img="task.admin_teacher?.image"
-          :accepted="task.accepted"
-          :link="task.link"
-          :date="task.date"
+          :task-id="task._id"
+          :task-name="task.caption || 'Project Task'"
+          :description="task.caption"
+          :media-type="task.mediaType"
+          :media-url="task.mediaUrl"
+          :media-urls="task.mediaUrls"
+          :grade="task.review?.grade"
+          :students="[task.authorId]"
+          :review="task.review?.comment || ''"
+          :date="task.createdAt"
         />
-      </div>
-      <div
-        ref="loadMoreTrigger"
-        class="py-4 text-center text-gray-400"
-      >
-        <div
-          v-if="loading"
-          class="flex justify-center items-center"
-        >
-          <VIcon
-            icon="mdi-loading"
-            spin
-            class="mr-2"
-          />
-          Loading...
-        </div>
-        <div
-          v-else-if="!hasMore"
-          class="text-gray-400"
-        >
-          No more tasks.
-        </div>
       </div>
     </div>
 
@@ -175,10 +112,34 @@ onUnmounted(() => {
 </template>
 
 <style lang="scss">
-.card-post {
-  inline-size: 90%;
-  margin-block-start: 1.5rem;
+.masonry-container {
+  column-count: 1;
+  column-gap: 1.5rem;
+  margin-block: 0;
   margin-inline: auto;
+  max-inline-size: 1440px;
+  padding-block: 0;
+  padding-inline: 1rem;
+  
+  @media (min-width: 600px) {
+    column-count: 2;
+  }
+  
+  @media (min-width: 1280px) {
+    column-count: 3;
+  }
+}
+
+.masonry-item {
+  break-inside: avoid;
+  margin-block-end: 1.5rem;
+}
+
+.card-post {
+  overflow: hidden;
+  border-radius: 12px;
+  margin: 0;
+  inline-size: 100%;
 }
 
 @media (min-width: 600px) {
@@ -194,5 +155,20 @@ onUnmounted(() => {
   z-index: 9;
   inset-block: 0;
   transition: all 0.3s ease-in-out;
+}
+
+.homecard {
+  inline-size: 90%;
+  margin-inline: auto;
+
+  @media (min-width: 1920px) { max-inline-size: calc(1440px - 32px); }
+
+  @media (min-width: 1280px) and (max-width: 1919px) { max-inline-size: calc(1200px - 32px); }
+
+  @media (min-width: 960px) and (max-width: 1279px) { max-inline-size: calc(900px - 32px); }
+
+  @media (min-width: 600px) and (max-width: 959px) { max-inline-size: calc(100% - 64px); }
+
+  @media (max-width: 600px) { max-inline-size: calc(100% - 32px); }
 }
 </style>
