@@ -50,6 +50,17 @@ Route::get('login', function () {
 })->name('login-api');
 
 Route::group(['prefix' => 'public'], function () {
+  Route::get('tasks/best', function (\Illuminate\Http\Request $request) {
+      $response = \Illuminate\Support\Facades\Http::withoutVerifying()->get('https://jazmedia.vercel.app/api/public/tasks/best');
+      return response($response->body(), $response->status())
+          ->withHeaders(['Content-Type' => 'application/json']);
+  });
+
+  Route::any('media/{any}', function (\Illuminate\Http\Request $request, $any) {
+      $queryString = $request->getQueryString() ? '?' . $request->getQueryString() : '';
+      return redirect()->to('https://jazmedia.vercel.app/api/public/media/' . $any . $queryString);
+  })->where('any', '.*');
+
   Route::get('students', [StudentController::class, 'index']);
   Route::get('student/{id}', [StudentController::class, 'show']);
   Route::get('students-show', [StudentController::class, 'showAll']);
