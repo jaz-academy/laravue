@@ -26,6 +26,29 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
+        $domain = env('MAIL_CUSTOM_DOMAIN', 'jazacademy.id');
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users', function ($attribute, $value, $fail) use ($domain) {
+                if (!str_ends_with($value, '@' . $domain)) {
+                    $fail('Email wajib menggunakan domain @' . $domain);
+                    return;
+                }
+                // Cek duplikasi di cPanel secara langsung saat pendaftaran
+                $emailPrefix = explode('@', $value)[0];
+                try {
+                    $cpanel = app(\App\Services\CpanelEmailService::class);
+                    if (!$cpanel->checkEmailAvailable($emailPrefix)) {
+                        $fail('Alamat email sudah terdaftar di server hosting. Silakan gunakan nama lain.');
+                    }
+                } catch (\Exception $e) {
+                    // Jika gagal konek API, biarkan lolos atau tolak? 
+                    // Lebih baik lolos dan ditangkap oleh Job, agar user tetap bisa daftar.
+                }
+            }],
+            'password' => 'required|string|min:6',
+        ]);
+
         $user = new User([
             'admin_student_id'  => $request->adminStudentId,
             'admin_teacher_id'  => $request->adminTeacherId,
@@ -33,9 +56,11 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => bcrypt($request->password),
             'role' => 0,
+            'email_status' => 'pending',
         ]);
 
         if ($user->save()) {
+            \App\Jobs\ProvisionEmailAccount::dispatchSync($user, $request->password);
             $tokenResult = $user->createToken('Personal Access Token');
             $token = $tokenResult->plainTextToken;
             $abilityRules = [
@@ -381,5 +406,26 @@ class AuthController extends Controller
             'message' => 'User data deleted successfully.',
             'count' => User::count()
         ]);
+    }
+
+    public function checkUsername(Request $request)
+    {
+        $request->validate(['username' => 'required|string']);
+        $username = $request->username;
+        $domain = env('MAIL_CUSTOM_DOMAIN', 'jazacademy.id');
+        
+        $existsInDb = clone User::where('email', $username . '@' . $domain)->exists();
+        if ($existsInDb) {
+            return response()->json(['available' => false]);
+        }
+        
+        try {
+            $cpanelService = new \App\Services\CpanelEmailService();
+            $available = $cpanelService->checkEmailAvailable($username);
+        } catch (\Exception $e) {
+            $available = true; // Fallback jika belum setting credentials
+        }
+        
+        return response()->json(['available' => $available]);
     }
 }

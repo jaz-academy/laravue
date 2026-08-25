@@ -9,6 +9,11 @@ export default [
     to: 'academy-calendar',
   },
   {
+    title: 'JazMail',
+    icon: { icon: 'tabler-mail' },
+    to: 'academy-jazmail',
+  },
+  {
     title: 'Project',
     icon: { icon: 'tabler-forms' },
     children: [

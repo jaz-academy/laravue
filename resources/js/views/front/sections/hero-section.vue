@@ -100,7 +100,7 @@ const featuresData = [
             <div class="position-relative">
               <VBtn 
                 height="36"
-                href="https://media.jazacademy.id"
+                href="https://jazmedia.vercel.app"
                 target="_blank"
                 rel="noopener noreferrer"
               >
