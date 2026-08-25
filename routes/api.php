@@ -166,3 +166,14 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
   Route::delete('/notifications/{id}', fn($id) => auth()->user()->notifications()->where('id', $id)->delete());
 });
+
+Route::get('/register/check-username', [\App\Http\Controllers\AuthController::class, 'checkUsername']);
+
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/mail/{folder}', [\App\Http\Controllers\MailController::class, 'index']);
+    Route::post('/mail/send', [\App\Http\Controllers\MailController::class, 'send']);
+    Route::get('/mail/{folder}/{uid}', [\App\Http\Controllers\MailController::class, 'show']);
+    Route::delete('/mail/{folder}/{uid}', [\App\Http\Controllers\MailController::class, 'destroy']);
+});
+

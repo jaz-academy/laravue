@@ -1,1 +1,0 @@
-import{as as u,at as i,a5 as f}from"./main-b188edbf.js";const m=(t,n,s,o,e=!1)=>{const r=u(),{global:a}=i();return f(()=>{if(a.name.value==="light")return r.skin==="bordered"&&e?s:t;if(a.name.value==="dark")return r.skin==="bordered"&&e?o:n})};export{m as u};

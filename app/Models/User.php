@@ -26,6 +26,8 @@ class User extends Authenticatable
         'role',
         'access',
         'image',
+        'email_provisioned_at',
+        'email_status',
     ];
 
     /**
@@ -59,5 +61,10 @@ class User extends Authenticatable
     public function adminTeacher()
     {
         return $this->hasOne(AdminTeacher::class, 'id', 'admin_teacher_id');
+    }
+
+    public function emailAccount()
+    {
+        return $this->hasOne(EmailAccount::class);
     }
 }

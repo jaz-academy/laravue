@@ -1,11 +1,11 @@
-# JazMedia
+# Jaz Academy
 
-**JazMedia** is an integrated education management platform designed to manage
+**Jaz Academy** is an integrated education management platform designed to manage
 courses, academic activities, assessments, projects, and financial operations
 in one unified dashboard.
 
 ## 🚀 Overview
-JazMedia helps educational institutions and academies streamline learning,
+Jaz Academy helps educational institutions and academies streamline learning,
 monitor student progress, manage projects, and handle financial records
 efficiently.
 
