@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('media_likes', function (Blueprint $table) {
+        Schema::create('media_comments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('media_participant_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('project_task_id')->constrained()->cascadeOnDelete();
+            $table->string('mongodb_id', 36)->nullable()->index();
+            $table->foreignId('media_task_id')->constrained('media_tasks')->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->text('content');
             $table->timestamps();
         });
     }
@@ -24,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('media_likes');
+        Schema::dropIfExists('media_comments');
     }
 };

@@ -1,0 +1,36 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('media_notifications', function (Blueprint $table) {
+            $table->id();
+            $table->string('mongodb_id', 36)->nullable()->index();
+            $table->foreignId('recipient_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('sender_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->string('type'); // task, review, system
+            $table->string('title');
+            $table->text('message');
+            $table->string('link')->nullable();
+            $table->boolean('is_read')->default(false);
+            $table->string('related_id')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('media_notifications');
+    }
+};

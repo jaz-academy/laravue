@@ -4,8 +4,6 @@ namespace App\Http\Controllers\home;
 
 use App\Models\FinanceItem;
 use App\Models\PaymentItem;
-use App\Models\ProjectPlan;
-use App\Models\ProjectTask;
 use Illuminate\Support\Str;
 use App\Models\AcademyScore;
 use App\Models\AdminStudent;
@@ -83,94 +81,21 @@ class DashboardController extends Controller
 
     public function project(Request $request)
     {
-        $studentId = $request->query('student_id');
-        $semester  = $request->query('semester');
+        $students = AdminStudent::whereNull('graduation')->get();
 
-        // student, task-media, task-teacher
-        $students = AdminStudent::where('graduation', null)->get();
-        $media = ProjectTask::select('media', DB::raw('COUNT(media) as count'))->whereNotNull('media')->groupBy('media');
-        $teacher = ProjectTask::with('adminTeacher')
-            ->whereNotNull('admin_teacher_id')
-            ->select('admin_teacher_id', DB::raw('COUNT(admin_teacher_id) as count'))
-            ->groupBy('admin_teacher_id');
-
-        // task-completed
-        $completedTasks = ProjectTask::selectRaw('
-            SUM(CASE WHEN accepted = 1 THEN 1 ELSE 0 END) as accepted,
-            SUM(CASE WHEN status = "Completed" THEN 1 ELSE 0 END) as completed,
-            SUM(CASE WHEN status = "In Progress" THEN 1 ELSE 0 END) as progress
-        ');
-        $topTen = ProjectTask::with('students') // bukan adminStudent
-            ->where('rate', 5)
-            ->orderByDesc('id')
-            ->take(10)
-            ->get();
-
-        // task-not-accepted
-        $notAcceptedTasks = ProjectTask::with('students')
-            ->where('accepted', 0)->get();
-
-        // task-literasi
-        $literasi = ProjectPlan::where('subject', 'Literasi')
-            ->orderByDesc('id')
-            ->first(); // ambil 1 data terbaru
-        $literasiTasks = ProjectTask::with(['students', 'projectPlan', 'adminTeacher'])
-            ->where('project_plan_id', $literasi->id)
-            ->get();
-
-        // task-social-media
-        $socialMedia = ProjectPlan::where('subject', 'Social Media')
-            ->orderByDesc('id')
-            ->first();
-        $socialMediaTasks = ProjectTask::with(['students', 'projectPlan', 'adminTeacher'])
-            ->where('project_plan_id', $socialMedia->id)
-            ->get();
-
-
-        // task-terakhir
-        $lastProject = ProjectPlan::where('subject', '<>', 'Literasi')->where('subject', '<>', 'Social Media')
-            ->orderByDesc('id')
-            ->first(); // ambil 1 data terbaru
-        $lastProjectTasks = ProjectTask::with(['students', 'projectPlan', 'adminTeacher'])
-            ->where('project_plan_id', $lastProject->id)
-            ->get();
-
-        // pengkondisian
-        if ($semester) {
-            $completedTasks->where('semester', $semester);
-            $media->where('semester', $semester);
-            $teacher->where('semester', $semester);
-        } else {
-            $completedTasks->whereYear('date', now()->year);
-            $media->whereYear('date', now()->year);
-            $teacher->whereYear('date', now()->year);
-        }
-
-        if ($studentId) {
-            $completedTasks->whereHas('students', function ($q) use ($studentId) {
-                $q->where('pivot_student_task.admin_student_id', $studentId);
-            });
-        }
-
-        // final query
-        $completedTasks = $completedTasks->get();
-        $media = $media->get();
-        $teacher = $teacher->orderBy('count', 'desc')->get();
-
-        // final data
         return response()->json([
             'students' => $students,
-            'completedTasks' => $completedTasks,
-            'teacher' => $teacher,
-            'topTen' => $topTen,
-            'lastProject' => $lastProject,
-            'lastProjectTasks' => $lastProjectTasks,
-            'literasiTasks' => $literasiTasks,
-            'notAcceptedTasks' => $notAcceptedTasks,
-            'socialMediaTasks' => $socialMediaTasks,
+            'completedTasks' => [],
+            'teacher' => [],
+            'topTen' => [],
+            'lastProject' => null,
+            'lastProjectTasks' => [],
+            'literasiTasks' => [],
+            'notAcceptedTasks' => [],
+            'socialMediaTasks' => [],
             'media' => [
-                'name'  => $media->pluck('media'),
-                'count' => $media->pluck('count'),
+                'name'  => [],
+                'count' => [],
             ],
         ]);
     }

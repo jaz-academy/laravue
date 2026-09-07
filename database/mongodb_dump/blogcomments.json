@@ -1,0 +1,29 @@
+[
+  {
+    "_id": "6a72fb291bbc70bf3081a167",
+    "blogId": "6a721ed51bbc70bf3081a166",
+    "authorId": "6a523b679be9ea6ed85bb416",
+    "content": "gud",
+    "createdAt": "2026-08-05T08:58:17.367Z",
+    "updatedAt": "2026-08-05T08:58:17.367Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a72fd171bbc70bf3081a168",
+    "blogId": "6a721ed51bbc70bf3081a166",
+    "authorId": "6a523b679be9ea6ed85bb416",
+    "content": "Element.classList untuk menambah atau menghapus sintaks class Tailwind tersebut secara dinamis.\n\nPerlu dicatat bahwa Tailwind membaca nama class secara utuh, sehingga di JS Anda harus menuliskan nama class",
+    "createdAt": "2026-08-05T09:06:31.467Z",
+    "updatedAt": "2026-08-05T09:06:31.467Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a734745b955ec4891f473db",
+    "blogId": "6a7201851bbc70bf3081a157",
+    "authorId": "6a523b679be9ea6ed85bb416",
+    "content": "Tes",
+    "createdAt": "2026-08-05T14:23:01.481Z",
+    "updatedAt": "2026-08-05T14:23:01.481Z",
+    "__v": 0
+  }
+]

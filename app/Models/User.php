@@ -18,14 +18,20 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
+        'mongodb_id',
         'admin_student_id',
         'admin_teacher_id',
         'name',
+        'username',
         'email',
         'password',
         'role',
+        'media_role',
         'access',
         'image',
+        'bio',
+        'skills',
+        'instagram_id',
         'email_provisioned_at',
         'email_status',
     ];
@@ -51,6 +57,7 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'role' => 'integer',
+        'skills' => 'array',
     ];
 
     public function adminStudent()
@@ -66,5 +73,25 @@ class User extends Authenticatable
     public function emailAccount()
     {
         return $this->hasOne(EmailAccount::class);
+    }
+
+    public function mediaProjects()
+    {
+        return $this->belongsToMany(MediaProject::class, 'media_project_participants', 'user_id', 'media_project_id');
+    }
+
+    public function mediaTasks()
+    {
+        return $this->hasMany(MediaTask::class, 'user_id');
+    }
+
+    public function mediaBlogs()
+    {
+        return $this->hasMany(MediaBlog::class, 'user_id');
+    }
+
+    public function mediaNotifications()
+    {
+        return $this->hasMany(MediaNotification::class, 'recipient_id');
     }
 }

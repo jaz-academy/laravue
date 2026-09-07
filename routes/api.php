@@ -3,19 +3,13 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\media\LikeController;
 use App\Http\Controllers\admin\EventController;
-use App\Http\Controllers\media\StoryController;
 use App\Http\Controllers\admin\SchoolController;
-use App\Http\Controllers\project\PlanController;
-use App\Http\Controllers\project\TaskController;
 use App\Http\Controllers\academy\AwardController;
 use App\Http\Controllers\academy\ScoreController;
 use App\Http\Controllers\admin\StudentController;
 use App\Http\Controllers\admin\TeacherController;
-use App\Http\Controllers\media\CommentController;
 use App\Http\Controllers\academy\CourseController;
-use App\Http\Controllers\media\BookmarkController;
 use App\Http\Controllers\payment\SavingController;
 use App\Http\Controllers\academy\SubjectController;
 use App\Http\Controllers\finance\AccountController;
@@ -23,7 +17,6 @@ use App\Http\Controllers\finance\FinanceController;
 use App\Http\Controllers\payment\BillingController;
 use App\Http\Controllers\payment\PaymentController;
 use App\Http\Controllers\payment\DiscountController;
-use App\Http\Controllers\media\ParticipantController;
 use App\Http\Controllers\academy\CompetenceController;
 use App\Http\Controllers\finance\DepositController;
 use App\Http\Controllers\home\DashboardController;
@@ -67,21 +60,6 @@ Route::group(['prefix' => 'public'], function () {
   Route::get('teachers', [TeacherController::class, 'index']);
   Route::get('teacher/{id}', [TeacherController::class, 'show']);
   Route::get('teachers-show', [TeacherController::class, 'showAll']);
-  Route::get('home-tasks-with-all', [TaskController::class, 'homeTasksWithAll']);
-  Route::get('upload-tasks-with-all', [TaskController::class, 'uploadTasksWithAll']);
-  Route::get('instagram-tasks-with-all', [TaskController::class, 'instagramTasksWithAll']);
-  Route::get('plans-with-tasks', [PlanController::class, 'planWithTasks']);
-  Route::get('plans', [PlanController::class, 'index']);
-  Route::get('tasks', [TaskController::class, 'index']);
-  Route::get('all-tasks', [TaskController::class, 'allTasks']);
-  Route::get('task-by-student/{id}', [TaskController::class, 'getTaskByStudent']);
-  Route::get('task-by-teacher/{id}', [TaskController::class, 'getTaskByTeacher']);
-  Route::get('task-by-plan/{id}', [TaskController::class, 'getTaskByProjectPlan']);
-  Route::post('sign-in-participant', [ParticipantController::class, 'signIn']);
-  Route::get('bookmarks-by-participant/{id}', [BookmarkController::class, 'getByParticipant']);
-  Route::post('update-task-accepted/{task}', [TaskController::class, 'updateTaskAccepted']);
-  Route::apiResource('bookmarks', BookmarkController::class);
-  Route::apiResource('participants', ParticipantController::class);
   Route::get('students/years', [StudentController::class, 'years']);
 });
 
@@ -104,18 +82,11 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
   Route::get('dashboard-project', [DashboardController::class, 'project']);
   Route::get('dashboard-finance', [DashboardController::class, 'finance']);
 
-  Route::apiResource('likes', LikeController::class);
-  Route::apiResource('comments', CommentController::class);
-  Route::apiResource('stories', StoryController::class);
-
   Route::apiResource('schools', SchoolController::class);
   Route::apiResource('students', StudentController::class);
   Route::apiResource('teachers', TeacherController::class);
 
   Route::apiResource('events', EventController::class);
-  Route::apiResource('plans', PlanController::class);
-  Route::apiResource('tasks', TaskController::class);
-  Route::delete('tasks/{id}', [TaskController::class, 'destroy']);
 
   Route::apiResource('courses', CourseController::class);
   Route::get('courses-distinct', [CourseController::class, 'distinct']);
