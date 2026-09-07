@@ -49,7 +49,7 @@ class ImapService
                 );
             }
             return true;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('IMAP Sync Error: ' . $e->getMessage());
             return false;
         }

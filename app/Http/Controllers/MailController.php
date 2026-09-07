@@ -35,12 +35,16 @@ class MailController extends Controller
             $this->imapService->syncFolder($account, 'INBOX');
         }
 
-        $emails = Email::where('email_account_id', $account->id)
-            ->where('folder', $folder)
-            ->orderBy('received_at', 'desc')
-            ->paginate(15);
+        try {
+            $emails = Email::where('email_account_id', $account->id)
+                ->where('folder', $folder)
+                ->orderBy('received_at', 'desc')
+                ->paginate(15);
 
-        return response()->json($emails);
+            return response()->json($emails);
+        } catch (\Throwable $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     public function send(Request $request)
@@ -64,7 +68,7 @@ class MailController extends Controller
                 $request->file('attachments', [])
             );
             return response()->json(['message' => 'Email sent successfully']);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
