@@ -29,7 +29,20 @@ console.log(activities)
     </VCardItem>
 
     <VCardText class="scrollable-card">
+      <div
+        v-if="!activities || activities.length === 0"
+        class="text-center py-8 text-disabled"
+      >
+        <VIcon
+          icon="tabler-clipboard-off"
+          size="40"
+          class="mb-2"
+        />
+        <p class="mb-0">Belum ada aktivitas tugas.</p>
+      </div>
+
       <VTimeline
+        v-else
         density="compact"
         align="start"
         truncate-line="both"
@@ -38,18 +51,18 @@ console.log(activities)
         <VTimelineItem
           v-for="task in activities"
           :key="task.id"
-          :dot-color="task.rate > 0 ? 'primary' : 'secondary'"
+          :dot-color="(task.rate || task.grade) > 0 ? 'primary' : 'secondary'"
           size="x-small"
         >
           <div class="d-flex justify-space-between align-center flex-wrap">
             <span class="app-timeline-title">
-              {{ task.name }}
+              {{ task.name || task.caption || `Task #${task.id}` }}
             </span>
-            <span class="app-timeline-meta">{{ humanDate(task.date) }}</span>
+            <span class="app-timeline-meta">{{ humanDate(task.date || task.created_at) }}</span>
           </div>
           <div class="d-flex justify-space-between align-center flex-wrap">
             <span class="app-timeline-text mb-2">
-              {{ task.project_plan?.subject }} - {{ task?.media }} - {{ task.project_plan?.theme }}
+              {{ task.project_plan?.subject || task.project?.title || 'Project' }} - {{ task?.media || task?.media_type || 'Media' }} - {{ task.project_plan?.theme || task.project?.title || '' }}
             </span>
             <a
               :href="`/?search=${task.id}`"
@@ -58,7 +71,7 @@ console.log(activities)
           </div>
 
           <div
-            v-if="task.rate > 0"
+            v-if="(task.rate || task.grade) > 0"
             class="d-flex align-center mt-3"
           >
             <VAvatar
@@ -68,10 +81,10 @@ console.log(activities)
             />
             <div>
               <h6 class="text-sm font-weight-medium mb-1">
-                {{ task.admin_teacher?.name }}
+                {{ task.admin_teacher?.name || task.mentor?.name || 'Mentor' }}
               </h6>
               <p class="app-timeline-meta">
-                {{ task?.review }}
+                {{ task?.review || task?.review_comment || '-' }}
               </p>
             </div>
           </div>

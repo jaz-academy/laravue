@@ -14,9 +14,28 @@ class EmailAccount extends Model
         'smtp_host', 'smtp_port', 'password', 'quota_mb'
     ];
 
-    protected $casts = [
-        'password' => 'encrypted',
-    ];
+    public function getPasswordAttribute($value)
+    {
+        if (empty($value)) return '';
+        try {
+            return \Illuminate\Support\Facades\Crypt::decryptString($value);
+        } catch (\Throwable $e) {
+            return $value;
+        }
+    }
+
+    public function setPasswordAttribute($value)
+    {
+        if (empty($value)) {
+            $this->attributes['password'] = '';
+            return;
+        }
+        try {
+            $this->attributes['password'] = \Illuminate\Support\Facades\Crypt::encryptString($value);
+        } catch (\Throwable $e) {
+            $this->attributes['password'] = $value;
+        }
+    }
 
     public function user()
     {

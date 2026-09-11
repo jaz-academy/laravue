@@ -4,7 +4,7 @@ import { computed } from 'vue'
 
 const props = defineProps({
   lastProjectTasks: Array,
-  lastProject: Array,
+  lastProject: Object,
   students: Array,
 })
 
@@ -42,7 +42,7 @@ const lastProjectData = computed(() => {
       <VList class="card-list scrollable-card">
         <VListItem
           v-for="data in lastProjectData"
-          :key="data.title"
+          :key="data.name"
         >
           <template #prepend>
             <VProgressCircular

@@ -13,6 +13,27 @@ import appleImg from '@images/front-pages/landing-page/apple-icon.png'
 import googlePlayImg from '@images/front-pages/landing-page/google-play-icon.png'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
+import { useWindowScroll } from '@vueuse/core'
+import { ref, watch } from 'vue'
+
+const { y } = useWindowScroll()
+const lastScrollY = ref(0)
+const isFooterVisible = ref(true)
+
+watch(y, (newY) => {
+  const diff = newY - lastScrollY.value
+
+  if (newY <= 60) {
+    isFooterVisible.value = true
+  } else if (diff > 8) {
+    // Scrolling down -> hide footer (slide down)
+    isFooterVisible.value = false
+  } else if (diff < -8) {
+    // Scrolling up -> show footer (slide up)
+    isFooterVisible.value = true
+  }
+  lastScrollY.value = newY
+})
 
 const github = useGenerateImageVariant(githubLight, githubDark)
 const twitter = useGenerateImageVariant(twitterLight, twitterDark)
@@ -236,7 +257,11 @@ const demoList = [
     </div>
 
     <!-- 👉 Footer Line -->
-    <div class="d-none d-md-inline-block text-white-variant footer-line w-100" style="position: fixed; z-index: 10; inset-block-end: 0; inset-inline-start: 0;">
+    <div
+      class="d-none d-md-inline-block text-white-variant footer-line w-100"
+      :class="{ 'footer-hidden': !isFooterVisible }"
+      style="position: fixed; z-index: 10; inset-block-end: 0; inset-inline-start: 0;"
+    >
       <VContainer>
       <div class="d-flex justify-space-between flex-wrap gap-y-4 align-center">
         <span class="text-wrap me-4">
@@ -301,6 +326,12 @@ const demoList = [
 
 .footer-line {
   background: #171925;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease;
+
+  &.footer-hidden {
+    transform: translateY(100%) !important;
+    opacity: 0;
+  }
 }
 </style>
 

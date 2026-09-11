@@ -353,7 +353,7 @@ class MergeDatabasesCommand extends Command
                 $mongoId = $u['_id'] ?? null;
                 $email = $u['email'] ?? null;
                 $username = $u['username'] ?? null;
-                $name = $u['name'] ?? 'Jazmedia User';
+                $name = $u['name'] ?? 'Jazacademy User';
 
                 // Find existing user by email or username
                 $existing = null;

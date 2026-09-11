@@ -19,6 +19,9 @@ export const fetchMemberData = async () => {
   } else if (teacherId) {
     memberAPI = `/public/teacher/${teacherId}`
     activitiesAPI = `/public/task-by-teacher/${teacherId}`
+  } else if (currentUser.value?.id) {
+    memberAPI = `/public/members/${currentUser.value.id}`
+    activitiesAPI = `/public/tasks/member/${currentUser.value.id}`
   } else {
     console.log('User ID not found, skipping fetch')
     

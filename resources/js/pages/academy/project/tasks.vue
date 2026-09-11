@@ -334,8 +334,9 @@ const deleteTask = async id => {
 }
 
 function getDistinctStudent(students) {
+  if (!students || !Array.isArray(students)) return []
   const groupedStud = students.reduce((acc, stud) => {
-    if (!acc.has(stud.id)) {
+    if (stud && !acc.has(stud.id)) {
       acc.set(stud.id, stud)
     }
     
@@ -550,8 +551,8 @@ function getDistinctStudent(students) {
             </VAvatar> 
            
             <div class="d-flex flex-column">
-              <span class="text-body-1 font-weight-medium">{{ item.name.substring(0, 30) }}</span>
-              <span class="text-sm text-disabled">{{ item.project_plan.theme }} @ {{ item.media }}</span>
+              <span class="text-body-1 font-weight-medium">{{ (item.name || 'Task').substring(0, 30) }}</span>
+              <span class="text-sm text-disabled">{{ (item.project_plan?.theme || 'Project') }} @ {{ item.media }}</span>
             </div>
           </div>
         </template>

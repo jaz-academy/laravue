@@ -26,7 +26,7 @@ const props = defineProps({
             />
             <VListItemTitle>
               <span class="font-weight-medium me-1">Name:</span>
-              <span>{{ props.data.name }}</span>
+              <span>{{ props.data?.name || '-' }}</span>
             </VListItemTitle>
           </div>
           <div class="d-flex align-items-center mt-4">
@@ -37,7 +37,7 @@ const props = defineProps({
             />
             <VListItemTitle>
               <span class="font-weight-medium me-1">Status:</span>
-              <span>{{ props.data.registered ? 'Active' : 'Suspend' }}</span>
+              <span>{{ props.data?.registered || props.data?.status || 'Active' }}</span>
             </VListItemTitle>
           </div>
           <div class="d-flex align-items-center mt-4">
@@ -48,7 +48,7 @@ const props = defineProps({
             />
             <VListItemTitle>
               <span class="font-weight-medium me-1">Gender:</span>
-              <span>{{ props.data.gender }}</span>
+              <span>{{ props.data?.gender || '-' }}</span>
             </VListItemTitle>
           </div>
           <div class="d-flex align-items-center mt-4">
@@ -59,7 +59,7 @@ const props = defineProps({
             />
             <VListItemTitle>
               <span class="font-weight-medium me-1">Birth:</span>
-              <span>{{ humanDate(props.data.birth_date) }}</span>
+              <span>{{ props.data?.birth_date ? humanDate(props.data.birth_date) : '-' }}</span>
             </VListItemTitle>
           </div>
           <div class="d-flex align-items-center mt-4">
@@ -70,7 +70,7 @@ const props = defineProps({
             />
             <VListItemTitle>
               <span class="font-weight-medium me-1">Place:</span>
-              <span>{{ props.data.birth_place }}</span>
+              <span>{{ props.data?.birth_place || props.data?.city || '-' }}</span>
             </VListItemTitle>
           </div>
           <div class="d-flex align-items-center mt-4">
@@ -101,7 +101,7 @@ const props = defineProps({
             />
             <VListItemTitle>
               <span class="font-weight-medium me-1">Phone:</span>
-              <span>{{ props.data.own_phone || props.data.phone }}</span>
+              <span>{{ props.data?.own_phone || props.data?.phone || '-' }}</span>
             </VListItemTitle>
           </div>
           <div class="d-flex align-items-center mt-4">
@@ -112,7 +112,7 @@ const props = defineProps({
             />
             <VListItemTitle>
               <span class="font-weight-medium me-1">Email:</span>
-              <span>{{ props.data.email }}</span>
+              <span>{{ props.data?.email || '-' }}</span>
             </VListItemTitle>
           </div>
           <div class="d-flex align-items-center mt-4">
@@ -123,7 +123,7 @@ const props = defineProps({
             />
             <VListItemTitle>
               <span class="font-weight-medium me-1">Instagram:</span>
-              <span>{{ props.data.instagram }}</span>
+              <span>{{ props.data?.instagram || '-' }}</span>
             </VListItemTitle>
           </div>
         </VListItem>
@@ -146,7 +146,7 @@ const props = defineProps({
           />
           <VListItemTitle>
             <span class="font-weight-medium me-1">Hobby:</span>
-            <span>{{ props.data.hobby }}</span>
+            <span>{{ props.data?.hobby || '-' }}</span>
           </VListItemTitle>
         </div>
         <div class="d-flex align-items-center mt-4">
@@ -157,7 +157,7 @@ const props = defineProps({
           />
           <VListItemTitle>
             <span class="font-weight-medium me-1">Sport:</span>
-            <span>{{ props.data.sport }}</span>
+            <span>{{ props.data?.sport || '-' }}</span>
           </VListItemTitle>
         </div>
         <div class="d-flex align-items-center mt-4">
@@ -168,7 +168,7 @@ const props = defineProps({
           />
           <VListItemTitle>
             <span class="font-weight-medium me-1">Goal:</span>
-            <span>{{ props.data.ambition }}</span>
+            <span>{{ props.data?.ambition || '-' }}</span>
           </VListItemTitle>
         </div>
       </VList>

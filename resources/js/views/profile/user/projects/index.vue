@@ -4,7 +4,7 @@ import { humanDate } from '@/@core/utils/helpers'
 import { fetchProjectData, plansTasks } from '@/composables/fetchProjectData'
 import avatar from '@images/avatars/no-profile.png'
 import socialLabel from '@images/icons/project-icons/social.png'
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 
 const currentUser = useCookie('userData')
 
@@ -12,26 +12,38 @@ onMounted(() => {
   fetchProjectData()
 })
 
-function getDistinctStudents(tasks) {
+function getDistinctStudents(tasks = []) {
   const map = new Map()
+  if (!Array.isArray(tasks)) return []
 
   tasks.forEach(task => {
-    task.students.forEach(student => {
-      if (!map.has(student.id)) {
-        map.set(student.id, student)
-      }
-    })
+    if (Array.isArray(task?.students)) {
+      task.students.forEach(student => {
+        if (student && student.id && !map.has(student.id)) {
+          map.set(student.id, student)
+        }
+      })
+    }
   })
   
   return Array.from(map.values())
 }
 
-function hasTaskForStudent(tasks, studentId) {
+function hasTaskForStudent(tasks = [], studentId) {
+  if (!Array.isArray(tasks) || !studentId) return false
   return tasks.some(task =>
-    task.students.some(student => student.id === studentId),
+    Array.isArray(task?.students) && task.students.some(student => student && student.id === studentId),
   )
 }
 
+const activeProjects = computed(() => {
+  return (plansTasks.value || []).filter(p => {
+    if (!p) return false
+    if (p.status === 'archived') return false
+    if (!p.end_date) return true
+    return new Date(p.end_date) >= new Date()
+  })
+})
 
 const moreList = [
   {
@@ -55,9 +67,9 @@ const moreList = [
 </script>
 
 <template>
-  <VRow>
+  <VRow v-if="activeProjects.length">
     <VCol
-      v-for="data in plansTasks.filter(p => new Date(p.end_date) >= new Date())"
+      v-for="data in activeProjects"
       :key="data.id"
       cols="12"
       sm="6"
@@ -159,6 +171,18 @@ const moreList = [
             </div>
           </div>
         </VCardText>
+      </VCard>
+    </VCol>
+  </VRow>
+  <VRow v-else>
+    <VCol cols="12">
+      <VCard class="text-center py-12">
+        <VIcon
+          icon="tabler-folder-off"
+          size="48"
+          class="text-disabled mb-3"
+        />
+        <h6 class="text-h6 text-disabled">Belum ada project aktif</h6>
       </VCard>
     </VCol>
   </VRow>

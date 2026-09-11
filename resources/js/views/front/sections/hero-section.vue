@@ -74,14 +74,8 @@ const featuresData = [
 </script>
 
 <template>
-  <div
-    id="home"
-    :style="{ background: 'rgb(var(--v-theme-surface))' }"
-  >
-    <div
-      id="landingHero"
-      class="mb-6"
-    >
+  <div id="home">
+    <div id="landingHero">
       <div
         class="landing-hero"
         :class="theme.current.value.dark ? 'landing-hero-dark-bg' : 'landing-hero-light-bg'"
@@ -112,52 +106,24 @@ const featuresData = [
       </div>
     </div>
 
-    <div class="position-relative">
-      <div class="hero-animation-img position-absolute">
-        <!--
-          <div class="d-none justify-center">
-          <div
-          v-for="(data, index) in featuresData"
-          :key="index"
-          cols="4"
-          md="2"
-          class="mx-md-12 mx-6 my-8"
-          >
-          <VIcon
-          :icon="data.icon"
-          size="64"
-          color="primary"
-          />
-          </div>
-          </div>
-          <div class="d-none justify-center">
-          <VAvatar
-          v-for="i in 8"
-          :key="i"
-          size="120"
-          class="mx-3"
-          :image="avatar1"
-          />
-          </div> 
-        -->
+    <div
+      class="hero-video-section"
+      :class="theme.current.value.dark ? 'video-bg-transition-dark' : 'video-bg-transition-light'"
+    >
+      <div class="hero-video-wrapper">
         <!-- FEATURE POST -->
-        <VCard class="feature-post mt-8">
-          <VCardText>
-            <VRow class="align-items-stretch h-100">
-              <VCol cols="12">
-                <iframe
-                  width="100%"
-                  height="435"
-                  :src="randomVideo.src"
-                  :title="randomVideo.title"
-                  frameborder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  referrerpolicy="strict-origin-when-cross-origin"
-                  allowfullscreen
-                />
-              </VCol>
-            </vrow>
-          </VCardText>
+        <VCard class="feature-post" elevation="0">
+          <div class="video-container">
+            <iframe
+              :src="randomVideo.src"
+              :title="randomVideo.title"
+              frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerpolicy="strict-origin-when-cross-origin"
+              allowfullscreen
+              class="hero-video"
+            />
+          </div>
         </VCard>
       </div>
     </div>
@@ -166,16 +132,70 @@ const featuresData = [
 
 <style lang="scss" scoped>
 .landing-hero {
-  padding-block: 7rem 22rem;
+  padding-block-start: 7rem;
+  padding-block-end: 2.5rem;
+
+  @media (max-width: 600px) {
+    padding-block-start: 5.5rem;
+    padding-block-end: 2rem;
+  }
 }
 
-.hero-animation-img{
-  position: absolute;
-  inline-size: 90%;
-  inset-block-start: -25rem;
-  inset-inline-start: 50%;
+.hero-video-section {
+  position: relative;
+  z-index: 2;
+  inline-size: 100%;
+  margin-block-start: 0;
+  padding-block: 0;
+
+  &.video-bg-transition-light {
+    background: linear-gradient(
+      180deg,
+      #fce5e6 0%,
+      #fce5e6 30%,
+      rgba(252, 229, 230, 0.75) 42%,
+      rgba(var(--v-theme-background), 0.75) 58%,
+      rgb(var(--v-theme-background)) 70%,
+      rgb(var(--v-theme-background)) 100%
+    );
+  }
+
+  &.video-bg-transition-dark {
+    background: linear-gradient(
+      180deg,
+      #1e2130 0%,
+      #1e2130 30%,
+      rgba(30, 33, 48, 0.8) 42%,
+      rgba(var(--v-theme-background), 0.8) 58%,
+      rgb(var(--v-theme-background)) 70%,
+      rgb(var(--v-theme-background)) 100%
+    );
+  }
+}
+
+.hero-video-wrapper {
+  inline-size: 100%;
   margin-inline: auto;
-  transform: translateX(-50%);
+
+  @media (min-width: 1920px) {
+    max-inline-size: calc(1440px - 32px);
+  }
+
+  @media (min-width: 1280px) and (max-width: 1919px) {
+    max-inline-size: calc(1200px - 32px);
+  }
+
+  @media (min-width: 960px) and (max-width: 1279px) {
+    max-inline-size: calc(900px - 32px);
+  }
+
+  @media (min-width: 600px) and (max-width: 959px) {
+    max-inline-size: calc(100% - 64px);
+  }
+
+  @media (max-width: 600px) {
+    max-inline-size: calc(100% - 32px);
+  }
 }
 
 section {
@@ -203,36 +223,6 @@ section {
 
 .landing-hero-light-bg{
   background-image: linear-gradient(138.18deg, #eae8fd 0%, #fce5e6 94.44%);
-}
-
-@media (min-width: 1920px) {
-  .hero-animation-img {
-    max-inline-size: calc(1440px - 32px);
-  }
-}
-
-@media (min-width: 1280px) and (max-width: 1919px) {
-  .hero-animation-img {
-    max-inline-size: calc(1200px - 32px);
-  }
-}
-
-@media (min-width: 960px) and (max-width: 1279px) {
-  .hero-animation-img {
-    max-inline-size: calc(900px - 32px);
-  }
-}
-
-@media (min-width: 600px) and (max-width: 959px) {
-  .hero-animation-img {
-    max-inline-size: calc(100% - 64px);
-  }
-}
-
-@media (max-width: 600px) {
-  .hero-animation-img {
-    max-inline-size: calc(100% - 32px);
-  }
 }
 
 
@@ -292,5 +282,37 @@ section {
 .hero-btn-item{
   inset-block-start: 80%;
   inset-inline-start: 0;
+}
+
+.feature-post {
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  background-color: rgb(var(--v-theme-surface));
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 6%);
+  overflow: hidden;
+
+  @media (min-width: 600px) {
+    padding: 0.75rem;
+  }
+}
+
+.video-container {
+  position: relative;
+  inline-size: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background-color: #000;
+}
+
+.hero-video {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  border: 0;
+  border-radius: 0.5rem;
+  display: block;
 }
 </style>

@@ -94,4 +94,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(MediaNotification::class, 'recipient_id');
     }
+
+    public function reflections()
+    {
+        return $this->hasMany(Reflection::class);
+    }
 }
+

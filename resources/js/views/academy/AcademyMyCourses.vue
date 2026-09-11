@@ -32,10 +32,16 @@ console.log("coursesData:", coursesData)
 const courses = computed(() => coursesData.value?.data ?? [])
 const totalCourses = computed(() => coursesData.value?.count ?? 0)
 
+const allSubjects = ref([])
+watch(coursesData, val => {
+  if (val?.data && allSubjects.value.length === 0) {
+    allSubjects.value = [...new Set(val.data.map(course => course.subject).filter(Boolean))].sort()
+  }
+}, { immediate: true })
+
 const subjectSelected = computed(() => {
-  if (!coursesData.value?.data) return []
-  
-  return [...new Set(coursesData.value.data.map(course => course.subject))].sort()
+  const current = coursesData.value?.data ? [...new Set(coursesData.value.data.map(course => course.subject).filter(Boolean))] : []
+  return [...new Set([...allSubjects.value, ...current])].sort()
 })
 
 

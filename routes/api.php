@@ -12,6 +12,9 @@ use App\Http\Controllers\admin\TeacherController;
 use App\Http\Controllers\academy\CourseController;
 use App\Http\Controllers\payment\SavingController;
 use App\Http\Controllers\academy\SubjectController;
+use App\Http\Controllers\academy\PlanController;
+use App\Http\Controllers\academy\TaskController;
+use App\Http\Controllers\academy\ReflectionController;
 use App\Http\Controllers\finance\AccountController;
 use App\Http\Controllers\finance\FinanceController;
 use App\Http\Controllers\payment\BillingController;
@@ -20,6 +23,16 @@ use App\Http\Controllers\payment\DiscountController;
 use App\Http\Controllers\academy\CompetenceController;
 use App\Http\Controllers\finance\DepositController;
 use App\Http\Controllers\home\DashboardController;
+use App\Http\Controllers\Api\Media\PublicMediaController;
+use App\Http\Controllers\Api\Media\TaskMediaController;
+use App\Http\Controllers\Api\Media\ProjectMediaController;
+use App\Http\Controllers\Api\Media\BlogMediaController;
+use App\Http\Controllers\Api\Media\ExploreMediaController;
+use App\Http\Controllers\Api\Media\NotificationMediaController;
+use App\Http\Controllers\Api\Media\UserMediaController;
+use App\Http\Controllers\Api\Media\AdminMediaController;
+use App\Http\Controllers\Api\Media\AuthMediaController;
+use App\Http\Controllers\Api\Media\DriveMediaController;
 use App\Models\FinanceDeposit;
 use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
@@ -43,16 +56,14 @@ Route::get('login', function () {
 })->name('login-api');
 
 Route::group(['prefix' => 'public'], function () {
-  Route::get('tasks/best', function (\Illuminate\Http\Request $request) {
-      $response = \Illuminate\Support\Facades\Http::withoutVerifying()->get('https://jazmedia.vercel.app/api/public/tasks/best');
-      return response($response->body(), $response->status())
-          ->withHeaders(['Content-Type' => 'application/json']);
-  });
-
-  Route::any('media/{any}', function (\Illuminate\Http\Request $request, $any) {
-      $queryString = $request->getQueryString() ? '?' . $request->getQueryString() : '';
-      return redirect()->to('https://jazmedia.vercel.app/api/public/media/' . $any . $queryString);
-  })->where('any', '.*');
+  Route::get('tasks/best', [PublicMediaController::class, 'bestTasks']);
+  Route::get('members', [PublicMediaController::class, 'members']);
+  Route::get('members/{id}', [PublicMediaController::class, 'memberById']);
+  Route::get('tasks/member/{id}', [PublicMediaController::class, 'tasksByMember']);
+  Route::get('media/stream/{id}', [PublicMediaController::class, 'streamMedia']);
+  Route::get('media/proxy-pdf', [PublicMediaController::class, 'proxyPdf']);
+  Route::get('drive/stream/{id}', [PublicMediaController::class, 'streamMedia']);
+  Route::get('proxy-pdf', [PublicMediaController::class, 'proxyPdf']);
 
   Route::get('students', [StudentController::class, 'index']);
   Route::get('student/{id}', [StudentController::class, 'show']);
@@ -61,6 +72,101 @@ Route::group(['prefix' => 'public'], function () {
   Route::get('teacher/{id}', [TeacherController::class, 'show']);
   Route::get('teachers-show', [TeacherController::class, 'showAll']);
   Route::get('students/years', [StudentController::class, 'years']);
+
+  Route::get('task-by-student/{id}', [PublicMediaController::class, 'taskByStudent']);
+  Route::get('task-by-teacher/{id}', [PublicMediaController::class, 'taskByTeacher']);
+  Route::get('plans-with-tasks', [PublicMediaController::class, 'plansWithTasks']);
+  Route::get('plans', [PublicMediaController::class, 'plans']);
+  Route::get('all-tasks', [PublicMediaController::class, 'allTasks']);
+  Route::get('tasks', [PublicMediaController::class, 'publicTasks']);
+  Route::get('home-tasks-with-all', [PublicMediaController::class, 'homeTasksWithAll']);
+  Route::get('upload-tasks-with-all', [PublicMediaController::class, 'uploadTasksWithAll']);
+  Route::get('instagram-tasks-with-all', [PublicMediaController::class, 'instagramTasksWithAll']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| JazMedia Integration API Routes
+|--------------------------------------------------------------------------
+*/
+Route::group(['prefix' => 'media'], function () {
+  // Auth & Instagram (Public)
+  Route::post('auth/register', [AuthMediaController::class, 'register']);
+  Route::post('auth/instagram/exchange-code', [AuthMediaController::class, 'exchangeInstagramCode']);
+
+  // Public / Read Endpoints
+  Route::get('tasks', [TaskMediaController::class, 'index']);
+  Route::get('tasks/best-performance', [TaskMediaController::class, 'bestPerformance']);
+  Route::get('tasks/user/{userId}', [TaskMediaController::class, 'userTasks']);
+  Route::get('tasks/{id}/comments', [TaskMediaController::class, 'getComments']);
+
+  Route::get('projects', [ProjectMediaController::class, 'index']);
+  Route::get('projects/{id}', [ProjectMediaController::class, 'show']);
+
+  Route::get('blogs', [BlogMediaController::class, 'index']);
+  Route::get('blogs/categories', [BlogMediaController::class, 'categories']);
+  Route::get('blogs/{idOrSlug}', [BlogMediaController::class, 'show']);
+  Route::get('blogs/{id}/comments', [BlogMediaController::class, 'getComments']);
+
+  Route::get('explore/tasks', [ExploreMediaController::class, 'searchTasks']);
+  Route::get('explore/users', [ExploreMediaController::class, 'searchUsers']);
+  Route::get('explore/projects', [ExploreMediaController::class, 'searchProjects']);
+  Route::get('explore/streaks', [ExploreMediaController::class, 'getStreaks']);
+
+  Route::get('users/{id}/public', [UserMediaController::class, 'publicProfile']);
+
+  // Authenticated Endpoints (Sanctum)
+  Route::group(['middleware' => 'auth:sanctum'], function () {
+    // Tasks
+    Route::post('tasks', [TaskMediaController::class, 'store']);
+    Route::get('tasks/form-data', [TaskMediaController::class, 'formData']);
+    Route::post('tasks/{id}/like', [TaskMediaController::class, 'toggleLike']);
+    Route::post('tasks/{id}/comments', [TaskMediaController::class, 'addComment']);
+    Route::put('tasks/{id}/caption', [TaskMediaController::class, 'updateCaption']);
+    Route::put('tasks/{id}/review', [TaskMediaController::class, 'submitReview']);
+    Route::put('tasks/{id}/approve', [TaskMediaController::class, 'approveTask']);
+    Route::delete('tasks/{id}', [TaskMediaController::class, 'destroy']);
+
+    // Projects
+    Route::post('projects', [ProjectMediaController::class, 'store']);
+    Route::put('projects/{id}', [ProjectMediaController::class, 'update']);
+    Route::delete('projects/{id}', [ProjectMediaController::class, 'destroy']);
+
+    // Blogs
+    Route::post('blogs', [BlogMediaController::class, 'store']);
+    Route::put('blogs/{id}', [BlogMediaController::class, 'update']);
+    Route::delete('blogs/{id}', [BlogMediaController::class, 'destroy']);
+    Route::post('blogs/{id}/like', [BlogMediaController::class, 'toggleLike']);
+    Route::post('blogs/{id}/comments', [BlogMediaController::class, 'addComment']);
+
+    // Notifications
+    Route::get('notifications/pending-tasks', [NotificationMediaController::class, 'pendingTasks']);
+    Route::get('notifications/reviewed-tasks', [NotificationMediaController::class, 'reviewedTasks']);
+    Route::get('notifications/system-reminders', [NotificationMediaController::class, 'systemReminders']);
+    Route::get('notifications/unread-count', [NotificationMediaController::class, 'unreadCount']);
+
+    // Profile & Users
+    Route::get('profile', [UserMediaController::class, 'profile']);
+    Route::put('profile', [UserMediaController::class, 'updateProfile']);
+    Route::post('profile/upload-picture', [UserMediaController::class, 'uploadPicture']);
+
+    // Instagram Account Link / Unlink
+    Route::post('auth/instagram/link', [AuthMediaController::class, 'linkInstagram']);
+    Route::post('auth/instagram/unlink', [AuthMediaController::class, 'unlinkInstagram']);
+
+    // Google Drive Upload
+    Route::post('drive/upload-session', [DriveMediaController::class, 'createUploadSession']);
+    Route::post('drive/finalize', [DriveMediaController::class, 'finalizeUpload']);
+
+    // Admin Master Data
+    Route::get('admin/users', [AdminMediaController::class, 'users']);
+    Route::put('admin/users/{id}/role', [AdminMediaController::class, 'updateRole']);
+    Route::delete('admin/users/{id}', [AdminMediaController::class, 'deleteUser']);
+    Route::get('admin/mentors', [AdminMediaController::class, 'mentors']);
+    Route::get('admin/users-select', [AdminMediaController::class, 'usersForSelect']);
+    Route::get('admin/projects', [AdminMediaController::class, 'projects']);
+    Route::get('admin/tasks', [AdminMediaController::class, 'tasks']);
+  });
 });
 
 Route::group(['prefix' => 'auth'], function () {
@@ -95,12 +201,16 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
   Route::apiResource('awards', AwardController::class);
   Route::get('awards-custom', [AwardController::class, 'custom']);
   Route::apiResource('subjects', SubjectController::class);
+  Route::apiResource('plans', PlanController::class);
+  Route::apiResource('tasks', TaskController::class);
   Route::apiResource('competences', CompetenceController::class);
   Route::apiResource('scores', ScoreController::class);
   Route::get('scores-distinct', [ScoreController::class, 'distinct']);
   Route::get('scores-by-serial/{serial}', [ScoreController::class, 'scoreBySerial']);
   Route::post('scores/bulk-store', [ScoreController::class, 'bulkStore']);
   Route::get('scores-by-person', [ScoreController::class, 'scoreByPerson']);
+  Route::get('reflections/timeline', [ReflectionController::class, 'timeline']);
+  Route::apiResource('reflections', ReflectionController::class);
 
   Route::apiResource('accounts', AccountController::class);
   Route::apiResource('deposits', DepositController::class);
@@ -142,6 +252,8 @@ Route::get('/register/check-username', [\App\Http\Controllers\AuthController::cl
 
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/mail/account', [\App\Http\Controllers\MailController::class, 'account']);
+    Route::get('/mail', [\App\Http\Controllers\MailController::class, 'index']);
     Route::get('/mail/{folder}', [\App\Http\Controllers\MailController::class, 'index']);
     Route::post('/mail/send', [\App\Http\Controllers\MailController::class, 'send']);
     Route::get('/mail/{folder}/{uid}', [\App\Http\Controllers\MailController::class, 'show']);

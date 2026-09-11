@@ -13,6 +13,25 @@ const route = useRoute()
 const router = useRouter()
 const sidebar = ref(false)
 
+const lastScrollY = ref(0)
+const isNavbarVisible = ref(true)
+
+watch(y, (newY) => {
+  const diff = newY - lastScrollY.value
+
+  // Always show navbar near the top of the page
+  if (newY <= 60) {
+    isNavbarVisible.value = true
+  } else if (diff > 8) {
+    // Scrolling down -> hide navbar
+    isNavbarVisible.value = false
+  } else if (diff < -8) {
+    // Scrolling up -> show navbar
+    isNavbarVisible.value = true
+  }
+  lastScrollY.value = newY
+})
+
 watch(() => display, () => {
   return display.mdAndUp ? sidebar.value = false : sidebar.value
 }, { deep: true })
@@ -201,7 +220,10 @@ const isPageActive = computed(() => menuItems.some(item => item.navItems.some(li
   <div class="front-page-navbar">
     <VAppBar
       :color="$vuetify.theme.current.dark ? 'rgba(var(--v-theme-background))' : 'rgba(255,255,255, 0.38)'"
-      :class="y > 10 ? 'app-bar-scrolled' : [$vuetify.theme.current.dark ? 'app-bar-dark' : 'app-bar-light', 'elevation-0']"
+      :class="[
+        y > 10 ? 'app-bar-scrolled' : [$vuetify.theme.current.dark ? 'app-bar-dark' : 'app-bar-light', 'elevation-0'],
+        { 'navbar-hidden': !isNavbarVisible }
+      ]"
       class="navbar-blur"
     >
       <!-- toggle icon for mobile device -->
@@ -394,11 +416,21 @@ const isPageActive = computed(() => menuItems.some(item => item.navItems.some(li
 
 .front-page-navbar::after{
   position: fixed;
-  z-index: 2;
+  z-index: 1;
+  inset-block-start: 0;
+  inset-inline-start: 0;
   backdrop-filter: saturate(100%) blur(6px);
+  -webkit-backdrop-filter: saturate(100%) blur(6px);
   block-size: 5rem;
   content: '';
-  inline-size: 100%
+  inline-size: 100%;
+  pointer-events: none;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease;
+}
+
+.front-page-navbar:has(.navbar-hidden)::after {
+  transform: translateY(-100%);
+  opacity: 0;
 }
 </style>
 
@@ -419,8 +451,14 @@ const isPageActive = computed(() => menuItems.some(item => item.navItems.some(li
 
   .v-toolbar {
     inset-inline: 0 !important;
+    inset-block-start: 0 !important;
     margin-block-start: 1rem !important;
     margin-inline: auto !important;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease, box-shadow 0.2s ease !important;
+
+    &.navbar-hidden {
+      transform: translateY(calc(-100% - 2rem)) !important;
+    }
   }
 
 }

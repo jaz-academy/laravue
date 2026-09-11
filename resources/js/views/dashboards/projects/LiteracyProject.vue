@@ -41,7 +41,7 @@ const literasiData = computed(() => {
       <VList class="card-list scrollable-card">
         <VListItem
           v-for="data in literasiData"
-          :key="data.title"
+          :key="data.name"
         >
           <template #prepend>
             <VProgressCircular

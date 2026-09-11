@@ -13,26 +13,52 @@ const courseDetails = ref([])
 const panelStatus = ref(0)
 
 const loadCourseById = async id => {
-  const { data: CourseData } = await useApi(`/courses/${id}`)
-
-  itemData.value = CourseData.value.data
+  if (!id) return
+  try {
+    const { data: CourseData } = await useApi(`/courses/${id}`)
+    if (CourseData.value?.data) {
+      itemData.value = CourseData.value.data
+    }
+  } catch (e) {
+    console.error("Failed to load course by ID:", e)
+  }
 }
-
 
 const loadCourseByName = async name => {
-  const cleanName = name.trim()
-  const { data } = await useApi(`/courses-by-name/${encodeURIComponent(cleanName)}`)
-  if (data.value) courseDetails.value = data.value.data
-  console.log("clean: ", cleanName)
-  
+  if (!name) return
+  try {
+    const cleanName = name.trim()
+    const { data } = await useApi(`/courses-by-name/${encodeURIComponent(cleanName)}`)
+    if (data.value?.data) {
+      courseDetails.value = data.value.data
+      if (!itemData.value && data.value.data.length > 0) {
+        itemData.value = data.value.data[0]
+      }
+    }
+  } catch (e) {
+    console.error("Failed to load course by name:", e)
+  }
 }
 
+const refreshData = async () => {
+  if (route.query.id) await loadCourseById(route.query.id)
+  if (route.query.name) await loadCourseByName(route.query.name)
 
-console.log("itemData: ", itemData)
-
-const refreshData = () => {
-  if (route.query.id) loadCourseById(route.query.id)
-  if (route.query.name) loadCourseByName(route.query.name)
+  // Fallback jika tidak ada query name dan query id sama sekali
+  if (!route.query.id && !route.query.name) {
+    try {
+      const { data: listData } = await useApi('/courses-distinct?itemsPerPage=1')
+      const firstCourse = listData.value?.data?.[0]
+      if (firstCourse) {
+        await loadCourseByName(firstCourse.name)
+        if (firstCourse.first_id) {
+          await loadCourseById(firstCourse.first_id)
+        }
+      }
+    } catch (e) {
+      console.error("Fallback load course failed:", e)
+    }
+  }
 }
 
 // pertama kali
@@ -42,21 +68,25 @@ onMounted(refreshData)
 watch(() => route.query, refreshData, { deep: true })
 
 const distinctSections = computed(() => {
-  return [...new Set(courseDetails.value?.map(item => item.section))]
+  if (!Array.isArray(courseDetails.value)) return []
+
+  return [...new Set(courseDetails.value.map(item => item?.section).filter(Boolean))]
     .sort((a, b) => {
-      const numA = parseInt(a.match(/\d+/)?.[0] ?? 0, 10)
-      const numB = parseInt(b.match(/\d+/)?.[0] ?? 0, 10)
+      const numA = parseInt(String(a).match(/\d+/)?.[0] ?? 0, 10)
+      const numB = parseInt(String(b).match(/\d+/)?.[0] ?? 0, 10)
       
       return numA - numB
     })
 })
 
 const filteredBySection = sectionName => {
+  if (!Array.isArray(courseDetails.value)) return []
+
   return courseDetails.value
-    .filter(item => item.section === sectionName)
+    .filter(item => item && item.section === sectionName)
     .sort((a, b) => {
-      const numA = parseInt(a.title, 10)
-      const numB = parseInt(b.title, 10)
+      const numA = parseInt(String(a?.title || '').match(/\d+/)?.[0] ?? 0, 10)
+      const numB = parseInt(String(b?.title || '').match(/\d+/)?.[0] ?? 0, 10)
       
       return numA - numB
     })
@@ -103,17 +133,18 @@ const videoSource = computed(() => {
         >
           <VCardItem class="pa-0 mb-2">
             <VCardTitle class="mb-2">
-              {{ itemData?.title }}
+              {{ itemData?.title || 'Materi Kursus' }}
             </VCardTitle>
-            <VCardSubtitle>Vendor<span class="font-weight-medium text-high-emphasis ms-1"> {{ itemData?.author }}</span></VCardSubtitle>
+            <VCardSubtitle>Vendor<span class="font-weight-medium text-high-emphasis ms-1"> {{ itemData?.author || '-' }}</span></VCardSubtitle>
             <template #append>
               <div class="d-flex gap-2 align-center">
                 <VChip
+                  v-if="itemData?.subject"
                   variant="tonal"
                   color="primary"
                   label
                 >
-                  {{ itemData?.subject }}
+                  {{ itemData.subject }}
                 </VChip>
                 <IconBtn>
                   <RouterLink to="/academy/course/list">
@@ -165,6 +196,20 @@ const videoSource = computed(() => {
                   :height="$vuetify.display.mdAndUp ? 440 : 250"
                   class="w-100 rounded"
                 />
+
+                <!-- Fallback jika belum ada video -->
+                <div
+                  v-else
+                  class="d-flex flex-column align-center justify-center py-12 rounded bg-var-theme-background"
+                  :style="{ minHeight: $vuetify.display.mdAndUp ? '350px' : '200px' }"
+                >
+                  <VIcon
+                    icon="tabler-video-off"
+                    size="48"
+                    class="text-disabled mb-2"
+                  />
+                  <span class="text-disabled">Video tidak tersedia untuk materi ini</span>
+                </div>
               </div>
             </div>
             <VCardText>
@@ -172,14 +217,14 @@ const videoSource = computed(() => {
                 About this course
               </h5>
               <p class="text-body-1">
-                {{ itemData?.note }}
+                {{ itemData?.note || '-' }}
               </p>
               <VDivider class="my-6" />
               <h5 class="text-h5 mb-3">
                 Description
               </h5>
               <!-- eslint-disable-next-line vue/no-v-html -->
-              <div v-html="itemData?.description" />
+              <div v-html="itemData?.description || '<p class=\'text-disabled\'>Tidak ada deskripsi tambahan.</p>'" />
               <VDivider class="my-6" />
               <h5 class="text-h5 mb-2">
                 Instructor
@@ -192,7 +237,7 @@ const videoSource = computed(() => {
                 />
                 <div>
                   <div class="text-body-1 font-weight-medium">
-                    {{ itemData?.author }}
+                    {{ itemData?.author || '-' }}
                   </div>
                   <div class="text-sm text-disabled">
                     Online Platform Mentor

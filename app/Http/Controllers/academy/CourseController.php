@@ -102,7 +102,7 @@ class CourseController extends Controller
         $query = AcademyCourse::select('name', 'subject', 'note', 'author')
             ->selectRaw('MIN(id) as first_id')
             ->selectRaw('COUNT(*) as course_count')
-            ->selectRaw('SUM(CAST(video_duration AS UNSIGNED)) as total_video_duration')
+            ->selectRaw("COALESCE(SUM(CAST(NULLIF(regexp_replace(video_duration, '[^0-9.]', '', 'g'), '') AS NUMERIC)), 0) as total_video_duration")
             ->groupBy('name', 'note', 'subject', 'author');
 
         // Search

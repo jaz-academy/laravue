@@ -52,10 +52,12 @@ const chartData = computed(() => {
   const non_official = []
 
   props.data.forEach(item => {
+    if (!item.month) return
     const [year, month] = item.month.split('-')
+    const monthIndex = parseInt(month, 10) - 1
+    const mName = monthNames[monthIndex] || month
 
-    bulan.push(`${monthNames[parseInt(month) - 1]}-${year}`)
-    bulan.push(`${monthNames[parseInt(month) - 1]}`)
+    bulan.push(`${mName} '${year.slice(-2)}`)
     official.push(Number(item.official))
     non_official.push(Number(item.non_official))
   })

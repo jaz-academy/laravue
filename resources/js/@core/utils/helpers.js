@@ -3,7 +3,10 @@ import avatar from '@images/avatars/no-profile.png'
 import { computed } from 'vue'
 
 export const takePic = src => {
-  return src ? `/storage/${src}` : avatar
+  if (!src) return avatar
+  if (src.startsWith('http://') || src.startsWith('https://')) return src
+  if (src.startsWith('/')) return src
+  return `/storage/${src}`
 }
 
 export const shorterName = (name, num = 2) => {
