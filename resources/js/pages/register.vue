@@ -10,7 +10,7 @@ import authV2MaskDark from '@images/pages/misc-mask-dark.png'
 import authV2MaskLight from '@images/pages/misc-mask-light.png'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { VForm } from 'vuetify/components/VForm'
 
@@ -42,10 +42,87 @@ const ability = useAbility()
 const isPasswordVisible = ref(false)
 const errors = ref({})
 const errorMessage = ref('')
+const errorDetails = ref([])
+const isLoading = ref(false)
+
+// Pengecekan Kriteria Password
+const passwordLengthValid = computed(() => {
+  const len = form.value.password ? form.value.password.length : 0
+  return len >= 8 && len <= 12
+})
+
+const passwordUpperLowerValid = computed(() => {
+  const p = form.value.password || ''
+  return /[a-z]/.test(p) && /[A-Z]/.test(p)
+})
+
+const passwordNumberValid = computed(() => {
+  return /[0-9]/.test(form.value.password || '')
+})
+
+const passwordSymbolValid = computed(() => {
+  return /[@#$%!&*^~_+\-=?]/.test(form.value.password || '')
+})
+
+// Perhitungan Nilai Strength (0 - 100)
+const passwordStrengthScore = computed(() => {
+  const p = form.value.password || ''
+  if (!p) return 0
+
+  let score = 0
+  // Panjang 8-12 karakter (bobot: 25)
+  if (p.length >= 8 && p.length <= 12) {
+    score += 25
+  } else if (p.length > 12) {
+    score += 20
+  } else if (p.length >= 6) {
+    score += 10
+  }
+
+  // Campuran huruf besar dan kecil (bobot: 25)
+  if (/[a-z]/.test(p) && /[A-Z]/.test(p)) {
+    score += 25
+  } else if (/[a-zA-Z]/.test(p)) {
+    score += 10
+  }
+
+  // Mengandung angka (bobot: 25)
+  if (/[0-9]/.test(p)) {
+    score += 25
+  }
+
+  // Mengandung simbol khusus (@, #, $, %, !, dll) (bobot: 25)
+  if (/[@#$%!&*^~_+\-=?]/.test(p)) {
+    score += 25
+  }
+
+  return score
+})
+
+const passwordStrengthColor = computed(() => {
+  if (passwordStrengthScore.value >= 65) return 'success'
+  if (passwordStrengthScore.value >= 40) return 'warning'
+  return 'error'
+})
+
+const passwordStrengthLabel = computed(() => {
+  if (passwordStrengthScore.value >= 80) return 'Sangat Kuat'
+  if (passwordStrengthScore.value >= 65) return 'Kuat'
+  if (passwordStrengthScore.value >= 40) return 'Sedang'
+  if (passwordStrengthScore.value > 0) return 'Lemah'
+  return ''
+})
 
 const requiredValidator = v => !!v || 'This field is required'
 const emailValidator = v => /.+@.+\..+/.test(v) || 'E-mail must be valid'
 const passwordMatchValidator = password => v => v === password || 'Password does not match'
+const passwordStrengthValidator = v => {
+  if (!v) return 'This field is required'
+  if (passwordStrengthScore.value < 65) {
+    return 'Kekuatan password minimal rating 65 (8–12 karakter, huruf besar & kecil, angka, dan simbol khusus).'
+  }
+  return true
+}
 
 onMounted(async () => {
   await fetchStudentData()
@@ -53,6 +130,27 @@ onMounted(async () => {
 })
 
 const register = async () => {
+  errorMessage.value = ''
+  errorDetails.value = []
+  errors.value = {}
+
+  // Validasi pemilihan Student atau Teacher
+  if (isStudent.value && (!form.value.adminStudentId || form.value.adminStudentId === 'Select' || !form.value.adminStudentId.id)) {
+    errorMessage.value = 'Silakan pilih nama Siswa terlebih dahulu.'
+    return
+  }
+
+  if (!isStudent.value && (!form.value.adminTeacherId || form.value.adminTeacherId === 'Select' || !form.value.adminTeacherId.id)) {
+    errorMessage.value = 'Silakan pilih nama Guru terlebih dahulu.'
+    return
+  }
+
+  // Validasi Privacy Policy
+  if (!form.value.privacyPolicies) {
+    errorMessage.value = 'Anda harus menyetujui Privacy Policy & Terms untuk melanjutkan.'
+    return
+  }
+
   const formValues = { 
     ...form.value, 
     adminStudentId: form.value.adminStudentId?.id || null, 
@@ -60,14 +158,30 @@ const register = async () => {
     name: form.value.adminStudentId?.name || form.value.adminTeacherId?.name, 
   }
 
+  isLoading.value = true
+
   try {
     const res = await $api('/auth/register', {
       method: 'POST',
       body: JSON.stringify(formValues),
       headers: { 'Content-Type': 'application/json' },
       onResponseError({ response }) {
-        errors.value = response._data.errors
-        errorMessage.value = response._data.message || 'Register failed'
+        const data = response._data || {}
+        errors.value = data.errors || {}
+        errorMessage.value = data.message || data.error || 'Pendaftaran gagal. Silakan periksa kembali data Anda.'
+
+        // Kumpulkan detail pesan error jika ada (validasi email, cpanel, db duplikat, dll)
+        if (data.errors && typeof data.errors === 'object') {
+          const detailList = []
+          Object.entries(data.errors).forEach(([field, msgs]) => {
+            if (Array.isArray(msgs)) {
+              detailList.push(...msgs)
+            } else if (typeof msgs === 'string') {
+              detailList.push(msgs)
+            }
+          })
+          errorDetails.value = detailList
+        }
       },
     })
 
@@ -88,6 +202,11 @@ const register = async () => {
     })
   } catch (err) {
     console.error(err)
+    if (!errorMessage.value) {
+      errorMessage.value = 'Terjadi kesalahan pada sistem. Silakan coba beberapa saat lagi.'
+    }
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -150,6 +269,31 @@ const onSubmit = () => {
         </VCardText>
 
         <VCardText>
+          <!-- Error Alert Banner -->
+          <VAlert
+            v-if="errorMessage"
+            type="error"
+            variant="tonal"
+            closable
+            class="mb-4"
+            @click:close="errorMessage = ''; errorDetails = []"
+          >
+            <div class="font-weight-semibold">
+              {{ errorMessage }}
+            </div>
+            <ul
+              v-if="errorDetails.length > 0"
+              class="ps-4 mt-2 mb-0 text-caption"
+            >
+              <li
+                v-for="(detail, i) in errorDetails"
+                :key="i"
+              >
+                {{ detail }}
+              </li>
+            </ul>
+          </VAlert>
+
           <VForm
             ref="refVForm"
             @submit.prevent="onSubmit"
@@ -216,13 +360,89 @@ const onSubmit = () => {
               <VCol cols="12">
                 <AppTextField
                   v-model="form.password"
-                  :rules="[requiredValidator]"
+                  :rules="[requiredValidator, passwordStrengthValidator]"
                   label="Password"
                   placeholder="············"
                   :type="isPasswordVisible ? 'text' : 'password'"
                   :append-inner-icon="isPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"
                 />
+
+                <!-- Password Strength Rating Indicator -->
+                <div
+                  v-if="form.password"
+                  class="mt-2"
+                >
+                  <div class="d-flex justify-space-between align-center mb-1">
+                    <span class="text-caption font-weight-medium text-medium-emphasis">
+                      Kekuatan Password:
+                      <strong :class="`text-${passwordStrengthColor}`">
+                        {{ passwordStrengthScore }}/100 ({{ passwordStrengthLabel }})
+                      </strong>
+                    </span>
+                    <span
+                      class="text-xs font-weight-bold"
+                      :class="passwordStrengthScore >= 65 ? 'text-success' : 'text-error'"
+                    >
+                      {{ passwordStrengthScore >= 65 ? 'Memenuhi Syarat' : 'Min. Rating 65' }}
+                    </span>
+                  </div>
+
+                  <VProgressLinear
+                    :model-value="passwordStrengthScore"
+                    :color="passwordStrengthColor"
+                    height="6"
+                    rounded
+                    class="mb-3"
+                  />
+
+                  <!-- Checklist Kriteria Password -->
+                  <div class="d-flex flex-column gap-1 pa-2 rounded bg-surface-variant-subtle">
+                    <div class="d-flex align-center gap-2 text-caption">
+                      <VIcon
+                        :icon="passwordLengthValid ? 'tabler-circle-check' : 'tabler-circle-x'"
+                        :color="passwordLengthValid ? 'success' : 'medium-emphasis'"
+                        size="16"
+                      />
+                      <span :class="passwordLengthValid ? 'text-success font-weight-medium' : 'text-medium-emphasis'">
+                        Minimal 8–12 karakter
+                      </span>
+                    </div>
+
+                    <div class="d-flex align-center gap-2 text-caption">
+                      <VIcon
+                        :icon="passwordUpperLowerValid ? 'tabler-circle-check' : 'tabler-circle-x'"
+                        :color="passwordUpperLowerValid ? 'success' : 'medium-emphasis'"
+                        size="16"
+                      />
+                      <span :class="passwordUpperLowerValid ? 'text-success font-weight-medium' : 'text-medium-emphasis'">
+                        Campuran huruf besar (A-Z) & kecil (a-z)
+                      </span>
+                    </div>
+
+                    <div class="d-flex align-center gap-2 text-caption">
+                      <VIcon
+                        :icon="passwordNumberValid ? 'tabler-circle-check' : 'tabler-circle-x'"
+                        :color="passwordNumberValid ? 'success' : 'medium-emphasis'"
+                        size="16"
+                      />
+                      <span :class="passwordNumberValid ? 'text-success font-weight-medium' : 'text-medium-emphasis'">
+                        Mengandung minimal satu angka (0-9)
+                      </span>
+                    </div>
+
+                    <div class="d-flex align-center gap-2 text-caption">
+                      <VIcon
+                        :icon="passwordSymbolValid ? 'tabler-circle-check' : 'tabler-circle-x'"
+                        :color="passwordSymbolValid ? 'success' : 'medium-emphasis'"
+                        size="16"
+                      />
+                      <span :class="passwordSymbolValid ? 'text-success font-weight-medium' : 'text-medium-emphasis'">
+                        Simbol khusus (seperti @, #, $, %, !)
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </VCol>
 
               <VCol cols="12">
@@ -259,6 +479,8 @@ const onSubmit = () => {
                 <VBtn
                   block
                   type="submit"
+                  :loading="isLoading"
+                  :disabled="isLoading"
                 >
                   Sign up
                 </VBtn>
@@ -287,4 +509,9 @@ const onSubmit = () => {
 
 <style lang="scss">
 @use "@core-scss/template/pages/page-auth.scss";
+
+.bg-surface-variant-subtle {
+  background-color: rgba(var(--v-theme-on-surface), 0.04);
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.08);
+}
 </style>

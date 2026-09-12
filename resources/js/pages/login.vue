@@ -43,6 +43,12 @@ const credentials = ref({
 const rememberMe = ref(false)
 
 const login = async () => {
+  errors.value = {
+    email: undefined,
+    password: undefined,
+  }
+  errorMessage.value = ''
+
   try {
     const res = await $api('/auth/login', {
       method: 'POST',
@@ -51,8 +57,10 @@ const login = async () => {
         password: credentials.value.password,
       },
       onResponseError({ response }) {
-        errors.value = response._data.errors
-        errorMessage.value = response._data.message || 'Login failed'
+        const responseData = response._data || {}
+
+        errors.value = responseData.errors || {}
+        errorMessage.value = responseData.message || 'Login failed'
       },
     })
 
@@ -73,6 +81,9 @@ const login = async () => {
     })
   } catch (err) {
     console.error(err)
+
+    if (!errorMessage.value)
+      errorMessage.value = 'Login failed. Please try again.'
   }
 }
 
@@ -137,12 +148,12 @@ const onSubmit = () => {
             v-if="errorMessage"
             type="error"
             dismissible
+            class="mb-4"
             @click:close="errorMessage = ''"
           >
             {{ errorMessage }}
           </VAlert>
-        </VCardText>
-        <VCardText>
+
           <VForm
             ref="refVForm"
             @submit.prevent="onSubmit"
