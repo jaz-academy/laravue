@@ -1,0 +1,432 @@
+[
+  {
+    "_id": "6a455496deb7a797a981ef95",
+    "name": "Abu Kafa",
+    "username": "abukafa.va",
+    "image": "https://lh3.googleusercontent.com/d/1s1J1XEcJfGBWh4jIy4nbuWpNwhObP1yG",
+    "role": "mentor",
+    "bio": "Millennial parenting & productivity\r\nSocial media management assistant\r\nProgrammer & mentor at @jazacademy.id",
+    "instagramId": "27524657363830476",
+    "skills": [
+      {
+        "name": "Design",
+        "icon": "PenTool",
+        "percentage": 95,
+        "_id": "6a773b8df9583b14f8200dff"
+      },
+      {
+        "name": "SocMed",
+        "icon": "Smartphone",
+        "percentage": 90,
+        "_id": "6a773b8df9583b14f8200e00"
+      },
+      {
+        "name": "AI",
+        "icon": "Sparkles",
+        "percentage": 85,
+        "_id": "6a773b8df9583b14f8200e01"
+      },
+      {
+        "name": "Web App",
+        "icon": "Code",
+        "percentage": 95,
+        "_id": "6a773b8df9583b14f8200e02"
+      },
+      {
+        "name": "SEO",
+        "icon": "Globe",
+        "percentage": 80,
+        "_id": "6a773b8df9583b14f8200e03"
+      }
+    ],
+    "createdAt": "2026-07-01T17:55:34.102Z",
+    "updatedAt": "2026-08-08T14:22:05.373Z",
+    "__v": 0,
+    "email": "hikam.abukafa@gmail.com",
+    "password": "$2b$10$qlgWz8oRDpWW2.ql/9NPXOLlP1uR7Xwrnz29C2ICVbr.x0X/olBVK"
+  },
+  {
+    "_id": "6a476d581a5391e2f210a594",
+    "name": "Member User",
+    "username": "member",
+    "email": "member@dummy.com",
+    "image": "https://lh3.googleusercontent.com/d/1JNpgMcyqlMX147OiDdxWrj1cucOPagNL",
+    "role": "member",
+    "skills": [
+      {
+        "name": "Editing",
+        "icon": "PenTool",
+        "percentage": 70,
+        "_id": "6a5b8c9d041226ede7cf7e6c"
+      },
+      {
+        "name": "Graphic",
+        "icon": "Layout",
+        "percentage": 80,
+        "_id": "6a5b8c9d041226ede7cf7e6d"
+      },
+      {
+        "name": "Motions",
+        "icon": "Sparkles",
+        "percentage": 61,
+        "_id": "6a5b8c9d041226ede7cf7e6e"
+      }
+    ],
+    "createdAt": "2026-07-03T08:05:44.792Z",
+    "updatedAt": "2026-07-18T14:24:29.503Z",
+    "__v": 0,
+    "bio": "",
+    "password": "$2b$10$ThHGIlm5wCbDL0WC99Q6se0dKHOJbKrXoZ59FMBM14whOVtaAl.Wy"
+  },
+  {
+    "_id": "6a4786df1a5391e2f210a595",
+    "name": "Mentor User",
+    "username": "mentor",
+    "email": "mentor@dummy.com",
+    "image": "https://lh3.googleusercontent.com/d/19txrk_bNymcY-QWWB6lKLYTpb-flQvMB",
+    "role": "mentor",
+    "skills": [
+      {
+        "name": "PHP",
+        "icon": "Code",
+        "percentage": 50,
+        "_id": "6a59fe0b8349f45c51f5f630"
+      },
+      {
+        "name": "JS",
+        "icon": "Code",
+        "percentage": 50,
+        "_id": "6a59fe0b8349f45c51f5f631"
+      },
+      {
+        "name": "PYTHON",
+        "icon": "Code",
+        "percentage": 50,
+        "_id": "6a59fe0b8349f45c51f5f632"
+      }
+    ],
+    "createdAt": "2026-07-03T09:54:39.147Z",
+    "updatedAt": "2026-07-17T10:03:55.993Z",
+    "__v": 0,
+    "bio": "halo",
+    "password": "$2b$10$ThHGIlm5wCbDL0WC99Q6se0dKHOJbKrXoZ59FMBM14whOVtaAl.Wy"
+  },
+  {
+    "_id": "6a4786e91a5391e2f210a596",
+    "name": "Admin User",
+    "username": "admin",
+    "email": "admin@dummy.com",
+    "image": "https://lh3.googleusercontent.com/d/1Nvb1vUT9KlY_k6P397K6MNdzwu5ICF2M",
+    "role": "admin",
+    "skills": [],
+    "createdAt": "2026-07-03T09:54:49.545Z",
+    "updatedAt": "2026-07-17T10:04:38.982Z",
+    "__v": 0,
+    "bio": ""
+  },
+  {
+    "_id": "6a4786ed1a5391e2f210a597",
+    "name": "Guest User",
+    "username": "guest",
+    "email": "guest@dummy.com",
+    "image": "https://lh3.googleusercontent.com/d/13ZoUEcJTlNIrrFc6jWuV6-IXlmvORyhd",
+    "role": "guest",
+    "skills": [],
+    "createdAt": "2026-07-03T09:54:53.935Z",
+    "updatedAt": "2026-07-17T10:04:16.453Z",
+    "__v": 0,
+    "bio": "cek",
+    "password": "$2b$10$ThHGIlm5wCbDL0WC99Q6se0dKHOJbKrXoZ59FMBM14whOVtaAl.Wy"
+  },
+  {
+    "_id": "6a523b679be9ea6ed85bb416",
+    "name": "Jaz Academy Official",
+    "username": "jazacademy.id",
+    "image": "https://lh3.googleusercontent.com/d/1qQtLXa7DxGOOxeRjq6B-QJQxzldU4m9o",
+    "role": "admin",
+    "bio": "@ijaz.1453 @kafaeco @hsjazacademy \r\nAkademi Remaja Muslim berbasis Project\r\nBelajar Coding & Dakwah Digital   \r\nTasikmalaya • Join kami 👇",
+    "instagramId": "27514858771499570",
+    "skills": [],
+    "createdAt": "2026-07-11T12:47:35.305Z",
+    "updatedAt": "2026-07-19T05:22:06.026Z",
+    "__v": 0,
+    "email": "admin@jazacademy.id",
+    "password": "$2b$10$qlgWz8oRDpWW2.ql/9NPXOLlP1uR7Xwrnz29C2ICVbr.x0X/olBVK"
+  },
+  {
+    "_id": "6a562b5cfe45064ada7275ae",
+    "name": "Miss Tia",
+    "username": "kafaeco.new",
+    "image": "https://lh3.googleusercontent.com/d/1Qy8yIvT7y0SABfUDHmMSGI68YuzCILr6",
+    "role": "mentor",
+    "bio": "",
+    "instagramId": "27392250653780960",
+    "skills": [],
+    "createdAt": "2026-07-14T12:28:12.378Z",
+    "updatedAt": "2026-07-19T11:11:00.521Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a59858770e4991d4873c262",
+    "name": "Danar",
+    "username": "Insight_Forest",
+    "image": "/api/drive/stream/1fQuD7jLPCxMAU7jfM9d2lYZm6B2I0hx4",
+    "role": "member",
+    "bio": "",
+    "instagramId": "28385377471063788",
+    "skills": [
+      {
+        "name": "Editing",
+        "icon": "MonitorSmartphone",
+        "percentage": 80,
+        "_id": "6a7845be0ce96b8af1c37ff8"
+      },
+      {
+        "name": "Microsoft Excel",
+        "icon": "Search",
+        "percentage": 80,
+        "_id": "6a7845be0ce96b8af1c37ff9"
+      },
+      {
+        "name": "Google Workspace",
+        "icon": "Search",
+        "percentage": 80,
+        "_id": "6a7845be0ce96b8af1c37ffa"
+      },
+      {
+        "name": "Scratch",
+        "icon": "Server",
+        "percentage": 80,
+        "_id": "6a7845be0ce96b8af1c37ffb"
+      },
+      {
+        "name": "Desain Canva",
+        "icon": "Layout",
+        "percentage": 65,
+        "_id": "6a7845be0ce96b8af1c37ffc"
+      }
+    ],
+    "createdAt": "2026-07-17T01:29:43.897Z",
+    "updatedAt": "2026-08-09T09:17:50.836Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a59916b560cbdd763a39986",
+    "name": "Berwyn Ijlal Junior",
+    "username": "berwyn13",
+    "image": "/api/drive/stream/1g70a9Wty631vNjhucQeRENfCZOP9_Yj3",
+    "role": "member",
+    "bio": ".......",
+    "instagramId": "27531676139774936",
+    "skills": [
+      {
+        "name": "Editing",
+        "icon": "Code",
+        "percentage": 70,
+        "_id": "6a89162d8b249f3769c7f442"
+      }
+    ],
+    "createdAt": "2026-07-17T02:20:27.067Z",
+    "updatedAt": "2026-08-22T03:23:25.181Z",
+    "__v": 0,
+    "email": "juniyours28@gmail.com"
+  },
+  {
+    "_id": "6a59942e560cbdd763a3998a",
+    "name": "Radhan Wahid",
+    "username": "radhanzz.aja",
+    "image": "https://lh3.googleusercontent.com/d/1nwK4fYyj_c80Fhzy_D4TesNbBJaN1FPg",
+    "role": "member",
+    "bio": "ini manusia ",
+    "instagramId": "37022765520701890",
+    "skills": [
+      {
+        "name": "editing",
+        "icon": "PenTool",
+        "percentage": 80,
+        "_id": "6a5d90511ec4bb14cc41fa9a"
+      },
+      {
+        "name": "photography ",
+        "icon": "Search",
+        "percentage": 70,
+        "_id": "6a5d90511ec4bb14cc41fa9b"
+      },
+      {
+        "name": "web",
+        "icon": "Server",
+        "percentage": 52,
+        "_id": "6a5d90511ec4bb14cc41fa9c"
+      }
+    ],
+    "createdAt": "2026-07-17T02:32:14.302Z",
+    "updatedAt": "2026-07-20T03:04:49.597Z",
+    "__v": 0,
+    "email": "radhanwahid.1453@gmail.com"
+  },
+  {
+    "_id": "6a5c6e57d77e0fe9bb7be16f",
+    "name": "Safarazqia",
+    "username": "safarazqia",
+    "image": "/api/drive/stream/17pcOvW5OkcVN_0KNV_reHLaj79nhyiYB",
+    "role": "member",
+    "bio": "",
+    "instagramId": "28083016531284104",
+    "skills": [
+      {
+        "name": "",
+        "icon": "Code",
+        "percentage": 50,
+        "_id": "6a7837bbe8300eef8de443b2"
+      },
+      {
+        "name": "",
+        "icon": "Code",
+        "percentage": 50,
+        "_id": "6a7837bbe8300eef8de443b3"
+      }
+    ],
+    "createdAt": "2026-07-19T06:27:35.846Z",
+    "updatedAt": "2026-08-09T08:18:03.394Z",
+    "__v": 0,
+    "email": "safarazqiaa@gmail.com"
+  },
+  {
+    "_id": "6a5c6e7f928db03136b3fa9e",
+    "name": "Ikhwanul Azka",
+    "username": "azkaik",
+    "email": "4zka.1k.01@gmail.com",
+    "role": "member",
+    "password": "$2b$10$PdgMChwXZtpmXeBARGOUIeOKGXEBlihzzJm03jf6uIoiVHI/3SpbK",
+    "skills": [],
+    "createdAt": "2026-07-19T06:28:15.437Z",
+    "updatedAt": "2026-07-19T06:29:22.959Z",
+    "__v": 0,
+    "bio": "",
+    "image": "https://lh3.googleusercontent.com/d/1Uvu0g8t8AV4OBixDA5iMmVHJLhP_QbJ0"
+  },
+  {
+    "_id": "6a5c6f0ad77e0fe9bb7be174",
+    "name": "Rafandra",
+    "username": "Rafa_andra",
+    "image": "https://lh3.googleusercontent.com/d/13RUv2sp0CK2uuaK674EE1oO2k7gL1PBb",
+    "role": "member",
+    "bio": "",
+    "instagramId": "27515976474719344",
+    "skills": [],
+    "createdAt": "2026-07-19T06:30:34.157Z",
+    "updatedAt": "2026-07-20T04:27:51.182Z",
+    "__v": 0,
+    "email": "rafandraadelardalif123@gmail.com",
+    "password": "$2b$10$hmhWOYFl2rzykfAcbq6PKutAlPMy8v..GnoY6BAURHy52gB7nECA."
+  },
+  {
+    "_id": "6a5c6f4c928db03136b3faa6",
+    "name": "Tijany Herliman",
+    "username": "igan",
+    "email": "tijany.1453@gmail.com",
+    "role": "member",
+    "password": "$2b$10$AHU7zbI0Q.own8qxjOO/duf3lLZaV1CaRiOZGtf0X9rRYlDpB2YAi",
+    "skills": [],
+    "createdAt": "2026-07-19T06:31:40.871Z",
+    "updatedAt": "2026-07-19T06:35:29.085Z",
+    "__v": 0,
+    "bio": "",
+    "image": "https://lh3.googleusercontent.com/d/1lzK3V5HmnYSd2W4V5k8Qhhc-2QoUE0AQ"
+  },
+  {
+    "_id": "6a5c6f57928db03136b3faa7",
+    "name": "Usamah Abdurrahman",
+    "username": "usamaahhhh",
+    "email": "muhammadusamahabdurrahman@gmail.com",
+    "role": "member",
+    "password": "$2b$10$mN1DCbdAUTD76TBckV8RsODK5PEuaIkFa6lO4Sb5TjzAzEMVjGqMa",
+    "skills": [
+      {
+        "name": "programer",
+        "icon": "Code",
+        "percentage": 79,
+        "_id": "6a5c70d7237255af3d7d678a"
+      },
+      {
+        "name": "copywriting",
+        "icon": "PenTool",
+        "percentage": 60,
+        "_id": "6a5c70d7237255af3d7d678b"
+      }
+    ],
+    "createdAt": "2026-07-19T06:31:51.906Z",
+    "updatedAt": "2026-07-19T06:38:15.042Z",
+    "__v": 0,
+    "bio": "aku programer pemula",
+    "image": "https://lh3.googleusercontent.com/d/1vTFscCwJHLa3RnXdjlwmssAN1IDKNnfG"
+  },
+  {
+    "_id": "6a5c6fcfd77e0fe9bb7be176",
+    "name": "Eza Arrafi",
+    "username": "eza__arrafi",
+    "image": "https://lh3.googleusercontent.com/d/10bXoc6TP7YtMbEZLsaYSbrgo5N5A8mAY",
+    "role": "member",
+    "bio": "",
+    "instagramId": "27360468470302164",
+    "skills": [],
+    "createdAt": "2026-07-19T06:33:51.446Z",
+    "updatedAt": "2026-07-19T06:36:00.248Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5c7052d77e0fe9bb7be177",
+    "name": "Zavatazuri",
+    "username": "Zava_Real",
+    "image": "https://lh3.googleusercontent.com/d/10Tn2LaynN_04A6c1IyOQlAyNOBCVo1dT",
+    "role": "member",
+    "bio": "",
+    "instagramId": "28011034005249976",
+    "skills": [],
+    "createdAt": "2026-07-19T06:36:02.271Z",
+    "updatedAt": "2026-08-09T09:06:19.298Z",
+    "__v": 0,
+    "email": "sapigantenk45@gmail.com",
+    "password": "$2b$10$LXe8A7h86OyGDGFS55sW3.vfQp8qd8KOXS027unnvpaJoU/MISFvu"
+  },
+  {
+    "_id": "6a9245d0257e92c037fe9732",
+    "name": "Abudan",
+    "username": "abudan",
+    "email": "abudan_89@yahoo.com",
+    "role": "admin",
+    "password": "$2b$10$qlgWz8oRDpWW2.ql/9NPXOLlP1uR7Xwrnz29C2ICVbr.x0X/olBVK",
+    "skills": [],
+    "createdAt": "2026-08-29T02:37:04.853Z",
+    "updatedAt": "2026-08-29T02:56:15.702Z",
+    "__v": 0,
+    "bio": "",
+    "image": "/api/drive/stream/1zU7u-ruofyN1xTF8orux4sd1YW6aEmwz"
+  },
+  {
+    "_id": "6a9784594cea973205fec64f",
+    "name": "Amiratul Hisanah",
+    "username": "amira",
+    "email": "amiratulhisanahadriani@gmail.com",
+    "role": "member",
+    "password": "$2b$10$r7wP10d8.Wyop43WjJH6CuqZcumDdu26xEguQJ/wGkYLLzVb6YA7y",
+    "skills": [],
+    "createdAt": "2026-09-02T02:05:13.479Z",
+    "updatedAt": "2026-09-02T02:06:24.048Z",
+    "__v": 0,
+    "bio": "",
+    "image": "/api/drive/stream/1BcdE6X2M0-u5jXjIS4_HmtuWOpTshWlH"
+  },
+  {
+    "_id": "6a97853c4cea973205fec650",
+    "name": "Kayyisa Elma Mazea",
+    "username": "kayyisa",
+    "email": "kayyisaelma.1453@gmail.com",
+    "role": "member",
+    "password": "$2b$10$mbRoePp/e/BZzrAk..N1pe9V4/qTAPDdt91pKSz0EVtiute5AXZsS",
+    "skills": [],
+    "createdAt": "2026-09-02T02:09:00.574Z",
+    "updatedAt": "2026-09-02T02:09:00.574Z",
+    "__v": 0
+  }
+]

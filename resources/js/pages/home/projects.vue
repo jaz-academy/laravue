@@ -22,7 +22,7 @@ async function fetchProject() {
 const students = computed(() => tasks.value.students || [])
 const teachers = computed(() => tasks.value.teacher || [])
 const topTen = computed(() => tasks.value.topTen || [])
-const lastProject = computed(() => tasks.value.lastProject || [])
+const lastProject = computed(() => tasks.value.lastProject || {})
 const lastProjectTasks = computed(() => tasks.value.lastProjectTasks || [])
 const literasiTasks = computed(() => tasks.value.literasiTasks || [])
 const socialMediaTasks = computed(() => tasks.value.socialMediaTasks || [])
@@ -475,7 +475,7 @@ onUnmounted(() => clearInterval(interval))
       <!-- 👉 Not Accepted Task  -->
       <VCol cols="12">
         <NotAcceptedTasksTable 
-          v-if="currentUser.admin_teacher_id && notAcceptedTasks.length"
+          v-if="(currentUser?.value?.admin_teacher_id || currentUser?.admin_teacher_id) && notAcceptedTasks.length"
           :not-accepted-tasks="notAcceptedTasks"
         />
       </VCol>

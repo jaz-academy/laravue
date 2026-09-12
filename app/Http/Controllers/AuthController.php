@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\AdminTeacher;
-use App\Models\MediaParticipant;
 use Validator;
 use App\Models\User;
 use App\Notifications\ProjectReminder;
@@ -71,24 +70,20 @@ class AuthController extends Controller
                 ],
             ];
 
-            if ($request->adminTeacherId > 0) {
-
-                $participant = [
-                    'name' => $request->name,
-                    'username' => $request->email,
-                    'password' => bcrypt($request->password),
-                    'role' => 0,
-                    'image' => null,
-                ];
-
-                MediaParticipant::create($participant);
-            }
+            $participant = [
+                'id' => $user->id,
+                'name' => $user->name,
+                'username' => $user->username ?: $user->email,
+                'email' => $user->email,
+                'role' => $user->role,
+                'image' => $user->image,
+            ];
 
             return response()->json([
                 'accessToken' => $token,
                 'userData' => $user,
                 'userAbilityRules' => $abilityRules,
-                'participant' => $participant ?? null,
+                'participant' => $participant,
             ], 201);
         } else {
             return response()->json(['error' => 'Cannot create user, Try again leter!'], 500);
@@ -135,12 +130,20 @@ class AuthController extends Controller
             ],
         ];
 
-        $participant = MediaParticipant::where('username', $user->email)->first();
+        $participant = [
+            'id' => $user->id,
+            'name' => $user->name,
+            'username' => $user->username ?: $user->email,
+            'email' => $user->email,
+            'role' => $user->role,
+            'image' => $user->image,
+        ];
+
         return response()->json([
             'accessToken' => $token,
             'userData' => $user,
             'userAbilityRules' => $abilityRules,
-            'participant' => $participant ?? null,
+            'participant' => $participant,
         ]);
     }
 
@@ -298,8 +301,11 @@ class AuthController extends Controller
 
         // Search
         if ($search) {
-            $query->where('name', 'like', "%{$search}%")
-                ->orWhere('nickname', 'like', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('username', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
         }
 
         // Sorting
@@ -351,9 +357,6 @@ class AuthController extends Controller
                     null,
                 ),
             );
-            if ($request->admin_teacher_id > 0) {
-                MediaParticipant::where('username', $request->email)->update(['role' => $request->role]);
-            }
         }
 
         if ($request->has('access') && $request->access !== $user->access) {
@@ -397,10 +400,6 @@ class AuthController extends Controller
     public function destroy(User $user)
     {
         $user->delete();
-        $participant = MediaParticipant::where('username', $user->email)->first();
-        if ($participant) {
-            $participant->delete();
-        }
 
         return response()->json([
             'message' => 'User data deleted successfully.',

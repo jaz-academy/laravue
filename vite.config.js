@@ -111,6 +111,16 @@ export default defineConfig({
       '@api-utils': fileURLToPath(new URL('./resources/js/plugins/fake-api/utils/', import.meta.url)),
     },
   },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        quietDeps: true,
+      },
+      sass: {
+        quietDeps: true,
+      },
+    },
+  },
   build: {
     chunkSizeWarningLimit: 5000,
     terserOptions: {

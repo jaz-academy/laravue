@@ -57,8 +57,8 @@ export default [
           ] : []
       ),
 
-      // { title: 'Details', to: { name: 'academy-assessment-details-id', params: { id: 478426 } } },
       { title: 'Report', to: { name: 'academy-assessment-report-id-semester', params: { id: currentUser.value?.admin_student_id || 3, semester: 'last' } } },
+      { title: 'Reflection', to: 'academy-assessment-reflection' },
     ],
   },
 

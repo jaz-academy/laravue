@@ -5,7 +5,7 @@ import { member } from '@/composables/fetchMemberData'
 import { allTasks, fetchProjectData } from '@/composables/fetchProjectData'
 import { fetchStudentData, students } from '@/composables/fetchStudentData'
 import avatar from '@images/avatars/no-profile.png'
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 
 onMounted(() => {
   fetchStudentData()
@@ -14,13 +14,13 @@ onMounted(() => {
 
 const getTaskCount = studentId => {
   return (allTasks.value ?? []).filter(t =>
-    (t.students ?? []).some(s => s.id === studentId),
+    (t.students ?? []).some(s => s && s.id === studentId),
   ).length
 }
 
 const getStars = studentId => {
   const studentTasks = (allTasks.value ?? []).filter(t =>
-    (t.students ?? []).some(s => s.id === studentId),
+    (t.students ?? []).some(s => s && s.id === studentId),
   )
 
   const totalRate = studentTasks.reduce((sum, t) => sum + (parseFloat(t.rate) || 0), 0)

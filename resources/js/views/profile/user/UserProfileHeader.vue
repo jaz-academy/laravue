@@ -1,5 +1,5 @@
 <script setup>
-import { humanDate } from '@/@core/utils/helpers'
+import { humanDate, takePic } from '@/@core/utils/helpers'
 import { fetchMemberData, member } from '@/composables/fetchMemberData'
 import avatar from '@images/avatars/no-profile.png'
 import UserProfileHeaderBg from '@images/pages/user-profile-header-bg.png'
@@ -21,17 +21,9 @@ onMounted(() => {
     <VCardText class="d-flex align-bottom flex-sm-row flex-column justify-center gap-x-5">
       <div class="d-flex h-0">
         <VAvatar
-          v-if="member?.image"
           rounded
           size="120"
-          :image="`/storage/${member.image}`"
-          class="user-profile-avatar mx-auto"
-        />
-        <VAvatar
-          v-else
-          rounded
-          size="120"
-          :image="avatar"
+          :image="takePic(member?.image)"
           class="user-profile-avatar mx-auto"
         />
       </div>
@@ -50,7 +42,7 @@ onMounted(() => {
                 class="me-1"
               />
               <span class="text-body-1">
-                {{ member?.role || member?.note }}
+                {{ member?.role || member?.note || 'Member' }}
               </span>
             </span>
 
@@ -61,7 +53,7 @@ onMounted(() => {
                 class="me-1"
               />
               <span class="text-body-1">
-                {{ member?.city }}
+                {{ member?.city || '-' }}
               </span>
             </span>
 
@@ -72,7 +64,7 @@ onMounted(() => {
                 class="me-1"
               />
               <span class="text-body-1">
-                {{ humanDate(member?.birth_date) }}
+                {{ member?.birth_date ? humanDate(member.birth_date) : '-' }}
               </span>
             </span>
           </div>

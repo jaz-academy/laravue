@@ -34,10 +34,6 @@ class AdminTeacher extends Model
         'note',
     ];
     
-    public function projectTask()
-    {
-        return $this->hasMany(ProjectTask::class);
-    }
 
     public function academyCompetence()
     {

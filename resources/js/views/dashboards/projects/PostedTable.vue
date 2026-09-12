@@ -1,5 +1,6 @@
 <script setup>
 import { properCase, rateColor, takePic } from '@/@core/utils/helpers'
+import { formatDate } from '@/@core/utils/formatters'
 import { paginationMeta } from '@api-utils/paginationMeta'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 

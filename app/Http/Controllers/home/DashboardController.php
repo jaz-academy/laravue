@@ -4,8 +4,6 @@ namespace App\Http\Controllers\home;
 
 use App\Models\FinanceItem;
 use App\Models\PaymentItem;
-use App\Models\ProjectPlan;
-use App\Models\ProjectTask;
 use Illuminate\Support\Str;
 use App\Models\AcademyScore;
 use App\Models\AdminStudent;
@@ -86,91 +84,192 @@ class DashboardController extends Controller
         $studentId = $request->query('student_id');
         $semester  = $request->query('semester');
 
-        // student, task-media, task-teacher
-        $students = AdminStudent::where('graduation', null)->get();
-        $media = ProjectTask::select('media', DB::raw('COUNT(media) as count'))->whereNotNull('media')->groupBy('media');
-        $teacher = ProjectTask::with('adminTeacher')
-            ->whereNotNull('admin_teacher_id')
-            ->select('admin_teacher_id', DB::raw('COUNT(admin_teacher_id) as count'))
-            ->groupBy('admin_teacher_id');
+        $students = AdminStudent::whereNull('graduation')->orderBy('name')->get();
 
-        // task-completed
-        $completedTasks = ProjectTask::selectRaw('
-            SUM(CASE WHEN accepted = 1 THEN 1 ELSE 0 END) as accepted,
-            SUM(CASE WHEN status = "Completed" THEN 1 ELSE 0 END) as completed,
-            SUM(CASE WHEN status = "In Progress" THEN 1 ELSE 0 END) as progress
-        ');
-        $topTen = ProjectTask::with('students') // bukan adminStudent
-            ->where('rate', 5)
-            ->orderByDesc('id')
-            ->take(10)
-            ->get();
-
-        // task-not-accepted
-        $notAcceptedTasks = ProjectTask::with('students')
-            ->where('accepted', 0)->get();
-
-        // task-literasi
-        $literasi = ProjectPlan::where('subject', 'Literasi')
-            ->orderByDesc('id')
-            ->first(); // ambil 1 data terbaru
-        $literasiTasks = ProjectTask::with(['students', 'projectPlan', 'adminTeacher'])
-            ->where('project_plan_id', $literasi->id)
-            ->get();
-
-        // task-social-media
-        $socialMedia = ProjectPlan::where('subject', 'Social Media')
-            ->orderByDesc('id')
-            ->first();
-        $socialMediaTasks = ProjectTask::with(['students', 'projectPlan', 'adminTeacher'])
-            ->where('project_plan_id', $socialMedia->id)
-            ->get();
-
-
-        // task-terakhir
-        $lastProject = ProjectPlan::where('subject', '<>', 'Literasi')->where('subject', '<>', 'Social Media')
-            ->orderByDesc('id')
-            ->first(); // ambil 1 data terbaru
-        $lastProjectTasks = ProjectTask::with(['students', 'projectPlan', 'adminTeacher'])
-            ->where('project_plan_id', $lastProject->id)
-            ->get();
-
-        // pengkondisian
-        if ($semester) {
-            $completedTasks->where('semester', $semester);
-            $media->where('semester', $semester);
-            $teacher->where('semester', $semester);
-        } else {
-            $completedTasks->whereYear('date', now()->year);
-            $media->whereYear('date', now()->year);
-            $teacher->whereYear('date', now()->year);
-        }
+        $tasksQuery = \App\Models\MediaTask::with([
+            'user.adminStudent',
+            'mentor.adminTeacher',
+            'collaborators.adminStudent',
+            'project',
+        ]);
 
         if ($studentId) {
-            $completedTasks->whereHas('students', function ($q) use ($studentId) {
-                $q->where('pivot_student_task.admin_student_id', $studentId);
+            $tasksQuery->where(function ($q) use ($studentId) {
+                $q->whereHas('user', fn($uq) => $uq->where('admin_student_id', $studentId))
+                  ->orWhereHas('collaborators', fn($cq) => $cq->where('admin_student_id', $studentId));
             });
         }
 
-        // final query
-        $completedTasks = $completedTasks->get();
-        $media = $media->get();
-        $teacher = $teacher->orderBy('count', 'desc')->get();
+        $tasks = $tasksQuery->orderByDesc('created_at')->get();
 
-        // final data
+        // Formatter function to match frontend dashboard expectations
+        $formatTaskForDashboard = function ($task) {
+            $studentsArr = [];
+            if ($task->user && $task->user->adminStudent) {
+                $s = $task->user->adminStudent;
+                $studentsArr[] = [
+                    'id' => $s->id,
+                    'name' => $s->name,
+                    'nickname' => $s->nickname,
+                    'image' => $s->image ?: $task->user->image,
+                ];
+            }
+            foreach ($task->collaborators as $collab) {
+                if ($collab->adminStudent && !in_array($collab->adminStudent->id, array_column($studentsArr, 'id'))) {
+                    $s = $collab->adminStudent;
+                    $studentsArr[] = [
+                        'id' => $s->id,
+                        'name' => $s->name,
+                        'nickname' => $s->nickname,
+                        'image' => $s->image ?: $collab->image,
+                    ];
+                }
+            }
+            
+            // Fallback if no adminStudent linked
+            if (empty($studentsArr) && $task->user) {
+                $studentsArr[] = [
+                    'id' => $task->user->id,
+                    'name' => $task->user->name,
+                    'nickname' => $task->user->username ?: $task->user->name,
+                    'image' => $task->user->image,
+                ];
+            }
+
+            $rate = $task->grade ? round($task->grade / 20, 1) : 0; // 0-5 stars
+
+            return [
+                'id' => $task->id,
+                'name' => $task->caption ? Str::limit(trim(preg_replace('/\s+/', ' ', $task->caption)), 60) : ($task->project?->title ?: 'Project Task'),
+                'caption' => $task->caption,
+                'link' => "/?search=" . $task->id,
+                'date' => $task->created_at ? $task->created_at->format('Y-m-d H:i:s') : null,
+                'rate' => $rate,
+                'grade' => $task->grade,
+                'media' => ucfirst($task->media_type),
+                'status' => $task->status,
+                'admin_student_id' => !empty($studentsArr) ? $studentsArr[0]['id'] : null,
+                'students' => $studentsArr,
+                'admin_teacher' => $task->mentor && $task->mentor->adminTeacher ? [
+                    'id' => $task->mentor->adminTeacher->id,
+                    'name' => $task->mentor->adminTeacher->name,
+                    'nickname' => $task->mentor->adminTeacher->nickname,
+                    'image' => $task->mentor->adminTeacher->image ?: $task->mentor->image,
+                ] : ($task->mentor ? [
+                    'id' => $task->mentor->id,
+                    'name' => $task->mentor->name,
+                    'nickname' => $task->mentor->name,
+                    'image' => $task->mentor->image,
+                ] : null),
+                'project_plan' => [
+                    'theme' => $task->project?->title ?: 'General Project',
+                    'subject' => $task->project?->title ?: 'Social Media',
+                ]
+            ];
+        };
+
+        $formattedTasks = $tasks->map($formatTaskForDashboard);
+
+        // 1. completedTasks stats
+        $acceptedCount = $tasks->whereIn('status', ['approved', 'reviewed'])->where('grade', '>=', 70)->count();
+        $completedCount = $tasks->where('status', 'approved')->count();
+        $progressCount = $tasks->whereIn('status', ['pending', 'reviewed'])->where(fn($t) => $t->grade < 70 || is_null($t->grade))->count();
+
+        $completedTasks = [
+            [
+                'accepted' => $acceptedCount,
+                'completed' => $completedCount,
+                'progress' => $progressCount,
+            ]
+        ];
+
+        // 2. Popular Mentors
+        $teacherReviews = [];
+        foreach ($tasks->whereNotNull('mentor_id') as $t) {
+            $mentorUser = $t->mentor;
+            if ($mentorUser) {
+                $teacherId = $mentorUser->admin_teacher_id ?: $mentorUser->id;
+                if (!isset($teacherReviews[$teacherId])) {
+                    $teacherObj = $mentorUser->adminTeacher;
+                    $teacherReviews[$teacherId] = [
+                        'admin_teacher_id' => $teacherId,
+                        'count' => 0,
+                        'admin_teacher' => [
+                            'id' => $teacherId,
+                            'name' => $teacherObj?->name ?: $mentorUser->name,
+                            'nickname' => $teacherObj?->nickname ?: $mentorUser->name,
+                            'note' => $teacherObj?->note ?: 'Mentor',
+                            'image' => $teacherObj?->image ?: $mentorUser->image,
+                        ]
+                    ];
+                }
+                $teacherReviews[$teacherId]['count']++;
+            }
+        }
+        usort($teacherReviews, fn($a, $b) => $b['count'] <=> $a['count']);
+
+        // 3. Top Ten Tasks (by grade / rate)
+        $topTen = $formattedTasks->filter(fn($t) => !empty($t['admin_student_id']))
+            ->sortByDesc('grade')
+            ->take(10)
+            ->values()
+            ->all();
+
+        // 4. Last Project & Last Project Tasks
+        $latestProject = \App\Models\MediaProject::has('tasks')->orderByDesc('id')->first()
+            ?: \App\Models\MediaProject::orderByDesc('id')->first();
+
+        $lastProjectData = [
+            'theme' => $latestProject ? $latestProject->title : 'Project Edukasi',
+            'subject' => $latestProject ? Str::limit($latestProject->description, 35) : 'Media Project',
+        ];
+        $lastProjectTasks = $formattedTasks->filter(function($t) use ($latestProject) {
+            return $latestProject && $t['project_plan']['theme'] === $latestProject->title;
+        })->values()->all();
+
+        if (empty($lastProjectTasks)) {
+            $lastProjectTasks = $formattedTasks->take(10)->values()->all();
+        }
+
+        // 5. Literasi Tasks (Project with 'Literasi' in title or document tasks)
+        $literasiTasks = $formattedTasks->filter(function($t) {
+            return stripos($t['project_plan']['theme'], 'Literasi') !== false || $t['media'] === 'Document';
+        })->values()->all();
+
+        if (empty($literasiTasks)) {
+            $literasiTasks = $formattedTasks->take(5)->values()->all();
+        }
+
+        // 6. Social Media Tasks (Video & Image tasks)
+        $socialMediaTasks = $formattedTasks->filter(function($t) {
+            return in_array($t['media'], ['Video', 'Image']);
+        })->values()->all();
+
+        // 7. Not Accepted Tasks (Pending review or grade < 70)
+        $notAcceptedTasks = $formattedTasks->filter(function($t) {
+            return $t['status'] === 'pending' || (is_null($t['grade']) || $t['grade'] < 70);
+        })->values()->all();
+
+        // 8. Media Usage
+        $mediaCounts = [
+            'Video' => $tasks->where('media_type', 'video')->count(),
+            'Image' => $tasks->where('media_type', 'image')->count(),
+            'Document' => $tasks->where('media_type', 'document')->count(),
+        ];
+
         return response()->json([
             'students' => $students,
             'completedTasks' => $completedTasks,
-            'teacher' => $teacher,
+            'teacher' => array_values($teacherReviews),
             'topTen' => $topTen,
-            'lastProject' => $lastProject,
+            'lastProject' => $lastProjectData,
             'lastProjectTasks' => $lastProjectTasks,
             'literasiTasks' => $literasiTasks,
             'notAcceptedTasks' => $notAcceptedTasks,
             'socialMediaTasks' => $socialMediaTasks,
             'media' => [
-                'name'  => $media->pluck('media'),
-                'count' => $media->pluck('count'),
+                'name'  => array_keys($mediaCounts),
+                'count' => array_values($mediaCounts),
             ],
         ]);
     }
@@ -199,7 +298,7 @@ class DashboardController extends Controller
         $houseHold = FinanceItem::query()
             ->selectRaw("
             MAX(date) as date,
-            DATE_FORMAT(date, '%Y-%m') as month,
+            TO_CHAR(date, 'YYYY-MM') as month,
             SUM(CASE WHEN finance_account_id = 12 THEN amount ELSE 0 END) as official,
             SUM(CASE WHEN finance_account_id = 14 THEN amount ELSE 0 END) as non_official
         ");
@@ -208,8 +307,8 @@ class DashboardController extends Controller
             $houseHold->whereBetween('date', [$rangeStart, $rangeEnd]);
         }
 
-        $houseHold = $houseHold->groupBy('month')
-            ->orderByDesc('month')
+        $houseHold = $houseHold->groupBy(DB::raw("TO_CHAR(date, 'YYYY-MM')"))
+            ->orderBy(DB::raw("TO_CHAR(date, 'YYYY-MM')"), 'desc')
             ->limit(12)
             ->get()
             ->sortBy('month')

@@ -12,16 +12,19 @@ class MediaComment extends Model
     protected $table = 'media_comments';
 
     protected $fillable = [
-        'media_participant_id',
-        'project_task_id',
+        'mongodb_id',
+        'media_task_id',
+        'user_id',
         'content',
     ];
 
-    public function mediaParticipant() {
-        return $this->belongsTo(MediaParticipant::class);
+    public function task()
+    {
+        return $this->belongsTo(MediaTask::class, 'media_task_id');
     }
 
-    public function projectTask() {
-        return $this->belongsTo(ProjectTask::class);
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

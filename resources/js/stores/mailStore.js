@@ -7,16 +7,27 @@ export const useMailStore = defineStore('mail', {
     currentFolder: 'INBOX',
     loading: false,
     selectedEmail: null,
+    account: null,
   }),
   actions: {
-    async fetchEmails(folder = 'INBOX') {
+    async fetchAccount() {
+      try {
+        const response = await $api('/mail/account')
+        this.account = response
+      } catch (error) {
+        console.error('Failed to fetch account info', error)
+      }
+    },
+    async fetchEmails(folder = 'INBOX', sync = false) {
       this.loading = true
       this.currentFolder = folder
       try {
-        const response = await $api(`/mail/${folder}`)
-        this.emails = response.data || response
+        const query = sync ? '?sync=1' : ''
+        const response = await $api(`/mail/${folder}${query}`)
+        this.emails = Array.isArray(response?.data) ? response.data : (Array.isArray(response) ? response : [])
       } catch (error) {
         console.error('Failed to fetch emails', error)
+        this.emails = []
       } finally {
         this.loading = false
       }

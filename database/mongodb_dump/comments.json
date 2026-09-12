@@ -1,0 +1,47 @@
+[
+  {
+    "_id": "6a5910dbc214637611797579",
+    "taskId": "6a5774ce8c141585a0119f58",
+    "authorId": "6a4786df1a5391e2f210a595",
+    "content": "good",
+    "createdAt": "2026-07-16T17:11:55.695Z",
+    "updatedAt": "2026-07-16T17:11:55.695Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5914bac21463761179757a",
+    "taskId": "6a57747b8c141585a0119f57",
+    "authorId": "6a4786e91a5391e2f210a596",
+    "content": "ok",
+    "createdAt": "2026-07-16T17:28:26.041Z",
+    "updatedAt": "2026-07-16T17:28:26.041Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a7cf1b7b5cad56e9d9c19d5",
+    "taskId": "6a7845fbe8b45c74ea354439",
+    "authorId": "6a455496deb7a797a981ef95",
+    "content": "Generasi 1 😅",
+    "createdAt": "2026-08-12T22:20:39.213Z",
+    "updatedAt": "2026-08-12T22:20:39.213Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a7cf7f566a95edcc05cc0cf",
+    "taskId": "6a5c7e77ecd9f43078f15a7d",
+    "authorId": "6a455496deb7a797a981ef95",
+    "content": "Sambil ngopi biar relax",
+    "createdAt": "2026-08-12T22:47:17.955Z",
+    "updatedAt": "2026-08-12T22:47:17.955Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a7cf81e66a95edcc05cc0d0",
+    "taskId": "6a5c7ebbecd9f43078f15a7e",
+    "authorId": "6a455496deb7a797a981ef95",
+    "content": "Boleh nih ekspresi nya",
+    "createdAt": "2026-08-12T22:47:58.151Z",
+    "updatedAt": "2026-08-12T22:47:58.151Z",
+    "__v": 0
+  }
+]

@@ -60,11 +60,8 @@ watch(() => route.query.search, val => {
     <!-- 👉 Hero Section  -->
     <HeroSection
       ref="refHome"
-      class="mb-16"
+      class="mb-8 mb-md-12"
     />
-    <div class="text-center my-16 py-2">
-      .
-    </div>
 
     <div
       v-if="loading"
@@ -119,7 +116,7 @@ watch(() => route.query.search, val => {
   margin-inline: auto;
   max-inline-size: 1440px;
   padding-block: 0;
-  padding-inline: 1rem;
+  padding-inline: 0 !important;
   
   @media (min-width: 600px) {
     column-count: 2;
@@ -137,9 +134,14 @@ watch(() => route.query.search, val => {
 
 .card-post {
   overflow: hidden;
-  border-radius: 12px;
+  border-radius: 0.75rem;
   margin: 0;
   inline-size: 100%;
+}
+
+.landing-page-wrapper {
+  background-color: rgb(var(--v-theme-background));
+  min-block-size: 100vh;
 }
 
 @media (min-width: 600px) {
@@ -158,7 +160,7 @@ watch(() => route.query.search, val => {
 }
 
 .homecard {
-  inline-size: 90%;
+  inline-size: 100%;
   margin-inline: auto;
 
   @media (min-width: 1920px) { max-inline-size: calc(1440px - 32px); }
@@ -169,6 +171,9 @@ watch(() => route.query.search, val => {
 
   @media (min-width: 600px) and (max-width: 959px) { max-inline-size: calc(100% - 64px); }
 
-  @media (max-width: 600px) { max-inline-size: calc(100% - 32px); }
+  @media (max-width: 600px) {
+    inline-size: 100%;
+    max-inline-size: calc(100% - 32px);
+  }
 }
 </style>

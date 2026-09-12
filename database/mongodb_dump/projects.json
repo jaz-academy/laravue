@@ -1,0 +1,110 @@
+[
+  {
+    "_id": "6a5988d46a4783a4284fa88e",
+    "title": "Young Forest Scientist",
+    "description": "Meneliti ekosistem kebun & hutan",
+    "status": "active",
+    "participants": [],
+    "mentorId": "6a4786df1a5391e2f210a595",
+    "creatorId": "6a4786e91a5391e2f210a596",
+    "createdAt": "2026-07-17T01:43:48.821Z",
+    "updatedAt": "2026-07-17T01:43:48.821Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5b7c4541dcef97ca4f6a3d",
+    "title": "Young Ocean Research",
+    "description": "Penelitian ekosistem laut",
+    "status": "active",
+    "participants": [],
+    "mentorId": "6a562b5cfe45064ada7275ae",
+    "creatorId": "6a523b679be9ea6ed85bb416",
+    "createdAt": "2026-07-18T13:14:45.938Z",
+    "updatedAt": "2026-07-18T13:14:45.938Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5b7cb741dcef97ca4f6a3e",
+    "title": "Math in Game",
+    "description": "Matematika dalam Permainan",
+    "status": "active",
+    "participants": [],
+    "mentorId": "6a562b5cfe45064ada7275ae",
+    "creatorId": "6a523b679be9ea6ed85bb416",
+    "createdAt": "2026-07-18T13:16:39.213Z",
+    "updatedAt": "2026-07-18T13:16:39.213Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5b7d6c41dcef97ca4f6a3f",
+    "title": "Pendidikan Islam",
+    "description": "Penelitian konsep pendidikan islam dan penerapan nya dalam lembaga",
+    "status": "active",
+    "participants": [],
+    "mentorId": "6a455496deb7a797a981ef95",
+    "creatorId": "6a523b679be9ea6ed85bb416",
+    "createdAt": "2026-07-18T13:19:40.390Z",
+    "updatedAt": "2026-07-18T13:19:40.390Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5b7ebf796535600cffada6",
+    "title": "Literasi",
+    "description": "Menulis buku",
+    "status": "active",
+    "participants": [],
+    "mentorId": "6a562b5cfe45064ada7275ae",
+    "creatorId": "6a523b679be9ea6ed85bb416",
+    "createdAt": "2026-07-18T13:25:19.237Z",
+    "updatedAt": "2026-07-18T13:25:19.237Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5b7f3a41dcef97ca4f6a40",
+    "title": "Young Entologist",
+    "description": "Penelitian serangga dan ekosistem nya",
+    "status": "active",
+    "participants": [],
+    "mentorId": "6a562b5cfe45064ada7275ae",
+    "creatorId": "6a523b679be9ea6ed85bb416",
+    "createdAt": "2026-07-18T13:27:22.213Z",
+    "updatedAt": "2026-07-18T13:27:22.213Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5b7ff9796535600cffada7",
+    "title": "Young Waste",
+    "description": "Penelitian sampah dan dampak nya terhadap lingkungan",
+    "status": "archived",
+    "participants": [],
+    "mentorId": "6a562b5cfe45064ada7275ae",
+    "creatorId": "6a523b679be9ea6ed85bb416",
+    "createdAt": "2026-07-18T13:30:33.720Z",
+    "updatedAt": "2026-08-05T09:10:29.518Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5b8088796535600cffada8",
+    "title": "Website Literasi",
+    "description": "Membuat platform literasi / e-learning",
+    "status": "active",
+    "participants": [],
+    "mentorId": "6a562b5cfe45064ada7275ae",
+    "creatorId": "6a523b679be9ea6ed85bb416",
+    "createdAt": "2026-07-18T13:32:56.401Z",
+    "updatedAt": "2026-07-20T16:05:26.943Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a5b818d41dcef97ca4f6a41",
+    "title": "Young Math Scientist",
+    "description": "Penelitian konsep matematika",
+    "status": "active",
+    "participants": [],
+    "mentorId": "6a562b5cfe45064ada7275ae",
+    "creatorId": "6a523b679be9ea6ed85bb416",
+    "createdAt": "2026-07-18T13:37:17.943Z",
+    "updatedAt": "2026-07-18T13:37:17.943Z",
+    "__v": 0
+  }
+]

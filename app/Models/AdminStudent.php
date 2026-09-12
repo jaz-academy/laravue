@@ -57,12 +57,6 @@ class AdminStudent extends Model
         'birth_date' => 'datetime',
     ];
 
-    public function tasks()
-    {
-        return $this->belongsToMany(ProjectTask::class, 'pivot_student_task')
-            ->withPivot(['role', 'progress'])
-            ->withTimestamps();
-    }
 
     public function academyAward()
     {

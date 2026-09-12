@@ -71,7 +71,7 @@ watchEffect(async () => {
     <VCardItem class="pa-4">
       <template #prepend>
         <VAvatar color="primary" variant="tonal" size="40">
-          <VImg v-if="props.students?.[0]?.image" :src="props.students[0].image" cover />
+          <VImg v-if="props.students?.[0]?.image" :src="takePic(props.students[0].image)" cover />
           <span v-else>{{ props.students?.[0]?.username?.charAt(0).toUpperCase() || '?' }}</span>
         </VAvatar>
       </template>
