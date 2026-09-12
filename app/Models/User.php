@@ -6,11 +6,20 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
+use Laravel\Sanctum\HasApiTokens as HasSanctumApiTokens;
+use Laravel\Passport\HasApiTokens as HasPassportApiTokens;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, Notifiable;
+    use HasSanctumApiTokens, HasPassportApiTokens, HasFactory, Notifiable {
+        HasSanctumApiTokens::tokens insteadof HasPassportApiTokens;
+        HasPassportApiTokens::tokens as passportTokens;
+        HasSanctumApiTokens::tokenCan insteadof HasPassportApiTokens;
+        HasPassportApiTokens::tokenCan as passportTokenCan;
+        HasSanctumApiTokens::createToken insteadof HasPassportApiTokens;
+        HasPassportApiTokens::createToken as createPassportToken;
+        HasPassportApiTokens::withAccessToken insteadof HasSanctumApiTokens;
+    }
 
     /**
      * The attributes that are mass assignable.

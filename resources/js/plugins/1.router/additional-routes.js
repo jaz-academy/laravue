@@ -8,8 +8,18 @@ export const redirects = [
     path: '/login',
     name: 'index',
     redirect: to => {
-      // TODO: Get type from backend
+      const returnTo = to.query.return_to || to.query.to
       const userData = useCookie('userData')
+
+      if (returnTo && userData.value) {
+        window.location.href = String(returnTo)
+        return
+      }
+
+      if (!userData.value) {
+        return { name: 'login', query: to.query }
+      }
+
       const userRole = userData.value?.role ?? 0
       if (userRole > 0)
         return { name: 'home-projects' }

@@ -48,11 +48,13 @@ const isLoading = ref(false)
 // Pengecekan Kriteria Password
 const passwordLengthValid = computed(() => {
   const len = form.value.password ? form.value.password.length : 0
+  
   return len >= 8 && len <= 12
 })
 
 const passwordUpperLowerValid = computed(() => {
   const p = form.value.password || ''
+  
   return /[a-z]/.test(p) && /[A-Z]/.test(p)
 })
 
@@ -70,6 +72,7 @@ const passwordStrengthScore = computed(() => {
   if (!p) return 0
 
   let score = 0
+
   // Panjang 8-12 karakter (bobot: 25)
   if (p.length >= 8 && p.length <= 12) {
     score += 25
@@ -102,6 +105,7 @@ const passwordStrengthScore = computed(() => {
 const passwordStrengthColor = computed(() => {
   if (passwordStrengthScore.value >= 65) return 'success'
   if (passwordStrengthScore.value >= 40) return 'warning'
+  
   return 'error'
 })
 
@@ -110,17 +114,17 @@ const passwordStrengthLabel = computed(() => {
   if (passwordStrengthScore.value >= 65) return 'Kuat'
   if (passwordStrengthScore.value >= 40) return 'Sedang'
   if (passwordStrengthScore.value > 0) return 'Lemah'
+  
   return ''
 })
 
 const requiredValidator = v => !!v || 'This field is required'
 const emailValidator = v => /.+@.+\..+/.test(v) || 'E-mail must be valid'
 const passwordMatchValidator = password => v => v === password || 'Password does not match'
+
 const passwordStrengthValidator = v => {
   if (!v) return 'This field is required'
-  if (passwordStrengthScore.value < 65) {
-    return 'Kekuatan password minimal rating 65 (8–12 karakter, huruf besar & kecil, angka, dan simbol khusus).'
-  }
+  
   return true
 }
 
@@ -137,17 +141,20 @@ const register = async () => {
   // Validasi pemilihan Student atau Teacher
   if (isStudent.value && (!form.value.adminStudentId || form.value.adminStudentId === 'Select' || !form.value.adminStudentId.id)) {
     errorMessage.value = 'Silakan pilih nama Siswa terlebih dahulu.'
+    
     return
   }
 
   if (!isStudent.value && (!form.value.adminTeacherId || form.value.adminTeacherId === 'Select' || !form.value.adminTeacherId.id)) {
     errorMessage.value = 'Silakan pilih nama Guru terlebih dahulu.'
+    
     return
   }
 
   // Validasi Privacy Policy
   if (!form.value.privacyPolicies) {
     errorMessage.value = 'Anda harus menyetujui Privacy Policy & Terms untuk melanjutkan.'
+    
     return
   }
 
@@ -167,12 +174,14 @@ const register = async () => {
       headers: { 'Content-Type': 'application/json' },
       onResponseError({ response }) {
         const data = response._data || {}
+
         errors.value = data.errors || {}
         errorMessage.value = data.message || data.error || 'Pendaftaran gagal. Silakan periksa kembali data Anda.'
 
         // Kumpulkan detail pesan error jika ada (validasi email, cpanel, db duplikat, dll)
         if (data.errors && typeof data.errors === 'object') {
           const detailList = []
+
           Object.entries(data.errors).forEach(([field, msgs]) => {
             if (Array.isArray(msgs)) {
               detailList.push(...msgs)
@@ -375,7 +384,7 @@ const onSubmit = () => {
                 >
                   <div class="d-flex justify-space-between align-center mb-1">
                     <span class="text-caption font-weight-medium text-medium-emphasis">
-                      Kekuatan Password:
+                      Kekuatan:
                       <strong :class="`text-${passwordStrengthColor}`">
                         {{ passwordStrengthScore }}/100 ({{ passwordStrengthLabel }})
                       </strong>
@@ -416,7 +425,7 @@ const onSubmit = () => {
                         size="16"
                       />
                       <span :class="passwordUpperLowerValid ? 'text-success font-weight-medium' : 'text-medium-emphasis'">
-                        Campuran huruf besar (A-Z) & kecil (a-z)
+                        Huruf besar (A-Z) & kecil (a-z)
                       </span>
                     </div>
 
@@ -511,7 +520,7 @@ const onSubmit = () => {
 @use "@core-scss/template/pages/page-auth.scss";
 
 .bg-surface-variant-subtle {
-  background-color: rgba(var(--v-theme-on-surface), 0.04);
   border: 1px solid rgba(var(--v-theme-on-surface), 0.08);
+  background-color: rgba(var(--v-theme-on-surface), 0.04);
 }
 </style>

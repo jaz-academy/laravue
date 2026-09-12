@@ -19,6 +19,29 @@ Route::get('/test-log', function () {
     return 'Cek storage/logs/laravel.log';
 });
 
+Route::get('/login', function () {
+    return view('application');
+})->name('login');
+
+Route::get('/oauth/popup-callback', function () {
+    return view('oauth.popup-callback');
+})->name('oauth.popup-callback');
+
+Route::get('/.well-known/openid-configuration', function () {
+    return response()->json([
+        'issuer' => url('/'),
+        'authorization_endpoint' => url('/oauth/authorize'),
+        'token_endpoint' => url('/oauth/token'),
+        'userinfo_endpoint' => url('/api/oauth/user'),
+        'scopes_supported' => ['profile', 'email'],
+        'response_types_supported' => ['code', 'token'],
+        'grant_types_supported' => ['authorization_code', 'refresh_token', 'client_credentials', 'personal_access'],
+        'subject_types_supported' => ['public'],
+        'id_token_signing_alg_values_supported' => ['RS256'],
+        'token_endpoint_auth_methods_supported' => ['client_secret_post', 'client_secret_basic'],
+    ]);
+});
+
 Route::get('{any?}', function () {
     return view('application');
 })->where('any', '.*');

@@ -246,10 +246,16 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
   Route::post('/notifications/{id}/unread', fn($id) => auth()->user()->notifications()->where('id', $id)->update(['read_at' => null]));
 
   Route::delete('/notifications/{id}', fn($id) => auth()->user()->notifications()->where('id', $id)->delete());
+
+  // OAuth Clients Developer Portal API
+  Route::get('oauth/clients', [\App\Http\Controllers\admin\OAuthClientController::class, 'index']);
+  Route::post('oauth/clients', [\App\Http\Controllers\admin\OAuthClientController::class, 'store']);
+  Route::put('oauth/clients/{id}', [\App\Http\Controllers\admin\OAuthClientController::class, 'update']);
+  Route::post('oauth/clients/{id}/regenerate-secret', [\App\Http\Controllers\admin\OAuthClientController::class, 'regenerateSecret']);
+  Route::delete('oauth/clients/{id}', [\App\Http\Controllers\admin\OAuthClientController::class, 'destroy']);
 });
 
 Route::get('/register/check-username', [\App\Http\Controllers\AuthController::class, 'checkUsername']);
-
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/mail/account', [\App\Http\Controllers\MailController::class, 'account']);
@@ -259,4 +265,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/mail/{folder}/{uid}', [\App\Http\Controllers\MailController::class, 'show']);
     Route::delete('/mail/{folder}/{uid}', [\App\Http\Controllers\MailController::class, 'destroy']);
 });
+
+// OAuth2 / OpenID Connect UserInfo Endpoint (RFC 6749)
+Route::middleware('auth:api')->get('/oauth/user', [\App\Http\Controllers\OAuth\OAuthUserController::class, 'user']);
+
 
