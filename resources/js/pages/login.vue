@@ -86,7 +86,7 @@ const login = async () => {
         router.replace(String(returnTo))
         return
       }
-      router.replace('/login')
+      router.replace('/dashboard/projects')
     })
   } catch (err) {
     console.error(err)

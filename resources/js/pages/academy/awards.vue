@@ -2,7 +2,7 @@
 import { humanDate } from '@/@core/utils/helpers'
 import { useApi } from '@/composables/useApi'
 import AddAwardsDrawer from '@/views/academy/AddAwards.vue'
-import { paginationMeta } from '@api-utils/paginationMeta'
+import { paginationMeta } from '@/@core/utils/formatters'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
 const { currentUser, hasRole, hasRoleAndAccess } = useUserAccess()
@@ -275,7 +275,6 @@ const addNewAward = async ({ action, data }) => {
     admin_teacher_id: data.admin_teacher_id === '' ? null : Number(data.admin_teacher_id),
   }
 
-  console.log('Sending awardData:', sanitizedData, 'action:', action)
   try {
     let url = '/awards'
     let method = 'POST'
@@ -297,7 +296,6 @@ const addNewAward = async ({ action, data }) => {
       const msg = action === 'create' ? 'Data berhasil ditambahkan' : 'Data berhasil diperbarui'
 
       showAlert(msg, 'success')
-      console.log('Award response:', resData)
       fetchAwards()
     } else {
       showAlert(response.value.statusText || 'Gagal menyimpan data', 'error')
@@ -311,7 +309,6 @@ const addNewAward = async ({ action, data }) => {
 const deleteAward = async id => {
   try {
     if (confirm('Apakah kamu yakin ingin menghapus data ini?')) {
-      console.log('Deleting award with ID:', id)
       await useApi(`/awards/${id}`, { method: 'DELETE' })
       showAlert('Data berhasil dihapus', 'success')
       fetchAwards()

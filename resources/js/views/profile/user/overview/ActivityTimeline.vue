@@ -3,7 +3,6 @@ import { humanDate } from '@/@core/utils/helpers'
 import { activities } from '@/composables/fetchMemberData'
 import avatar from '@images/avatars/no-profile.png'
 
-console.log(activities)
 </script>
 
 <template>

@@ -2,7 +2,7 @@
 import { useUserAccess } from '@/@core/utils/helpers'
 import { fetchTeacherData, fetchTeachers, teachers } from '@/composables/fetchTeacherData'
 import AddNewTeacher from '@/views/profile/teacher/list/AddNewTeacher.vue'
-import { paginationMeta } from '@api-utils/paginationMeta'
+import { paginationMeta } from '@/@core/utils/formatters'
 import { computed, onMounted, ref } from 'vue'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
@@ -98,7 +98,6 @@ const fetchUsers = async () => {
   try {
     const result = await fetchTeachers(params)
 
-    console.log('📦 FETCHING with:', params, result)
 
     usersData.value = result
   } catch (error) {
@@ -181,7 +180,6 @@ const resolveUserStatusVariant = stat => {
 const isAddNewTeacherVisible = ref(false)
 
 const addNewTeacher = async userData => {
-  console.log('Sending userData:', userData)
   try {
     const { data, response } = await useApi('/teachers', {
       method: 'POST',
@@ -194,7 +192,6 @@ const addNewTeacher = async userData => {
 
     if (response.value.ok) {
       showAlert('Data berhasil ditambahkan', 'success')
-      console.log('Teacher created:', data)
       fetchUsers()
     }else {
       showAlert(response.value.statusText || 'Gagal menambahkan data', 'error')
@@ -210,7 +207,6 @@ const addNewTeacher = async userData => {
 const deleteTeacher = async id => {
   try {
     if (confirm('Apakah kamu yakin ingin menghapus data ini?')) {
-      console.log('Deleting teacher with ID:', id)
       await useApi(`/teachers/${id}`, { method: 'DELETE' })
       showAlert('Data berhasil dihapus', 'success')
       fetchUsers() 

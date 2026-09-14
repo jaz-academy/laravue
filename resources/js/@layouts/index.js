@@ -1,6 +1,5 @@
 import { layoutConfig } from '@layouts/config'
-import { cookieRef, useLayoutConfigStore } from '@layouts/stores/config'
-import { _setDirAttr } from '@layouts/utils'
+import { _setDirAttr, cookieRef, useLayoutConfigStore } from '@layouts/stores/config'
 
 // 🔌 Plugin
 export const createLayouts = userConfig => {

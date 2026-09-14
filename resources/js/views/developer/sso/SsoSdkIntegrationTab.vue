@@ -57,7 +57,6 @@ const generatedSdkSnippet = computed(() => {
 <!-- 3. Callback Handler -->
 <script>
   function onJazAuthSuccess(data) {
-    console.log("Otorisasi SSO Sukses!", data.code);
     // Kirim data.code ke backend Anda untuk ditukar Access Token di:
     // POST ${originUrl}/oauth/token
   }

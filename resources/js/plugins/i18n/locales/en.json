@@ -192,6 +192,8 @@
     "close": "Close",
     "open": "open",
     "carousel": {
+      "prev": "Previous visual",
+      "next": "Next visual",
       "ariaLabel": {
         "delimiter": "delimiter"
       }

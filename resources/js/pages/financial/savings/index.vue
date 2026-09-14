@@ -10,7 +10,6 @@ const fetchSavings = async () => {
   const { data } = await useApi('/savings')
 
   savings.value = data.value.data || []  
-  console.log('Savings data fetched:', savings.value)
   
 }
 
@@ -129,7 +128,6 @@ const headers = [
 ]
 
 const addNewData = async ({ action, data }) => {
-  console.log('Sending saving data:', data, 'action:', action)
   try {
     let url = '/savings'
     let method = 'POST'
@@ -151,7 +149,6 @@ const addNewData = async ({ action, data }) => {
       const msg = action == 'create' ? 'Data berhasil ditambahkan' : 'Data berhasil diperbarui'
 
       showAlert(msg, 'success')
-      console.log('Response saving data:', resData)
       fetchSavings()
     } else {
       showAlert(response.value.statusText || 'Gagal menyimpan data', 'error')
@@ -181,7 +178,6 @@ const addData = () => {
 const deleteData = async id => {
   try {
     if (confirm('Apakah kamu yakin ingin menghapus data ini?')) {
-      console.log('Deleting saving data with ID:', id)
       await useApi(`/savings/${id}`, { method: 'DELETE' })
       showAlert('Data berhasil dihapus', 'success')
     }

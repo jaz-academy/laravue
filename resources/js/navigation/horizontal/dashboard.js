@@ -1,22 +1,21 @@
 const currentUser = useCookie('userData')
 
 export default [
-  { heading: String(useCookie('userAbilityRules').value?.[0]?.member ?? 'Menu') },
   {
-    title: 'Dashboards',
+    title: 'Dashboard',
     icon: { icon: 'tabler-smart-home' },
     children: [
       {
         title: 'Academy',
-        to: 'home-academy',
+        to: 'dashboard-academy',
       },
       {
         title: 'Projects',
-        to: 'home-projects',
+        to: 'dashboard-projects',
       },
-      ...(currentUser.admin_teacher_id !== null ? [{
+      ...(currentUser.value?.admin_teacher_id ? [{
         title: 'Finance',
-        to: 'home-finance',
+        to: 'dashboard-finance',
       }] : []),
     ],
     badgeContent: '3',

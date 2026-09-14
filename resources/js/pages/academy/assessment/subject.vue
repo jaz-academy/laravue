@@ -50,7 +50,6 @@ const headers = [
 ]
 
 const addNewData = async ({ action, data }) => {
-  console.log('Sending subject data:', data, 'action:', action)
   try {
     let url = '/subjects'
     let method = 'POST'
@@ -72,7 +71,6 @@ const addNewData = async ({ action, data }) => {
       const msg = action === 'create' ? 'Data berhasil ditambahkan' : 'Data berhasil diperbarui'
 
       showAlert(msg, 'success')
-      console.log('Response subject data:', resData)
       fetchSubjects()
     } else {
       showAlert(response.value.statusText || 'Gagal menyimpan data', 'error')
@@ -102,7 +100,6 @@ const addData = () => {
 const deleteData = async id => {
   try {
     if (confirm('Apakah kamu yakin ingin menghapus data ini?')) {
-      console.log('Deleting subject data with ID:', id)
       await useApi(`/subjects/${id}`, { method: 'DELETE' })
       showAlert('Data berhasil dihapus', 'success')
     }

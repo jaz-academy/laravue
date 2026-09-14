@@ -50,7 +50,6 @@ const subjectsDataOptions = computed(() => {
   return groups.map(g => ({ value: g, label: g }))
 })
 
-console.log("subjectsData", subjectsDataOptions)
 
 const { hasRoleAndAccess } = useUserAccess()
 

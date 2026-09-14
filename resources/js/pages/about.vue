@@ -3,7 +3,7 @@ import Footer from '@/views/front/front-page-footer.vue'
 import Navbar from '@/views/front/front-page-navbar.vue'
 import { ref } from 'vue'
 
-definePage({ meta: { layout: 'blank' } })
+definePage({ meta: { layout: 'blank', public: true } })
 
 const activeSectionId = ref(null)
 
@@ -250,7 +250,7 @@ const missions = [
               </p>
             </VCol>
           </VRow>
-          <RouterLink to="/front/learning">
+          <RouterLink to="/learning">
             <VBtn 
               height="36"
               color="surface"

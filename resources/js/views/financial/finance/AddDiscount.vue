@@ -188,12 +188,10 @@ const accounts = ref()
 
 const fetchAccounts = async () => {
   const { data, error } = await useApi('/accounts')
-  if (error.value)
-    console.log(error.value)
-  else
-
+  if (!error.value) {
     // Filter out accounts where the unit is 'Pembayaran'
     accounts.value = data.value.data.filter(account => account.unit === 'Pembayaran')
+  }
 }
 
 onMounted(fetchAccounts)

@@ -392,7 +392,7 @@ export const getDonutChartConfig = themeColors => {
     ],
   }
 }
-export const getAreaChartSplineConfig = (themeColors, bulan) => {
+export const getAreaChartSplineConfig = (themeColors, bulan = []) => {
   const areaColors = {
     series3: '#e0cffe',
     series2: '#b992fe',
@@ -452,7 +452,7 @@ export const getAreaChartSplineConfig = (themeColors, bulan) => {
       labels: {
         style: { colors: themeDisabledTextColor, fontSize: '0.8125rem' },
       },
-      categories: bulan,
+      categories: bulan || [],
     },
   }
 }

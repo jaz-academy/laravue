@@ -5,7 +5,6 @@ import ActivityTimeline from './ActivityTimeline.vue'
 
 onMounted(() => {
   fetchMemberData()
-  console.log('member: ', member)
 })
 </script>
 

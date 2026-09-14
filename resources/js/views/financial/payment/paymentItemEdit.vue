@@ -147,7 +147,6 @@ const removeItem = () => {
   emit('remove', props.id)
 }
 
-console.log('localData child child', localData.value)
 </script>
 
 <template>

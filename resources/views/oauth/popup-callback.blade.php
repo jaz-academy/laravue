@@ -69,8 +69,6 @@
                     setTimeout(function() {
                         window.close();
                     }, 300);
-                } else {
-                    console.log('No opener window detected.');
                 }
             } catch (err) {
                 console.error('Popup callback error:', err);

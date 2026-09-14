@@ -36,7 +36,6 @@ const averageScore = computed(() => {
   return (Number(total) / scoreData.value.data.length).toFixed(2)
 })
 
-console.log(scoreData.value?.data)
 
 
 const getPredicate = score => {

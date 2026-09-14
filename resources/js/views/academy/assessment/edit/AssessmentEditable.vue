@@ -61,25 +61,19 @@ const competences = ref([])
 
 const fetchSchool = async () => {
   const { data, error } = await useApi('/schools')
-  if (error.value)
-    console.log(error.value)
-  else
+  if (!error.value)
     school.value = data.value
 }
 
 const fetchYears = async () => {
   const { data, error } = await useApi('/public/students/years')
-  if (error.value)
-    console.log(error.value)
-  else
+  if (!error.value)
     years.value = data.value
 }
 
 const fetchCompetences = async () => {
   const { data, error } = await useApi('/competences')
-  if (error.value)
-    console.log(error.value)
-  else
+  if (!error.value)
     competences.value = data.value.data
 }
 
@@ -219,7 +213,6 @@ const saveAssessment = async () => {
     payload.header.serial = props.serialNumber
   }
 
-  console.log('Payload:', payload)
   
   try {
     // 2. Panggil API backend untuk menyimpan/memperbarui data.

@@ -1,5 +1,5 @@
 <script setup>
-import { HorizontalNav } from '@layouts/components'
+import HorizontalNav from './HorizontalNav.vue'
 
 // ℹ️ Using import from `@layouts` causing build to hangup
 

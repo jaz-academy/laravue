@@ -43,8 +43,16 @@ const footerBg = useGenerateImageVariant(footerLightBg, footerDarkBg)
 
 const pagesList = [
   {
-    name: 'Login/Register',
-    to: { name: 'pages-authentication-login-v2' },
+    name: 'Login',
+    to: { name: 'login' },
+  },
+  {
+    name: 'Register',
+    to: { name: 'register' },
+  },
+  {
+    name: 'Showcase Proyek',
+    to: { name: 'project' },
   },
 ]
 

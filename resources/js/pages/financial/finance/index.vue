@@ -1,7 +1,7 @@
 <script setup>
 import { humanDate, useUserAccess } from '@/@core/utils/helpers'
 import { useApi } from '@/composables/useApi'
-import { paginationMeta } from '@api-utils/paginationMeta'
+import { paginationMeta } from '@/@core/utils/formatters'
 import { onMounted } from 'vue'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
@@ -117,7 +117,6 @@ const {
   },
 }))
 
-console.log('financesData', financesData.value?.data)
 
 const financeList = computed(() => financesData.value?.data || [])
 const totalFinances = computed(() => financesData.value?.total || 0)

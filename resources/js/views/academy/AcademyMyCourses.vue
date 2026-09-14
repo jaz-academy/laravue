@@ -26,7 +26,6 @@ const {
   },
 }))
 
-console.log("coursesData:", coursesData)
 
 // courses data table
 const courses = computed(() => coursesData.value?.data ?? [])

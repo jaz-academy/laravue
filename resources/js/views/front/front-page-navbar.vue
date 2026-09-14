@@ -36,98 +36,6 @@ watch(() => display, () => {
   return display.mdAndUp ? sidebar.value = false : sidebar.value
 }, { deep: true })
 
-const isMenuOpen = ref(false)
-const isMegaMenuOpen = ref(false)
-
-const menuItems = [
-  {
-    listTitle: 'Page',
-    listIcon: 'tabler-layout-grid',
-    navItems: [],
-  },
-  {
-    listTitle: 'Auth Demo',
-    listIcon: 'tabler-lock-open',
-    navItems: [
-      {
-        name: 'Login (Basic)',
-        to: { name: 'pages-authentication-login-v1' },
-      },
-      {
-        name: 'Login (Cover)',
-        to: { name: 'pages-authentication-login-v2' },
-      },
-      {
-        name: 'Register (Basic)',
-        to: { name: 'pages-authentication-register-v1' },
-      },
-      {
-        name: 'Register (Cover)',
-        to: { name: 'pages-authentication-register-v2' },
-      },
-      {
-        name: 'Register (Multi-steps)',
-        to: { name: 'pages-authentication-register-multi-steps' },
-      },
-      {
-        name: 'Forgot Password (Basic)',
-        to: { name: 'pages-authentication-forgot-password-v1' },
-      },
-      {
-        name: 'Forgot Password (Cover)',
-        to: { name: 'pages-authentication-forgot-password-v2' },
-      },
-      {
-        name: 'Reset Password (Basic)',
-        to: { name: 'pages-authentication-reset-password-v1' },
-      },
-      {
-        name: 'Reset Password (cover  )',
-        to: { name: 'pages-authentication-reset-password-v2' },
-      },
-    ],
-  },
-  {
-    listTitle: 'Other',
-    listIcon: 'tabler-photo',
-    navItems: [
-      {
-        name: 'Under Maintenance',
-        to: { name: 'pages-misc-under-maintenance' },
-      },
-      {
-        name: 'Coming Soon',
-        to: { name: 'pages-misc-coming-soon' },
-      },
-      {
-        name: 'Not Authorized',
-        to: { path: '/not-authorized' },
-      },
-      {
-        name: 'Verify Email (Basic)',
-        to: { name: 'pages-authentication-verify-email-v1' },
-      },
-      {
-        name: 'Verify Email (Cover)',
-        to: { name: 'pages-authentication-verify-email-v2' },
-      },
-      {
-        name: 'Two Steps (Basic)',
-        to: { name: 'pages-authentication-two-steps-v1' },
-      },
-      {
-        name: 'Two Steps (Cover)',
-        to: { name: 'pages-authentication-two-steps-v2' },
-      },
-    ],
-  },
-]
-
-const isCurrentRoute = to => {
-  return route.matched.some(_route => _route.path === router.resolve(to).path)
-}
-
-const isPageActive = computed(() => menuItems.some(item => item.navItems.some(listItem => isCurrentRoute(listItem.to))))
 </script>
 
 <template>
@@ -142,7 +50,7 @@ const isPageActive = computed(() => menuItems.some(item => item.navItems.some(li
       <div class="d-flex flex-column gap-y-4 pa-4">
         <RouterLink
           class="nav-link font-weight-medium ms-2 mt-4"
-          :to="{ name: 'front' }"
+          to="/"
           :class="[ $route.path === '/' ? 'active-link' : '']"
         >
           Home
@@ -150,40 +58,40 @@ const isPageActive = computed(() => menuItems.some(item => item.navItems.some(li
 
         <RouterLink
           class="nav-link font-weight-medium ms-2 mt-3"
-          :to="{ name: 'front-project' }"
-          :class="[ $route.path === '/front/project' ? 'active-link' : '']"
+          to="/project"
+          :class="[ $route.path === '/project' ? 'active-link' : '']"
         >
           Project
         </RouterLink>
 
         <RouterLink
           class="nav-link font-weight-medium ms-2 mt-3"
-          :to="{ name: 'front-about' }"
-          :class="[ $route.path === '/front/about' ? 'active-link' : '']"
+          to="/about"
+          :class="[ $route.path === '/about' ? 'active-link' : '']"
         >
           About
         </RouterLink>
 
         <RouterLink
           class="nav-link font-weight-medium ms-2 mt-3"
-          :to="{ name: 'front-learning' }"
-          :class="[ $route.path === '/front/learning' ? 'active-link' : '']"
+          to="/learning"
+          :class="[ $route.path === '/learning' ? 'active-link' : '']"
         >
           Learning
         </RouterLink>
 
         <RouterLink
           class="nav-link font-weight-medium ms-2 mt-3"
-          :to="{ name: 'front-contact' }"
-          :class="[ $route.path === '/front/contact' ? 'active-link' : '']"
+          to="/contact"
+          :class="[ $route.path === '/contact' ? 'active-link' : '']"
         >
           Contact
         </RouterLink>
 
         <RouterLink
           class="nav-link font-weight-medium ms-2 mt-3"
-          :to="{ name: 'login' }"
-          :class="[ $route.path === '/front/login' ? 'active-link' : '']"
+          to="/login"
+          :class="[ $route.path === '/login' ? 'active-link' : '']"
         >
           Login
         </RouterLink>
@@ -242,7 +150,7 @@ const isPageActive = computed(() => menuItems.some(item => item.navItems.some(li
         <div class="text-base align-center d-none d-md-flex">
           <RouterLink
             class="nav-link font-weight-medium px-2 px-lg-4 py-2"
-            :to="{ name: 'front' }"
+            to="/"
             :class="[ $route.path === '/' ? 'active-link' : '']"
           >
             Home
@@ -250,32 +158,32 @@ const isPageActive = computed(() => menuItems.some(item => item.navItems.some(li
 
           <RouterLink
             class="nav-link font-weight-medium px-2 px-lg-4 py-2"
-            :to="{ name: 'front-project' }"
-            :class="[ $route.path === '/front/project' ? 'active-link' : '']"
+            to="/project"
+            :class="[ $route.path === '/project' ? 'active-link' : '']"
           >
             Project
           </RouterLink>
 
           <RouterLink
             class="nav-link font-weight-medium px-2 px-lg-4 py-2"
-            :to="{ name: 'front-about' }"
-            :class="[ $route.path === '/front/about' ? 'active-link' : '']"
+            to="/about"
+            :class="[ $route.path === '/about' ? 'active-link' : '']"
           >
             About
           </RouterLink>
 
           <RouterLink
             class="nav-link font-weight-medium px-2 px-lg-4 py-2"
-            :to="{ name: 'front-learning' }"
-            :class="[ $route.path === '/front/learning' ? 'active-link' : '']"
+            to="/learning"
+            :class="[ $route.path === '/learning' ? 'active-link' : '']"
           >
             Learning
           </RouterLink>
 
           <RouterLink
             class="nav-link font-weight-medium px-2 px-lg-4 py-2"
-            :to="{ name: 'front-contact' }"
-            :class="[ $route.path === '/front/contact' ? 'active-link' : '']"
+            to="/contact"
+            :class="[ $route.path === '/contact' ? 'active-link' : '']"
           >
             Contact
           </RouterLink>

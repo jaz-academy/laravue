@@ -10,7 +10,6 @@ const refInputEl = ref()
 
 const { data, error } = await useApi('/schools')
 if (error.value) {
-  console.log(error.value)
 } else if (data.value) {
   Object.assign(accountData, data.value.data[0])
 }

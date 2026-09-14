@@ -25,11 +25,6 @@ export default defineConfig({
           .toLowerCase()
       },
 
-      beforeWriteFiles: root => {
-        root.insert('/apps/email/:filter', '/resources/js/pages/apps/email/index.vue')
-        root.insert('/apps/email/:label', '/resources/js/pages/apps/email/index.vue')
-      },
-
       routesFolder: 'resources/js/pages',
     }),
     vue({
@@ -59,7 +54,7 @@ export default defineConfig({
       layoutsDirs: './resources/js/layouts/',
     }), // Docs: https://github.com/antfu/unplugin-vue-components#unplugin-vue-components
     Components({
-      dirs: ['resources/js/@core/components', 'resources/js/views/demos', 'resources/js/components'],
+      dirs: ['resources/js/@core/components', 'resources/js/components'],
       dts: true,
       resolvers: [
         componentName => {
@@ -107,8 +102,6 @@ export default defineConfig({
       '@styles': fileURLToPath(new URL('./resources/styles/', import.meta.url)),
       '@configured-variables': fileURLToPath(new URL('./resources/styles/variables/_template.scss', import.meta.url)),
       'apexcharts': fileURLToPath(new URL('node_modules/apexcharts-clevision', import.meta.url)),
-      '@db': fileURLToPath(new URL('./resources/js/plugins/fake-api/handlers/', import.meta.url)),
-      '@api-utils': fileURLToPath(new URL('./resources/js/plugins/fake-api/utils/', import.meta.url)),
     },
   },
   css: {
@@ -122,20 +115,7 @@ export default defineConfig({
     },
   },
   build: {
-    chunkSizeWarningLimit: 1500,
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('vuetify')) return 'vendor-vuetify'
-            if (id.includes('vue-pdf-embed') || id.includes('pdfjs-dist')) return 'vendor-pdf'
-            if (id.includes('apexcharts')) return 'vendor-charts'
-            if (id.includes('@vueuse')) return 'vendor-vueuse'
-            return 'vendor-core'
-          }
-        },
-      },
-    },
+    chunkSizeWarningLimit: 5000,
     terserOptions: {
       compress: {
         drop_console: true,

@@ -6,7 +6,6 @@ export const students = ref([])
 export const fetchStudentData = async () => {
   const { data: studentsData, error: studentsError } = await useApi(`/public/students`)
   if (studentsError.value) {
-    console.log('Students Error:', studentsError.value)
   } else if (studentsData.value) {
     students.value = studentsData.value.data.sort((a, b) => a.nickname.localeCompare(b.nickname))
   }
@@ -15,7 +14,6 @@ export const fetchStudentData = async () => {
 export const fetchStudentById = async id => {
   const { data: studentData, error: studentError } = await useApi(`/public/students/${id}`)
   if (studentError.value) {
-    console.log('Student Error:', studentError.value)
   } else {
     if (studentData.value) {
       students.value = [studentData.value.data]

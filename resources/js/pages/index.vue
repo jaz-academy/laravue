@@ -9,6 +9,9 @@ import { useCachedApi } from '@/composables/useCachedApi'
 
 const route = useRoute()
 const router = useRouter()
+
+definePage({ meta: { layout: 'blank', public: true } })
+
 const searchQuery = ref(route.query.search || '')
 const hasQuery = computed(() => Object.keys(route.query).length > 0)
 const activeSectionId = ref(null)

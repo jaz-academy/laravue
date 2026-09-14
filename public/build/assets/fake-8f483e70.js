@@ -1,1 +1,0 @@
-import{aP as s}from"./vendor-core-cfb14039.js";import{f as o}from"./main-03bc2ec2.js";const t=s.create({baseURL:"/fake",async onRequest({options:e}){const a=o("accessToken").value;a&&(e.headers={...e.headers,Authorization:`Bearer ${a}`})}});export{t as $};

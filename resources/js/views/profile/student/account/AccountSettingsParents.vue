@@ -31,7 +31,6 @@ const resetForm = () => {
 const onSubmit = () => {
   refForm.value?.validate().then(({ valid }) => {
     if (valid) {
-      console.log('SUBMIT PAYLOAD', accountDataLocal.value)
       emit('userData', { ...accountDataLocal.value })
     }
   })

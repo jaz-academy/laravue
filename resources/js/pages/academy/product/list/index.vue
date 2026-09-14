@@ -2,7 +2,7 @@
 import { useUserAccess } from '@/@core/utils/helpers'
 import { useApi } from '@/composables/useApi'
 import AddCoursesDrawer from '@/views/academy/AddCourses.vue'
-import { paginationMeta } from '@api-utils/paginationMeta'
+import { paginationMeta } from '@/@core/utils/formatters'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
 const { hasRole, hasRoleAndAccess } = useUserAccess()
@@ -78,7 +78,6 @@ const {
   },
 }))
 
-console.log("coursesData:", coursesData)
 
 // courses data table
 const courses = computed(() => coursesData.value.data)
@@ -230,7 +229,6 @@ const addNewCourse = async ({ action, data }) => {
 const deleteCourse = async id => {
   try {
     if (confirm('Apakah kamu yakin ingin menghapus data ini?')) {
-      console.log('Deleting Course with ID:', id)
       await useApi(`/courses/${id}`, { method: 'DELETE' })
       showAlert('Data berhasil dihapus', 'success')
       fetchCourses()

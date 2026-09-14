@@ -1,8 +1,6 @@
 <script setup>
-import {
-  HorizontalNavGroup,
-  HorizontalNavLink,
-} from '@layouts/components'
+import HorizontalNavGroup from './HorizontalNavGroup.vue'
+import HorizontalNavLink from './HorizontalNavLink.vue'
 
 const props = defineProps({
   navItems: {
@@ -17,13 +15,15 @@ const resolveNavItemComponent = item => {
   
   return HorizontalNavLink
 }
+
+const filteredNavItems = computed(() => (props.navItems || []).filter(item => item && !('heading' in item)))
 </script>
 
 <template>
   <ul class="nav-items">
     <Component
       :is="resolveNavItemComponent(item)"
-      v-for="(item, index) in navItems"
+      v-for="(item, index) in filteredNavItems"
       :key="index"
       :item="item"
     />

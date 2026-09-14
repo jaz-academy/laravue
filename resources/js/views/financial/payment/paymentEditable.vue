@@ -62,9 +62,7 @@ const studentRegistered = ref(0)
 
 const fetchSchool = async () => {
   const { data, error } = await useApi('/schools')
-  if (error.value)
-    console.log(error.value)
-  else
+  if (!error.value)
     school.value = data.value
 }
 
@@ -106,7 +104,6 @@ const removeItem = id => {
   emit('remove', id)
 }
 
-console.log('localData child', localData.value)
 </script>
 
 <template>

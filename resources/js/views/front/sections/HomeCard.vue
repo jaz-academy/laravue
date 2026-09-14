@@ -2,7 +2,7 @@
 import { abbreviateName } from '@/@core/utils/formatters'
 import { takePic } from '@/@core/utils/helpers'
 import avatar from '@images/avatars/no-profile.png'
-import { computed, onBeforeUnmount, onMounted, ref, watchEffect } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch, watchEffect } from 'vue'
 import VuePdfEmbed from 'vue-pdf-embed'
 
 const props = defineProps({
@@ -36,6 +36,10 @@ const pdfPageCount = ref(0)
 
 const onPdfLoaded = pdf => {
   pdfPageCount.value = pdf.numPages
+}
+
+const handlePdfError = () => {
+  // Graceful error handler to prevent unhandled rejections from crashing the tab
 }
 
 const teachers = ref([
@@ -80,12 +84,6 @@ const handleRating = async () => {
     return
   } else {
     // Static handling of rating submission
-    console.log('Rating submitted statically:', {
-      admin_teacher_id: mentor.value.id,
-      accepted: accepted.value === 'Yes' ? 1 : 0,
-      rate: rating.value,
-      review: review.value,
-    })
     showModalRating.value = false
   }
 }
@@ -97,8 +95,15 @@ const handleScroll = () => {
   }
 }
 
+watch(showModalRating, val => {
+  if (val) {
+    window.addEventListener('scroll', handleScroll, { passive: true })
+  } else {
+    window.removeEventListener('scroll', handleScroll)
+  }
+})
+
 onMounted(() => {
-  window.addEventListener('scroll', handleScroll)
   if (props.mediaType === 'document' && typeof IntersectionObserver !== 'undefined') {
     cardObserver = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting) {
@@ -188,11 +193,14 @@ watchEffect(async () => {
         v-if="props.mediaUrls && props.mediaUrls.length > 1"
         hide-delimiters
         height="100%"
+        :touch="false"
+        prev-icon="tabler-chevron-left"
+        next-icon="tabler-chevron-right"
         class="media-carousel"
       >
         <VCarouselItem
           v-for="(url, i) in props.mediaUrls"
-          :key="i"
+          :key="`${props.taskId || 'task'}-img-${i}`"
           :src="getStreamUrl(url)"
           cover
           class="h-100"
@@ -203,7 +211,8 @@ watchEffect(async () => {
         :src="getStreamUrl(props.mediaUrl)"
         loading="lazy"
         decoding="async"
-        style=" display: block; block-size: 100%;inline-size: 100%; max-block-size: 550px; object-fit: cover;"
+        draggable="false"
+        style="display: block; block-size: 100%; inline-size: 100%; max-block-size: 550px; object-fit: cover; -webkit-user-drag: none; user-select: none;"
         alt="Task Media"
       >
     </div>
@@ -216,7 +225,7 @@ watchEffect(async () => {
         :src="videoStreamUrl"
         controls
         preload="metadata"
-        style=" display: block; block-size: auto;inline-size: 100%; max-block-size: 700px; object-fit: contain;"
+        style="display: block; block-size: auto; inline-size: 100%; max-block-size: 700px; object-fit: contain;"
       >
         Your browser does not support HTML video.
       </video>
@@ -225,7 +234,7 @@ watchEffect(async () => {
     <div
       v-else-if="props.mediaType === 'document'"
       class="media-section w-100 position-relative bg-grey-200"
-      style=" block-size: 500px; border-block-end: 1px solid #eee;min-block-size: 400px;"
+      style="block-size: 500px; border-block-end: 1px solid #eee; min-block-size: 400px;"
     >
       <div
         v-if="isLoadingPdf"
@@ -248,6 +257,8 @@ watchEffect(async () => {
           v-show="false"
           :source="pdfBlobUrl"
           @loaded="onPdfLoaded"
+          @error="handlePdfError"
+          @rendering-failed="handlePdfError"
         />
 
         <VCarousel 
@@ -255,11 +266,14 @@ watchEffect(async () => {
           v-model="activeCarouselPage"
           hide-delimiters 
           height="100%"
+          :touch="false"
+          prev-icon="tabler-chevron-left"
+          next-icon="tabler-chevron-right"
           class="pdf-carousel h-100 w-100"
         >
           <VCarouselItem
             v-for="page in pdfPageCount"
-            :key="page"
+            :key="`${props.taskId || 'task'}-pdf-${page}`"
             class="h-100"
           >
             <div
@@ -267,10 +281,12 @@ watchEffect(async () => {
               style="overflow-y: auto;"
             >
               <VuePdfEmbed
-                v-if="Math.abs(activeCarouselPage + 1 - page) <= 1"
+                v-if="activeCarouselPage + 1 === page"
                 :source="pdfBlobUrl"
                 :page="page"
                 style="inline-size: 100%; max-inline-size: 800px;"
+                @error="handlePdfError"
+                @rendering-failed="handlePdfError"
               />
               <div
                 v-else
@@ -422,10 +438,7 @@ watchEffect(async () => {
                 </div>
               </template>
               <template v-else>
-                <RouterLink 
-                  to="/front/bookmark" 
-                  class="d-flex flex-column text-decoration-none"
-                >
+                <div class="d-flex flex-column">
                   <VRating
                     v-model="rating"
                     readonly
@@ -433,7 +446,7 @@ watchEffect(async () => {
                     size="x-small"
                     density="compact"
                   />
-                </RouterLink>
+                </div>
               </template>
             </div>
           </div>
@@ -647,10 +660,19 @@ watchEffect(async () => {
   }
 }
 
-/* Media height 100% */
+/* Media height 100% & Gesture Protection */
 .media-section {
   position: relative;
   overflow: hidden;
+  touch-action: pan-y !important;
+  overscroll-behavior-x: contain !important;
+  user-select: none !important;
+
+  .media-carousel,
+  .pdf-carousel {
+    touch-action: pan-y !important;
+    overscroll-behavior-x: contain !important;
+  }
 
   .media-carousel {
     block-size: 500px !important;
@@ -666,6 +688,14 @@ watchEffect(async () => {
     .v-img {
       block-size: 100% !important;
       inline-size: 100% !important;
+      user-select: none !important;
+      -webkit-user-drag: none !important;
+
+      img {
+        user-select: none !important;
+        -webkit-user-drag: none !important;
+        pointer-events: none;
+      }
     }
   }
 
@@ -682,33 +712,47 @@ watchEffect(async () => {
   }
 }
 
-/* Reduced next-prev navigation buttons by 50%. */
-.posting-card .v-window__left,
-.posting-card .v-window__right {
-  margin-inline: 2px !important;
+/* Modern Ergonomic Carousel Navigation Buttons for Vuetify VWindow */
+.posting-card {
+  .v-window__controls {
+    padding-inline: 4px;
+  }
 
-  .v-btn {
-    padding: 0 !important;
-    backdrop-filter: blur(4px);
-    background-color: rgba(255, 255, 255, 90%) !important;
-    block-size: 8px !important;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 25%) !important;
-    color: #1e2130 !important;
-    inline-size: 8px !important;
-    min-block-size: 8px !important;
-    min-inline-size: 8px !important;
+  .v-window__left,
+  .v-window__right {
+    margin-inline: 4px !important;
+    z-index: 5;
 
-    --v-btn-height: 8px !important;
+    .v-btn {
+      inline-size: 32px !important;
+      block-size: 32px !important;
+      min-inline-size: 32px !important;
+      min-block-size: 32px !important;
+      border-radius: 50% !important;
+      border: 1px solid rgba(255, 255, 255, 0.4) !important;
+      background: rgba(255, 255, 255, 0.85) !important;
+      backdrop-filter: blur(8px) !important;
+      color: #1e2130 !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important;
+      opacity: 0.9;
+      transition: all 0.2s ease !important;
 
-    &:hover {
-      background-color: rgba(255, 255, 255, 100%) !important;
-      transform: scale(1.15);
-    }
+      &:hover {
+        opacity: 1 !important;
+        background: rgba(255, 255, 255, 1) !important;
+        transform: scale(1.12);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+      }
 
-    .v-icon {
-      block-size: 5px !important;
-      font-size: 5px !important;
-      inline-size: 5px !important;
+      &:active {
+        transform: scale(0.95);
+      }
+
+      .v-icon {
+        font-size: 18px !important;
+        inline-size: 18px !important;
+        block-size: 18px !important;
+      }
     }
   }
 }

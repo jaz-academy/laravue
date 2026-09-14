@@ -78,7 +78,6 @@ const resetAvatar = () => {
 const onSubmit = () => {
   refForm.value?.validate().then(({ valid }) => {
     if (valid) {
-      console.log('SUBMIT PAYLOAD', accountDataLocal.value)
       emit('userData', { ...accountDataLocal.value })
     }
   })
@@ -108,7 +107,6 @@ const uploadAvatar = async () => {
     // ✅ Update userData biar ke-sync ke seluruh app
     userData.value.image = newImagePath
 
-    console.log('Upload success', response)
   } catch (err) {
     console.error('Upload failed', err)
   }

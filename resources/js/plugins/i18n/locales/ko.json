@@ -192,6 +192,8 @@
         "close": "닫기",
         "open": "열기",
         "carousel": {
+            "prev": "이전 화면",
+            "next": "다음 화면",
             "ariaLabel": {
                 "delimiter": "구분 기호"
             }

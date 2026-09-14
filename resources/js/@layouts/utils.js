@@ -87,7 +87,7 @@ export const _setDirAttr = dir => {
  * @param tag tag to wrap the translation with
  */
 export const getDynamicI18nProps = (key, tag = 'span') => {
-  if (!layoutConfig.app.i18n.enable)
+  if (!layoutConfig.app.i18n.enable || !key || typeof key !== 'string')
     return {}
   
   return {

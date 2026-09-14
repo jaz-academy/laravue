@@ -23,7 +23,6 @@ export const fetchMemberData = async () => {
     memberAPI = `/public/members/${currentUser.value.id}`
     activitiesAPI = `/public/tasks/member/${currentUser.value.id}`
   } else {
-    console.log('User ID not found, skipping fetch')
     
     return
   }
@@ -31,7 +30,6 @@ export const fetchMemberData = async () => {
   // Fetch member data
   const { data: memberData, error: memberError } = await useApi(memberAPI)
   if (memberError.value) {
-    console.log('Member Error:', memberError.value)
   } else if (memberData.value) {
     member.value = memberData.value.data
   }
@@ -39,7 +37,6 @@ export const fetchMemberData = async () => {
   // Fetch activities data
   const { data: activitiesData, error: activitiesError } = await useApi(activitiesAPI)
   if (activitiesError.value) {
-    console.log('Activities Error:', activitiesError.value)
   } else if (activitiesData.value) {
     activities.value = activitiesData.value.data
   }
