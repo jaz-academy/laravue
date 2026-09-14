@@ -17,7 +17,6 @@ const { data: invoiceData } = await useApi(`/finances-by-invoice/${invoiceNumber
 const { data: schoolData } = await useApi('/schools')
 
 //! Console Log to check the raw data from the API
-console.log('Raw invoiceData from API:', invoiceData.value)
 
 invoice.value = invoiceData.value.data
 school.value = schoolData.value

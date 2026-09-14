@@ -28,11 +28,6 @@ const discounts = computed(() => discountsData.value?.data)
 const payments = computed(() => paymentsData.value?.data)
 const school = computed(() => schoolResult.value?.data)
 
-console.log('billings', billings.value)
-console.log('discounts', discounts.value)
-console.log('payments', payments.value)
-console.log('student', student.value) // Now student.value will have data
-console.log('school', school.value)
 
 const months = [
   "Jul",

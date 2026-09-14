@@ -192,6 +192,8 @@
         "close": "閉じる",
         "open": "開く",
         "carousel": {
+            "prev": "前のビジュアル",
+            "next": "次のビジュアル",
             "ariaLabel": {
                 "delimiter": "区切り"
             }

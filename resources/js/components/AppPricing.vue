@@ -235,7 +235,7 @@ const pricingPlans = [
             block
             :color="plan.current ? 'success' : 'primary'"
             :variant="plan.isPopular ? 'elevated' : 'tonal'"
-            :to="{ name: 'front-pages-payment' }"
+            to="/"
           >
             {{ plan.yearlyPrice === 0 ? 'Your Current Plan' : 'Upgrade' }}
           </VBtn>

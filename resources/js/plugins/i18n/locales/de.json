@@ -192,6 +192,8 @@
         "close": "Schließen",
         "open": "Offen",
         "carousel": {
+            "prev": "Vorheriges Bild",
+            "next": "Nächstes Bild",
             "ariaLabel": {
                 "delimiter": "Trennzeichen"
             }

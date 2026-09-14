@@ -3,12 +3,12 @@ import { useUserAccess } from '@/@core/utils/helpers'
 import {
   blankEvent,
   useCalendar,
-} from '@/views/apps/calendar/useCalendar'
-import { useCalendarStore } from '@/views/apps/calendar/useCalendarStore'
+} from '@/views/academy/calendar/useCalendar'
+import { useCalendarStore } from '@/views/academy/calendar/useCalendarStore'
 import FullCalendar from '@fullcalendar/vue3'
 
 // Components
-import CalendarEventHandler from '@/views/apps/calendar/CalendarEventHandler.vue'
+import CalendarEventHandler from '@/views/academy/calendar/CalendarEventHandler.vue'
 
 const { hasRoleAndAccess } = useUserAccess()
 

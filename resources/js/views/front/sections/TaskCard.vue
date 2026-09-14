@@ -48,6 +48,10 @@ const onPdfLoaded = (pdf) => {
   pdfPageCount.value = pdf.numPages
 }
 
+const handlePdfError = () => {
+  // Graceful error handler to prevent unhandled rejections
+}
+
 watchEffect(async () => {
   if (props.mediaType === 'document' && props.mediaUrl) {
     isLoadingPdf.value = true
@@ -86,11 +90,18 @@ watchEffect(async () => {
 
     <!-- Media Content -->
     <div class="media-container bg-grey-100">
-      <div v-if="props.mediaType === 'image'" class="h-100 w-100 d-flex align-center justify-center bg-grey-200">
-        <VCarousel v-if="props.mediaUrls && props.mediaUrls.length > 1" hide-delimiters height="500">
+      <div v-if="props.mediaType === 'image'" class="h-100 w-100 d-flex align-center justify-center bg-grey-200 position-relative">
+        <VCarousel
+          v-if="props.mediaUrls && props.mediaUrls.length > 1"
+          hide-delimiters
+          height="500"
+          :touch="false"
+          prev-icon="tabler-chevron-left"
+          next-icon="tabler-chevron-right"
+        >
           <VCarouselItem
             v-for="(url, i) in props.mediaUrls"
-            :key="i"
+            :key="`${props.taskId || 'task'}-img-${i}`"
             :src="getStreamUrl(url)"
             cover
           />
@@ -98,7 +109,8 @@ watchEffect(async () => {
         <img
           v-else-if="props.mediaUrl"
           :src="getStreamUrl(props.mediaUrl)"
-          style="width: 100%; max-height: 600px; object-fit: contain; display: block;"
+          draggable="false"
+          style="width: 100%; max-height: 600px; object-fit: contain; display: block; -webkit-user-drag: none; user-select: none;"
           alt="Task Media"
         />
       </div>
@@ -124,23 +136,30 @@ watchEffect(async () => {
             v-show="false"
             :source="pdfBlobUrl"
             @loaded="onPdfLoaded"
+            @error="handlePdfError"
+            @rendering-failed="handlePdfError"
           />
 
           <VCarousel 
             v-if="pdfPageCount > 0" 
             hide-delimiters 
             height="500"
+            :touch="false"
+            prev-icon="tabler-chevron-left"
+            next-icon="tabler-chevron-right"
             class="pdf-carousel"
           >
             <VCarouselItem
               v-for="page in pdfPageCount"
-              :key="page"
+              :key="`${props.taskId || 'task'}-pdf-${page}`"
             >
               <div class="d-flex justify-center h-100 w-100 bg-white" style="overflow-y: auto;">
                 <VuePdfEmbed
                   :source="pdfBlobUrl"
                   :page="page"
                   style="width: 100%; max-width: 800px;"
+                  @error="handlePdfError"
+                  @rendering-failed="handlePdfError"
                 />
               </div>
             </VCarouselItem>
@@ -194,13 +213,62 @@ watchEffect(async () => {
   display: flex;
   justify-content: center;
   align-items: center;
+  touch-action: pan-y !important;
+  overscroll-behavior-x: contain !important;
+  user-select: none !important;
 }
 
 .document-container {
   width: 100%;
+  touch-action: pan-y !important;
+  overscroll-behavior-x: contain !important;
 }
 
 .bg-light-primary {
   background-color: rgba(var(--v-theme-primary), 0.05);
+}
+
+.task-card {
+  :deep(.v-window__controls) {
+    padding-inline: 4px;
+  }
+
+  :deep(.v-window__left),
+  :deep(.v-window__right) {
+    margin-inline: 4px !important;
+    z-index: 5;
+
+    .v-btn {
+      inline-size: 32px !important;
+      block-size: 32px !important;
+      min-inline-size: 32px !important;
+      min-block-size: 32px !important;
+      border-radius: 50% !important;
+      border: 1px solid rgba(255, 255, 255, 0.4) !important;
+      background: rgba(255, 255, 255, 0.85) !important;
+      backdrop-filter: blur(8px) !important;
+      color: #1e2130 !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important;
+      opacity: 0.9;
+      transition: all 0.2s ease !important;
+
+      &:hover {
+        opacity: 1 !important;
+        background: rgba(255, 255, 255, 1) !important;
+        transform: scale(1.12);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+      }
+
+      &:active {
+        transform: scale(0.95);
+      }
+
+      .v-icon {
+        font-size: 18px !important;
+        inline-size: 18px !important;
+        block-size: 18px !important;
+      }
+    }
+  }
 }
 </style>

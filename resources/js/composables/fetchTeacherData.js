@@ -6,7 +6,6 @@ export const teachers = ref([])
 export const fetchTeacherData = async () => {
   const { data: teachersData, error: teachersError } = await useApi(`/public/teachers`)
   if (teachersError.value) {
-    console.log('Teachers Error:', teachersError.value)
   } else {
     if (teachersData.value) {
       teachers.value = teachersData.value.data
@@ -17,7 +16,6 @@ export const fetchTeacherData = async () => {
 export const fetchTeacherById = async id => {
   const { data: teacherData, error: teacherError } = await useApi(`/public/teachers/${id}`)
   if (teacherError.value) {
-    console.log('Teacher Error:', teacherError.value)
   } else {
     if (teacherData.value) {
       teachers.value = [teacherData.value.data]

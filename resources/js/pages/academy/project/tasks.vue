@@ -2,7 +2,7 @@
 import { useUserAccess } from '@/@core/utils/helpers'
 import { allTasks, fetchProjectData, fetchTasksList } from '@/composables/fetchProjectData'
 import AddNewTaskDrawer from '@/views/academy/AddTasks.vue'
-import { paginationMeta } from '@api-utils/paginationMeta'
+import { paginationMeta } from '@/@core/utils/formatters'
 import avatar from '@images/avatars/no-profile.png'
 import { onMounted } from 'vue'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
@@ -148,7 +148,6 @@ const fetchTasks = async () => {
   try {
     const result = await fetchTasksList(params)
 
-    console.log('📦 FETCHING with:', params, result)
 
     tasksData.value = result
   } catch (error) {
@@ -285,7 +284,6 @@ const addNewTask = async ({ action, data }) => {
     admin_teacher_id: data.admin_teacher_id === '' ? null : Number(data.admin_teacher_id),
   }
 
-  console.log('Sending taskData:', sanitizedData, 'action:', action)
   try {
     let url = '/tasks'
     let method = 'POST'
@@ -307,7 +305,6 @@ const addNewTask = async ({ action, data }) => {
       const msg = action === 'create' ? 'Data berhasil ditambahkan' : 'Data berhasil diperbarui'
 
       showAlert(msg, 'success')
-      console.log('Task response:', resData)
       fetchTasks()
     } else {
       showAlert(response.value.statusText || 'Gagal menyimpan data', 'error')
@@ -322,7 +319,6 @@ const addNewTask = async ({ action, data }) => {
 const deleteTask = async id => {
   try {
     if (confirm('Apakah kamu yakin ingin menghapus data ini?')) {
-      console.log('Deleting task with ID:', id)
       await useApi(`/tasks/${id}`, { method: 'DELETE' })
       showAlert('Data berhasil dihapus', 'success')
       fetchTasks() 

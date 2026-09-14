@@ -46,9 +46,7 @@ const school = ref([])
 
 const fetchSchool = async () => {
   const { data, error } = await useApi('/schools')
-  if (error.value)
-    console.log(error.value)
-  else
+  if (!error.value)
     school.value = data.value
 }
 

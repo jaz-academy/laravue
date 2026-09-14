@@ -191,6 +191,8 @@
     "close": "قريب",
     "open": "افتح",
     "carousel": {
+      "prev": "المعروض السابق",
+      "next": "المعروض التالي",
       "ariaLabel": {
         "delimiter": "تحديد"
       }

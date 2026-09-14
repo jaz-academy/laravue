@@ -54,12 +54,6 @@ const updateUserRole = async () => {
     
     return
   }
-  console.log('Updating user role with:', JSON.stringify({
-    role: parseInt(selectedRole.value),
-    access: selectedAccess.value.length > 0
-      ? selectedAccess.value.filter(Boolean).join(',')
-      : null,
-  }))
   
   try {
     const response = await useApi('/user/role', {

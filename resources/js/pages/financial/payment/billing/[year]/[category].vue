@@ -21,7 +21,6 @@ if (year.value !== 'new' && category.value !== 'new') {
   // Panggil API yang benar untuk mengambil data finance berdasarkan serial
   const { data: billingResponse } = await useApi(`/billings-by-year/${year.value}/${category.value}`)
 
-  console.log('billingResponse', billingResponse.value)
   
   if (billingResponse.value && billingResponse.value.data.length > 0) {
     const billings = billingResponse.value.data
@@ -101,7 +100,6 @@ const saveItem = async () => {
 
   try {
     // 2. Panggil API backend untuk menyimpan/memperbarui data.
-    console.log('payload', payload)
     
     const { data: response, error } = await useApi('/billings/bulk-store', {
       method: 'POST',

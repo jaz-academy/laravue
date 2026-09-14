@@ -3,7 +3,7 @@ import Footer from '@/views/front/front-page-footer.vue'
 import Navbar from '@/views/front/front-page-navbar.vue'
 import { ref } from 'vue'
 
-definePage({ meta: { layout: 'blank' } })
+definePage({ meta: { layout: 'blank', public: true } })
 
 const activeSectionId = ref(null)
 </script>

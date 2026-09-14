@@ -1,7 +1,7 @@
 <script setup>
 import { useUserAccess } from '@/@core/utils/helpers'
 import { useApi } from '@/composables/useApi'
-import { paginationMeta } from '@api-utils/paginationMeta'
+import { paginationMeta } from '@/@core/utils/formatters'
 import { onMounted } from 'vue'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
@@ -121,7 +121,6 @@ const {
   },
 }))
 
-console.log('paymentsData', paymentsData.value?.data)
 
 const paymentsList = computed(() => paymentsData.value?.data || [])
 const totalpayments = computed(() => paymentsData.value?.total || 0)

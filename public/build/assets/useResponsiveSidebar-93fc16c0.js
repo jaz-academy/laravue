@@ -1,1 +1,0 @@
-import{Z as r}from"./vendor-vuetify-68686ea1.js";import{r as i,c as o}from"./vendor-core-cfb14039.js";const p=(a=void 0)=>{const{mdAndDown:n,name:s}=r(),t=a||n,e=i(!0);return(()=>{e.value=!t.value})(),o(s,()=>{e.value=!t.value}),{isLeftSidebarOpen:e}};export{p as u};

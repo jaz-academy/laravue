@@ -1,6 +1,6 @@
 <script setup>
 import { useApi } from '@/composables/useApi'
-import { paginationMeta } from '@api-utils/paginationMeta'
+import { paginationMeta } from '@/@core/utils/formatters'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
 const widgetData = ref([
@@ -89,7 +89,6 @@ const {
   },
 }))
 
-console.log('billingsData', billingsData.value?.data)
 
 const billingList = computed(() => billingsData.value?.data || [])
 const totalbillings = computed(() => billingsData.value?.total || 0)

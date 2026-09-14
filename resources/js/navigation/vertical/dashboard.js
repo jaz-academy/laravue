@@ -8,15 +8,15 @@ export default [
     children: [
       {
         title: 'Academy',
-        to: 'home-academy',
+        to: 'dashboard-academy',
       },
       {
         title: 'Projects',
-        to: 'home-projects',
+        to: 'dashboard-projects',
       },
       ...(currentUser.admin_teacher_id !== null ? [{
         title: 'Finance',
-        to: 'home-finance',
+        to: 'dashboard-finance',
       }] : []),
     ],
     badgeContent: '3',

@@ -56,7 +56,6 @@ const headers = [
 ]
 
 const addNewData = async ({ action, data }) => {
-  console.log('Sending discount data:', data, 'action:', action)
   try {
     let url = '/discounts'
     let method = 'POST'
@@ -78,7 +77,6 @@ const addNewData = async ({ action, data }) => {
       const msg = action === 'create' ? 'Data berhasil ditambahkan' : 'Data berhasil diperbarui'
 
       showAlert(msg, 'success')
-      console.log('Response discount data:', resData)
       fetchDiscounts()
     } else {
       showAlert(response.value.statusText || 'Gagal menyimpan data', 'error')
@@ -108,7 +106,6 @@ const addData = () => {
 const deleteData = async id => {
   try {
     if (confirm('Apakah kamu yakin ingin menghapus data ini?')) {
-      console.log('Deleting discount data with ID:', id)
       await useApi(`/discounts/${id}`, { method: 'DELETE' })
       showAlert('Data berhasil dihapus', 'success')
     }

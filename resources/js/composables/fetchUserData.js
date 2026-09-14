@@ -14,7 +14,6 @@ export const fetchUserData = () => {
       const response = await useApi('/user')
 
       user.value = response.data?.value ?? null
-      console.log('User Data:', user.value)
 
 
       // Simpan ke cookie jika mau

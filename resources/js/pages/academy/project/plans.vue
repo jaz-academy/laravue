@@ -44,7 +44,6 @@ const headers = [
 ]
 
 const addNewPlan = async ({ action, data }) => {
-  console.log('Sending planData:', data, 'action:', action)
   try {
     let url = '/plans'
     let method = 'POST'
@@ -66,7 +65,6 @@ const addNewPlan = async ({ action, data }) => {
       const msg = action === 'create' ? 'Data berhasil ditambahkan' : 'Data berhasil diperbarui'
 
       showAlert(msg, 'success')
-      console.log('Plan response:', resData)
       fetchProjectData()
     } else {
       showAlert(response.value.statusText || 'Gagal menyimpan data', 'error')
@@ -97,7 +95,6 @@ const addPlan = () => {
 const deletePlan = async id => {
   try {
     if (confirm('Apakah kamu yakin ingin menghapus data ini?')) {
-      console.log('Deleting Project Plan with ID:', id)
       await useApi(`/plans/${id}`, { method: 'DELETE' })
       showAlert('Data berhasil dihapus', 'success')
       fetchProjectData()

@@ -42,7 +42,6 @@ const logout = async () => {
 
   // Reset ability to initial ability
   ability.update([])
-  console.log('You Logged out!')
 }
 
 const userProfileList = [
@@ -61,9 +60,9 @@ const userProfileList = [
   },
   {
     type: 'navItem',
-    icon: 'tabler-help-circle',
-    title: 'Manual',
-    to: { name: 'pages-faq' },
+    icon: 'tabler-code',
+    title: 'Developer SSO',
+    to: { name: 'developer-sso' },
   },
   { type: 'divider' },
   {

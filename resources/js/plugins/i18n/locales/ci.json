@@ -192,6 +192,8 @@
         "close": "关闭",
         "open": "打开",
         "carousel": {
+            "prev": "上一张",
+            "next": "下一张",
             "ariaLabel": {
                 "delimiter": "分隔符"
             }

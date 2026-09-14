@@ -6,7 +6,7 @@ import { useWindowScroll } from '@vueuse/core'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useCachedApi } from '@/composables/useCachedApi'
 
-definePage({ meta: { layout: 'blank' } })
+definePage({ meta: { layout: 'blank', public: true } })
 
 const activeSectionId = ref(null)
 const displayCount = ref(6)

@@ -50,7 +50,6 @@ const sortedStudents = computed(() => {
 })
 
 watch(allTasks, val => {
-  console.log('All tasks updated:', val)
 })
 </script>
 

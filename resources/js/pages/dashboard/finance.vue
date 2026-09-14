@@ -1,12 +1,12 @@
 <script setup>
 import { useApi } from '@/composables/useApi'
-import AllocationTable from '@/views/home/finance/AllocationTable.vue'
-import ExpenseStatistics from '@/views/home/finance/ExpenseStatistics.vue'
-import FinanceHistory from '@/views/home/finance/FinanceHistory.vue'
-import NonKitchenOverview from '@/views/home/finance/NonKitchenOverview.vue'
-import PaymentDelivery from '@/views/home/finance/PaymentDelivery.vue'
-import PaymentPerformance from '@/views/home/finance/PaymentPerformance.vue'
-import SaldoCardStatistics from '@/views/home/finance/SaldoCardStatistics.vue'
+import AllocationTable from '@/views/dashboard/finance/AllocationTable.vue'
+import ExpenseStatistics from '@/views/dashboard/finance/ExpenseStatistics.vue'
+import FinanceHistory from '@/views/dashboard/finance/FinanceHistory.vue'
+import NonKitchenOverview from '@/views/dashboard/finance/NonKitchenOverview.vue'
+import PaymentDelivery from '@/views/dashboard/finance/PaymentDelivery.vue'
+import PaymentPerformance from '@/views/dashboard/finance/PaymentPerformance.vue'
+import SaldoCardStatistics from '@/views/dashboard/finance/SaldoCardStatistics.vue'
 import { ref } from 'vue'
 
 const currentUser = useCookie('userData')
@@ -26,7 +26,6 @@ async function fetchFinances(year = '') {
 
   const financeData = res.data.value
 
-  console.log('financeData: ', financeData)
   
   if (!financeData) return
 

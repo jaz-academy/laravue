@@ -28,7 +28,6 @@ const onSubmit = () => {
   if (hasRoleAndAccess(3, 'Profile')) {
     refForm.value?.validate().then(({ valid }) => {
       if (valid) {
-        console.log('SUBMIT PAYLOAD', accountDataLocal.value)
         emit('userData', { ...accountDataLocal.value })
       }
     })

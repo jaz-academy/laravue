@@ -414,6 +414,7 @@
     "shorterName": true,
     "takePhoto": true,
     "noPhoto": true,
-    "useCachedApi": true
+    "useCachedApi": true,
+    "paginationMeta": true
   }
 }

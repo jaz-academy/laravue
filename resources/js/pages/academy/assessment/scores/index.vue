@@ -1,7 +1,7 @@
 <script setup>
 import { humanDate } from '@/@core/utils/helpers'
 import { useApi } from '@/composables/useApi'
-import { paginationMeta } from '@api-utils/paginationMeta'
+import { paginationMeta } from '@/@core/utils/formatters'
 import { onMounted } from 'vue'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
@@ -139,7 +139,6 @@ const {
   },
 }))
 
-console.log('scoresData', scoresData)
 
 const scores = computed(() => scoresData.value?.data || [])
 const totalScores = computed(() => scoresData.value?.total || 0)

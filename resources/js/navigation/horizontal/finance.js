@@ -1,12 +1,6 @@
 const currentUser = useCookie('userData')
 
 export default [
-  { heading: 'Financials' },
-  {
-    title: 'Savings',
-    icon: { icon: 'tabler-report-money' },
-    to: 'financial-savings',
-  },
   ...((currentUser.value?.access ?? []).includes('Payment') ? [{
     title: 'Payment',
     icon: { icon: 'tabler-calendar-dollar' },

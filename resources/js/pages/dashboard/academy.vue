@@ -2,13 +2,13 @@
 import AppSelect from '@/@core/components/app-form-elements/AppSelect.vue'
 import { fetchStudentData, students } from '@/composables/fetchStudentData'
 import { useApi } from '@/composables/useApi'
-import AlquranAreaCharts from '@/views/home/academy/AlquranAreaCharts.vue'
-import AlquranDetailOverview from '@/views/home/academy/AlquranDetailOverview.vue'
-import BahasaDonutCharts from '@/views/home/academy/BahasaDonutCharts.vue'
-import DirosahActive from '@/views/home/academy/DirosahActive.vue'
-import InformaticsStates from '@/views/home/academy/InformaticsStates.vue'
-import MonthlyAreaChart from '@/views/home/academy/MonthlyAreaChart.vue'
-import TsaqofalAnalytics from '@/views/home/academy/TsaqofalAnalytics.vue'
+import AlquranAreaCharts from '@/views/dashboard/academy/AlquranAreaCharts.vue'
+import AlquranDetailOverview from '@/views/dashboard/academy/AlquranDetailOverview.vue'
+import BahasaDonutCharts from '@/views/dashboard/academy/BahasaDonutCharts.vue'
+import DirosahActive from '@/views/dashboard/academy/DirosahActive.vue'
+import InformaticsStates from '@/views/dashboard/academy/InformaticsStates.vue'
+import MonthlyAreaChart from '@/views/dashboard/academy/MonthlyAreaChart.vue'
+import TsaqofalAnalytics from '@/views/dashboard/academy/TsaqofalAnalytics.vue'
 import { computed } from 'vue'
 
 const currentUser = useCookie('userData')
@@ -95,8 +95,6 @@ watch([studentId, semester], async ([newId, newSem]) => {
     const res = await useApi(`/dashboard-academic?student_id=${newId}&semester=${newSem}`)
 
     scores.value = structuredClone(res.data.value)
-    console.log("response: ", scores.value)
-    console.log("inggris: ", Number(findScores('Inggris').at(-1) ?? 0))
   }
 })
 </script>

@@ -1,17 +1,24 @@
 <script setup>
-import LastProject from '@/views/dashboards/projects/LastProject.vue'
-import LiteracyProject from '@/views/dashboards/projects/LiteracyProject.vue'
-import NotAcceptedTasksTable from '@/views/dashboards/projects/NotAcceptedTasksTable.vue'
-import PopularMentors from '@/views/dashboards/projects/PopularMentors.vue'
-import PostedTable from '@/views/dashboards/projects/PostedTable.vue'
-import TopTenPosted from '@/views/dashboards/projects/TopTenPosted.vue'
+import LastProject from '@/views/dashboard/projects/LastProject.vue'
+import LiteracyProject from '@/views/dashboard/projects/LiteracyProject.vue'
+import NotAcceptedTasksTable from '@/views/dashboard/projects/NotAcceptedTasksTable.vue'
+import PopularMentors from '@/views/dashboard/projects/PopularMentors.vue'
+import PostedTable from '@/views/dashboard/projects/PostedTable.vue'
+import TopTenPosted from '@/views/dashboard/projects/TopTenPosted.vue'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 
 const borderColor = 'rgba(var(--v-border-color), var(--v-border-opacity))'
 const currentUser = useCookie('userData')
 const studentId = ref('')
 const semester = ref('')
-const tasks = ref({ semester: semester.value, data: {} })
+const tasks = ref({
+  semester: semester.value,
+  data: {},
+  media: {
+    name: [],
+    count: [],
+  },
+})
 
 async function fetchProject() {
   const res = await useApi(`/dashboard-project?student_id=${studentId.value}&semester=${semester.value}`)
@@ -40,7 +47,6 @@ const progressTasks = computed(() => {
 
 onMounted(async () => {
   await fetchProject()
-  console.log("Project data fetched:", tasks.value)
 })
 
 const topicsChartConfig = computed(() => ({
@@ -83,7 +89,7 @@ const topicsChartConfig = computed(() => ({
     },
   },
   xaxis: {
-    categories: tasks.value.media?.count, // isi angka dari DB
+    categories: tasks.value.media?.count || [], // isi angka dari DB
     axisBorder: { show: false },
     axisTicks: { show: false },
     labels: {
@@ -366,11 +372,19 @@ onUnmounted(() => clearInterval(interval))
               >
                 <div>
                   <VueApexCharts
+                    v-if="tasks.media?.count?.length"
                     type="bar"
                     height="260"
                     :options="topicsChartConfig"
                     :series="topicsChartSeries"
                   />
+                  <div
+                    v-else
+                    class="d-flex align-center justify-center text-body-2 text-disabled"
+                    style="height: 260px;"
+                  >
+                    Tidak ada data media
+                  </div>
                 </div>
               </VCol>
 

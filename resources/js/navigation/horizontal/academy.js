@@ -1,17 +1,32 @@
 const currentUser = useCookie('userData')
 
 export default [
-  { heading: 'Academy' },
   {
-    title: 'Calendar',
-    icon: { icon: 'tabler-calendar' },
+    title: 'Academy',
+    icon: { icon: 'tabler-school' },
+    children: [
+      {
+        title: 'Calendar',
+        icon: { icon: 'tabler-calendar' },
 
-    to: 'academy-calendar',
-  },
-  {
-    title: 'Email',
-    icon: { icon: 'tabler-mail' },
-    to: 'academy-jazmail',
+        to: 'academy-calendar',
+      },
+      {
+        title: 'Email',
+        icon: { icon: 'tabler-mail' },
+        to: 'academy-jazmail',
+      },
+      {
+        title: 'Awards',
+        icon: { icon: 'tabler-trophy' },
+        to: 'academy-awards',
+      },
+      {
+        title: 'Savings',
+        icon: { icon: 'tabler-report-money' },
+        to: 'financial-savings',
+      },
+    ],
   },
   {
     title: 'Project',
@@ -22,12 +37,7 @@ export default [
     ],
   },
   {
-    title: 'Awards',
-    icon: { icon: 'tabler-trophy' },
-    to: 'academy-awards',
-  },
-  {
-    title: 'Courses',
+    title: 'Course',
     icon: { icon: 'tabler-book' },
     children: [
       { title: 'List', to: 'academy-course-list' },

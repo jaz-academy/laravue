@@ -1,6 +1,6 @@
 <script setup>
 import { getUserRole, useUserAccess } from '@/@core/utils/helpers'
-import { paginationMeta } from '@api-utils/paginationMeta'
+import { paginationMeta } from '@/@core/utils/formatters'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
 const { hasRole } = useUserAccess()
@@ -82,7 +82,6 @@ const adminAccessOption = [
 const deleteUser = async id => {
   try {
     if (confirm('Apakah kamu yakin ingin menghapus data ini?')) {
-      console.log('Deleting user with ID:', id)
       await useApi(`/users/${id}`, { method: 'DELETE' })
       showAlert('Data berhasil dihapus', 'success')
       fetchUsers()
@@ -94,7 +93,6 @@ const deleteUser = async id => {
 }
 
 const updateUser = async userData => {
-  console.log('Updating user:', userData.id, userData)
   try {
     // Before sending, convert access array back to comma-separated string
     const dataToSend = { ...userData }
@@ -118,7 +116,6 @@ const updateUser = async userData => {
 
     if (response.value.ok) {
       showAlert('Data berhasil diperbarui', 'success')
-      console.log('User updated:', data)
 
       // Re-fetch users to ensure the displayed data is fresh
       fetchUsers()
@@ -145,7 +142,6 @@ const fetchUsers = async () => {
   try {
     const result = await fetchAllUsers(params)
 
-    console.log('📦 FETCHING with:', params, result)
 
     // PROSES PENTING DI SINI:
     // Pastikan `item.access` adalah array untuk setiap user
