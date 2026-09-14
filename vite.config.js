@@ -115,20 +115,7 @@ export default defineConfig({
     },
   },
   build: {
-    chunkSizeWarningLimit: 1500,
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('vuetify')) return 'vendor-vuetify'
-            if (id.includes('vue-pdf-embed') || id.includes('pdfjs-dist')) return 'vendor-pdf'
-            if (id.includes('apexcharts')) return 'vendor-charts'
-            if (id.includes('@vueuse')) return 'vendor-vueuse'
-            return 'vendor-core'
-          }
-        },
-      },
-    },
+    chunkSizeWarningLimit: 5000,
     terserOptions: {
       compress: {
         drop_console: true,

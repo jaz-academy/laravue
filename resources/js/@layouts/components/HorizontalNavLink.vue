@@ -1,5 +1,5 @@
 <script setup>
-import { layoutConfig } from '@layouts'
+import { layoutConfig } from '@layouts/config'
 import { can } from '@layouts/plugins/casl'
 import {
   getComputedNavLinkToProp,

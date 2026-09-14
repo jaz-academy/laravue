@@ -1,9 +1,13 @@
 import { AppContentLayoutNav, NavbarType } from '@layouts/enums'
 import { injectionKeyIsVerticalNavHovered } from '@layouts/symbols'
-import { _setDirAttr } from '@layouts/utils'
 
 // ℹ️ We should not import themeConfig here but in urgency we are doing it for now
 import { layoutConfig } from '@themeConfig'
+
+export const _setDirAttr = dir => {
+  if (typeof document !== 'undefined')
+    document.documentElement.setAttribute('dir', dir)
+}
 
 export const namespaceConfig = str => `${layoutConfig.app.title}-${str}`
 export const cookieRef = (key, defaultValue) => {

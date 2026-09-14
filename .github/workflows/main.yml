@@ -7,6 +7,8 @@ jobs:
     steps:
       - name: 🚚 Get latest code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: 📂 Sync files
         uses: SamKirkland/FTP-Deploy-Action@v4.3.6
@@ -18,8 +20,11 @@ jobs:
           protocol: ftp
           server-dir: /laravue/
           exclude: |
-            **/.git**
-            **/.git/**
+            **/.git*
+            **/.git*/**
             **/node_modules/**
             **/vendor/**
             **/tests/**
+            .env
+            storage/**
+            public/storage/**

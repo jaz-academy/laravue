@@ -1,9 +1,7 @@
 <script setup>
-import { layoutConfig } from '@layouts'
-import {
-  TransitionExpand,
-  VerticalNavLink,
-} from '@layouts/components'
+import { layoutConfig } from '@layouts/config'
+import TransitionExpand from './TransitionExpand.vue'
+import VerticalNavLink from './VerticalNavLink.vue'
 import { canViewNavMenuGroup } from '@layouts/plugins/casl'
 import { useLayoutConfigStore } from '@layouts/stores/config'
 import { injectionKeyIsVerticalNavHovered } from '@layouts/symbols'

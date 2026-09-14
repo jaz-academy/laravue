@@ -1,8 +1,6 @@
 <script setup>
-import {
-  HorizontalNavGroup,
-  HorizontalNavLink,
-} from '@layouts/components'
+import HorizontalNavGroup from './HorizontalNavGroup.vue'
+import HorizontalNavLink from './HorizontalNavLink.vue'
 
 const props = defineProps({
   navItems: {

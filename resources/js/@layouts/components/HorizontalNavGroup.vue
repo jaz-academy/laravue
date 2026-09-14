@@ -1,9 +1,7 @@
 <script setup>
-import { layoutConfig } from '@layouts'
-import {
-  HorizontalNavLink,
-  HorizontalNavPopper,
-} from '@layouts/components'
+import { layoutConfig } from '@layouts/config'
+import HorizontalNavLink from './HorizontalNavLink.vue'
+import HorizontalNavPopper from './HorizontalNavPopper.vue'
 import { canViewNavMenuGroup } from '@layouts/plugins/casl'
 import { useLayoutConfigStore } from '@layouts/stores/config'
 import {

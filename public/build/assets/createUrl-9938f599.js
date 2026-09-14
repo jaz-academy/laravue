@@ -1,1 +1,0 @@
-import{j as m,f as e,aO as j}from"./vendor-core-080f3fc7.js";const O=(c,r)=>m(()=>{if(!(r!=null&&r.query))return e(c);const a=e(c),t=e(r==null?void 0:r.query),u=Object.fromEntries(Object.entries(t).map(([y,f])=>[y,e(f)]));return`${a}${u?`?${j(u)}`:""}`});export{O as c};

@@ -1,5 +1,5 @@
 <script>
-import { VerticalNav } from '@layouts/components'
+import VerticalNav from './VerticalNav.vue'
 import { useLayoutConfigStore } from '@layouts/stores/config'
 
 export default defineComponent({

@@ -1,1 +1,0 @@
-import{j as i}from"./main-1c0bf287.js";import{u}from"./vendor-vuetify-b69c8dee.js";import{j as m}from"./vendor-core-080f3fc7.js";const g=(o,n,a,s,e=!1)=>{const r=i(),{global:t}=u();return m(()=>{if(t.name.value==="light")return r.skin==="bordered"&&e?a:o;if(t.name.value==="dark")return r.skin==="bordered"&&e?s:n})};export{g as u};
