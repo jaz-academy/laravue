@@ -9,7 +9,6 @@ export default [
     children: [
       { title: 'User', to: { name: 'profile-user-tab', params: { tab: 'overview' } } },
       ...(userData.value?.role >= 4 ? [{ title: 'School', to: 'profile-school' }] : []),
-      ...(userData.value?.role >= 4 ? [{ title: 'SSO / OAuth Apps', to: 'admin-oauth-clients' }] : []),
       {
         title: 'Teacher',
         children: [

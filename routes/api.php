@@ -269,4 +269,74 @@ Route::middleware('auth:sanctum')->group(function () {
 // OAuth2 / OpenID Connect UserInfo Endpoint (RFC 6749)
 Route::middleware('auth:api')->get('/oauth/user', [\App\Http\Controllers\OAuth\OAuthUserController::class, 'user']);
 
+/*
+|--------------------------------------------------------------------------
+| Developer Platform & Standardized 3-Tier Architecture API Routes (v1)
+|--------------------------------------------------------------------------
+*/
+
+// --- Developer Portal Management API (Sanctum Authenticated) ---
+Route::middleware('auth:sanctum')->prefix('developer')->group(function () {
+    Route::get('keys', [\App\Http\Controllers\Developer\ApiKeyController::class, 'index']);
+    Route::post('keys', [\App\Http\Controllers\Developer\ApiKeyController::class, 'store']);
+    Route::put('keys/{id}', [\App\Http\Controllers\Developer\ApiKeyController::class, 'update']);
+    Route::post('keys/{id}/regenerate', [\App\Http\Controllers\Developer\ApiKeyController::class, 'regenerate']);
+    Route::delete('keys/{id}', [\App\Http\Controllers\Developer\ApiKeyController::class, 'destroy']);
+
+    Route::get('analytics/overview', [\App\Http\Controllers\Developer\ApiAnalyticsController::class, 'overview']);
+    Route::get('analytics/timeseries', [\App\Http\Controllers\Developer\ApiAnalyticsController::class, 'timeseries']);
+    Route::get('analytics/logs', [\App\Http\Controllers\Developer\ApiAnalyticsController::class, 'logs']);
+
+    Route::get('docs', [\App\Http\Controllers\Developer\ApiDocumentationController::class, 'index']);
+});
+
+// Public docs spec for developers without login
+Route::get('developer/public-docs', [\App\Http\Controllers\Developer\ApiDocumentationController::class, 'index']);
+
+// --- TIER 1: Public (Without Key) ---
+Route::prefix('v1/public')->group(function () {
+    Route::get('tasks/best', [PublicMediaController::class, 'bestTasks']);
+    Route::get('members', [PublicMediaController::class, 'members']);
+    Route::get('members/{id}', [PublicMediaController::class, 'memberById']);
+    Route::get('tasks/member/{id}', [PublicMediaController::class, 'tasksByMember']);
+    Route::get('blogs', [BlogMediaController::class, 'index']);
+    Route::get('blogs/categories', [BlogMediaController::class, 'categories']);
+    Route::get('blogs/{idOrSlug}', [BlogMediaController::class, 'show']);
+    Route::get('students', [StudentController::class, 'index']);
+    Route::get('student/{id}', [StudentController::class, 'show']);
+    Route::get('teachers', [TeacherController::class, 'index']);
+    Route::get('teacher/{id}', [TeacherController::class, 'show']);
+    Route::get('tasks', [PublicMediaController::class, 'publicTasks']);
+    Route::get('plans', [PublicMediaController::class, 'plans']);
+});
+
+// --- TIER 2: Restricted (With Key - Header X-API-Key) ---
+Route::middleware('api.key')->prefix('v1/restricted')->group(function () {
+    Route::get('projects', [ProjectMediaController::class, 'index']);
+    Route::get('projects/{id}', [ProjectMediaController::class, 'show']);
+    Route::get('tasks', [TaskMediaController::class, 'index']);
+    Route::get('tasks/best-performance', [TaskMediaController::class, 'bestPerformance']);
+    Route::get('tasks/user/{userId}', [TaskMediaController::class, 'userTasks']);
+    Route::post('tasks', [TaskMediaController::class, 'store']);
+    Route::get('courses', [CourseController::class, 'index']);
+    Route::get('subjects', [SubjectController::class, 'index']);
+});
+
+// --- TIER 3: Private (Only For This App - Sanctum & Internal Guard) ---
+Route::middleware(['auth:sanctum', 'api.private'])->prefix('v1/private')->group(function () {
+    Route::get('dashboard-academic', [DashboardController::class, 'academy']);
+    Route::get('dashboard-project', [DashboardController::class, 'project']);
+    Route::get('dashboard-finance', [DashboardController::class, 'finance']);
+    Route::apiResource('schools', SchoolController::class);
+    Route::apiResource('students', StudentController::class);
+    Route::apiResource('teachers', TeacherController::class);
+    Route::apiResource('courses', CourseController::class);
+    Route::apiResource('scores', ScoreController::class);
+    Route::post('scores/bulk-store', [ScoreController::class, 'bulkStore']);
+    Route::apiResource('finances', FinanceController::class);
+    Route::apiResource('billings', BillingController::class);
+    Route::apiResource('payments', PaymentController::class);
+    Route::apiResource('reflections', ReflectionController::class);
+});
+
 
