@@ -80,6 +80,8 @@ const createClient = async () => {
     await fetchClients()
   } catch (err) {
     console.error('Failed to create client:', err)
+    const msg = err.response?._data?.message || err.data?.message || err.message || 'Terjadi kesalahan saat mendaftarkan aplikasi'
+    alert(`Gagal: ${msg}`)
   } finally {
     isSubmitting.value = false
   }
