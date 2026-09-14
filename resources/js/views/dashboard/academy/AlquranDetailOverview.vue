@@ -3,11 +3,26 @@ import { hexToRgb } from '@layouts/utils'
 import { useTheme } from 'vuetify'
 
 const props = defineProps({
-  bulan: Array,
-  qrAdab: Array,
-  qrTahfidz: Array,
-  qrTajwid: Array,
-  qrTahsin: Array,
+  bulan: {
+    type: Array,
+    default: () => [],
+  },
+  qrAdab: {
+    type: Array,
+    default: () => [],
+  },
+  qrTahfidz: {
+    type: Array,
+    default: () => [],
+  },
+  qrTajwid: {
+    type: Array,
+    default: () => [],
+  },
+  qrTahsin: {
+    type: Array,
+    default: () => [],
+  },
 })
 
 const vuetifyTheme = useTheme()
@@ -74,7 +89,7 @@ const chartConfigs = computed(() => {
         legend: { show: false },
         tooltip: { enabled: false },
         xaxis: {
-          categories: props.bulan,
+          categories: props.bulan || [],
           axisBorder: {
             show: true,
             color: borderColor,
@@ -185,7 +200,7 @@ const chartConfigs = computed(() => {
         legend: { show: false },
         tooltip: { enabled: false },
         xaxis: {
-          categories: props.bulan,
+          categories: props.bulan || [],
           axisBorder: {
             show: true,
             color: borderColor,
@@ -291,7 +306,7 @@ const chartConfigs = computed(() => {
         legend: { show: false },
         tooltip: { enabled: false },
         xaxis: {
-          categories: props.bulan,
+          categories: props.bulan || [],
           axisBorder: {
             show: true,
             color: borderColor,
@@ -397,7 +412,7 @@ const chartConfigs = computed(() => {
         legend: { show: false },
         tooltip: { enabled: false },
         xaxis: {
-          categories: props.bulan,
+          categories: props.bulan || [],
           axisBorder: {
             show: true,
             color: borderColor,

@@ -160,7 +160,7 @@ const shipmentConfig = computed(() => ({
   dataLabels: { enabled: false },
   xaxis: {
     tickAmount: 10,
-    categories: chartData.value.bulan,
+    categories: chartData.value?.bulan || [],
     labels: {
       style: {
         colors: labelColor,

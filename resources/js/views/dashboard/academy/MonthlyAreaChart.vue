@@ -3,24 +3,33 @@ import { getAreaChartSplineConfig } from '@core/libs/apex-chart/apexCharConfig'
 import { useTheme } from 'vuetify'
 
 const props = defineProps({
-  bulan: Array,
-  academic: Array,
-  character: Array,
+  bulan: {
+    type: Array,
+    default: () => [],
+  },
+  academic: {
+    type: Array,
+    default: () => [],
+  },
+  character: {
+    type: Array,
+    default: () => [],
+  },
 })
 
 const vuetifyTheme = useTheme()
-const chartConfig = computed(() => getAreaChartSplineConfig(vuetifyTheme.current.value, props.bulan))
+const chartConfig = computed(() => getAreaChartSplineConfig(vuetifyTheme.current.value, props.bulan || []))
 
-const series = [
+const series = computed(() => [
   {
     name: 'Academic',
-    data: props.academic,
+    data: props.academic || [],
   },
   {
     name: 'Character',
-    data: props.character,
+    data: props.character || [],
   },
-]
+])
 </script>
 
 <template>

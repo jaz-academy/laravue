@@ -4,9 +4,18 @@ import { computed } from 'vue'
 import { useTheme } from 'vuetify'
 
 const props = defineProps({
-  bulan: Array,
-  pemahaman: Array,
-  sikap: Array,
+  bulan: {
+    type: Array,
+    default: () => [],
+  },
+  pemahaman: {
+    type: Array,
+    default: () => [],
+  },
+  sikap: {
+    type: Array,
+    default: () => [],
+  },
 })
 
 const vuetifyTheme = useTheme()
@@ -14,11 +23,11 @@ const vuetifyTheme = useTheme()
 const series = computed(() => [
   {
     name: 'Pemahaman',
-    data: props.pemahaman,
+    data: props.pemahaman || [],
   },
   {
     name: 'Sikap',
-    data: props.sikap,
+    data: props.sikap || [],
   },
 ])
 
@@ -81,7 +90,7 @@ const chartOptions = computed(() => {
       },
     },
     xaxis: {
-      categories: props.bulan,
+      categories: props.bulan || [],
       labels: {
         show: true,
         style: {

@@ -12,8 +12,6 @@ const props = defineProps({
   multimedias: { type: Array, default: () => [] },
 })
 
-console.log("informatics: ", props.informatics)
-console.log("multimedias: ", props.multimedias)
 
 const logos = [
   brave,

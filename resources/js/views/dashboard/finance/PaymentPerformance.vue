@@ -33,11 +33,6 @@ const deliveryData = computed(() => {
       color: !hasPaid ? 'warning' : studentPayments.length >= 3 ? 'success' : 'primary',
     }
   })
-
-  // 2. Lakukan console.log pada variabel `finalData` di sini untuk debugging
-  console.log('Hasil akhir deliveryData:', finalData)
-
-  // 3. Kembalikan variabel tersebut
   return finalData
 })
 </script>
