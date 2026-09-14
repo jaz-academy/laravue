@@ -20,7 +20,7 @@ const { y } = useWindowScroll()
 const lastScrollY = ref(0)
 const isFooterVisible = ref(true)
 
-watch(y, (newY) => {
+watch(y, newY => {
   const diff = newY - lastScrollY.value
 
   if (newY <= 60) {
@@ -42,23 +42,6 @@ const instagram = useGenerateImageVariant(instagramLight, instagramDark)
 const footerBg = useGenerateImageVariant(footerLightBg, footerDarkBg)
 
 const pagesList = [
-  {
-    name: 'Pricing',
-    to: { name: 'front-pages-pricing' },
-  },
-  {
-    name: 'Payment',
-    to: { name: 'front-pages-payment' },
-    isNew: true,
-  },
-  {
-    name: 'Checkout',
-    to: { name: 'front-pages-checkout' },
-  },
-  {
-    name: 'Help Center',
-    to: { name: 'front-pages-help-center' },
-  },
   {
     name: 'Login/Register',
     to: { name: 'pages-authentication-login-v2' },
@@ -263,9 +246,9 @@ const demoList = [
       style="position: fixed; z-index: 10; inset-block-end: 0; inset-inline-start: 0;"
     >
       <VContainer>
-      <div class="d-flex justify-space-between flex-wrap gap-y-4 align-center">
-        <span class="text-wrap me-4">
-        &copy;
+        <div class="d-flex justify-space-between flex-wrap gap-y-4 align-center">
+          <span class="text-wrap me-4">
+            &copy;
 
             {{ new Date().getFullYear() }}
             <a
@@ -329,8 +312,8 @@ const demoList = [
   transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease;
 
   &.footer-hidden {
-    transform: translateY(100%) !important;
     opacity: 0;
+    transform: translateY(100%) !important;
   }
 }
 </style>

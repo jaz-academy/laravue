@@ -99,13 +99,37 @@ const handleScroll = () => {
 
 onMounted(() => {
   window.addEventListener('scroll', handleScroll)
+  if (props.mediaType === 'document' && typeof IntersectionObserver !== 'undefined') {
+    cardObserver = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) {
+        isIntersecting.value = true
+        cardObserver?.disconnect()
+      }
+    }, { rootMargin: '300px' })
+    const el = cardElement.value?.$el || cardElement.value
+    if (el) {
+      cardObserver.observe(el)
+    } else {
+      isIntersecting.value = true
+    }
+  } else {
+    isIntersecting.value = true
+  }
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll)
+  cardObserver?.disconnect()
+  if (pdfBlobUrl.value) {
+    URL.revokeObjectURL(pdfBlobUrl.value)
+  }
 })
 
 const comments = []
+const cardElement = ref(null)
+const isIntersecting = ref(false)
+let cardObserver = null
+const activeCarouselPage = ref(0)
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '/api'
 
@@ -133,7 +157,7 @@ const pdfBlobUrl = ref(null)
 const isLoadingPdf = ref(false)
 
 watchEffect(async () => {
-  if (props.mediaType === 'document' && props.mediaUrl) {
+  if (props.mediaType === 'document' && props.mediaUrl && isIntersecting.value && !pdfBlobUrl.value) {
     isLoadingPdf.value = true
     try {
       const response = await fetch(pdfProxyUrl.value)
@@ -151,6 +175,7 @@ watchEffect(async () => {
 
 <template>
   <VCard
+    ref="cardElement"
     class="posting-card rounded-xl border d-flex flex-column"
     elevation="0"
   >
@@ -176,6 +201,8 @@ watchEffect(async () => {
       <img
         v-else-if="props.mediaUrl"
         :src="getStreamUrl(props.mediaUrl)"
+        loading="lazy"
+        decoding="async"
         style=" display: block; block-size: 100%;inline-size: 100%; max-block-size: 550px; object-fit: cover;"
         alt="Task Media"
       >
@@ -188,6 +215,7 @@ watchEffect(async () => {
       <video
         :src="videoStreamUrl"
         controls
+        preload="metadata"
         style=" display: block; block-size: auto;inline-size: 100%; max-block-size: 700px; object-fit: contain;"
       >
         Your browser does not support HTML video.
@@ -224,6 +252,7 @@ watchEffect(async () => {
 
         <VCarousel 
           v-if="pdfPageCount > 0" 
+          v-model="activeCarouselPage"
           hide-delimiters 
           height="100%"
           class="pdf-carousel h-100 w-100"
@@ -238,10 +267,17 @@ watchEffect(async () => {
               style="overflow-y: auto;"
             >
               <VuePdfEmbed
+                v-if="Math.abs(activeCarouselPage + 1 - page) <= 1"
                 :source="pdfBlobUrl"
                 :page="page"
                 style="inline-size: 100%; max-inline-size: 800px;"
               />
+              <div
+                v-else
+                class="d-flex align-center justify-center text-caption text-medium-emphasis h-100"
+              >
+                Halaman {{ page }}
+              </div>
             </div>
           </VCarouselItem>
         </VCarousel>

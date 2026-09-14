@@ -1,20 +1,34 @@
 <script setup>
-import { useApi } from '@/composables/useApi'
 import Footer from '@/views/front/front-page-footer.vue'
 import Navbar from '@/views/front/front-page-navbar.vue'
 import HomeCard from '@/views/front/sections/HomeCard.vue'
 import { useWindowScroll } from '@vueuse/core'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useCachedApi } from '@/composables/useCachedApi'
 
 definePage({ meta: { layout: 'blank' } })
 
 const activeSectionId = ref(null)
-const allTasks = ref([])
-const loading = ref(true)
 const displayCount = ref(6)
 const gridColumns = ref(1) // 1 or 2 columns on md-xl
 const sentinelRef = ref(null)
 let observer = null
+
+const { data: rawTasks, loading } = useCachedApi('/public/tasks/best', {
+  ttl: 10 * 60 * 1000,
+  persist: true,
+  swr: true,
+})
+
+const allTasks = computed(() => {
+  if (Array.isArray(rawTasks.value)) {
+    return rawTasks.value
+  }
+  if (Array.isArray(rawTasks.value?.data)) {
+    return rawTasks.value.data
+  }
+  return []
+})
 
 const { y } = useWindowScroll()
 const lastScrollY = ref(0)
@@ -53,31 +67,6 @@ const bestTasks = computed(() => {
   return allTasks.value.slice(0, 5)
 })
 
-const fetchTasks = async () => {
-  const cachedTasks = localStorage.getItem('jaz_best_tasks')
-  if (cachedTasks) {
-    try {
-      const parsedTasks = JSON.parse(cachedTasks)
-      allTasks.value = parsedTasks
-      loading.value = false
-    } catch (e) {}
-  } else {
-    loading.value = true
-  }
-
-  try {
-    const { data } = await useApi('/public/tasks/best')
-    if (data.value && data.value.data) {
-      localStorage.setItem('jaz_best_tasks', JSON.stringify(data.value.data))
-      allTasks.value = data.value.data
-    }
-  } catch (error) {
-    console.error('Failed to fetch tasks:', error)
-  } finally {
-    loading.value = false
-  }
-}
-
 const setupIntersectionObserver = () => {
   if (observer) observer.disconnect()
 
@@ -95,8 +84,7 @@ const setupIntersectionObserver = () => {
   }
 }
 
-onMounted(async () => {
-  await fetchTasks()
+onMounted(() => {
   setupIntersectionObserver()
 })
 

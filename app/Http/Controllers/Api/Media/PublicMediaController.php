@@ -10,6 +10,7 @@ use App\Services\GoogleDriveService;
 use App\Services\MediaFormatter;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 class PublicMediaController extends Controller
@@ -20,20 +21,23 @@ class PublicMediaController extends Controller
     public function bestTasks(Request $request)
     {
         try {
-            $tasks = MediaTask::with(['user', 'mentor', 'collaborators', 'project', 'likes', 'comments.user'])
-                ->whereNotNull('grade')
-                ->orderByDesc('grade')
-                ->limit(10)
-                ->get();
+            // Cache for 10 minutes (600 seconds)
+            $formatted = Cache::remember('public_best_tasks_v1', 600, function () {
+                $tasks = MediaTask::with(['user', 'mentor', 'collaborators', 'project', 'likes', 'comments.user'])
+                    ->whereNotNull('grade')
+                    ->orderByDesc('grade')
+                    ->limit(10)
+                    ->get();
 
-            $formatted = $tasks->map(function ($task) {
-                return MediaFormatter::formatTask($task);
+                return $tasks->map(function ($task) {
+                    return MediaFormatter::formatTask($task);
+                })->values()->all();
             });
 
             return response()->json([
                 'success' => true,
                 'data' => $formatted,
-            ]);
+            ])->header('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
@@ -48,19 +52,22 @@ class PublicMediaController extends Controller
     public function members(Request $request)
     {
         try {
-            $members = User::where(function ($q) {
-                $q->where('media_role', 'member')
-                  ->orWhere('role', '<=', 2);
-            })->get();
+            // Cache members for 15 minutes (900 seconds)
+            $data = Cache::remember('public_members_list_v1', 900, function () {
+                $members = User::where(function ($q) {
+                    $q->where('media_role', 'member')
+                      ->orWhere('role', '<=', 2);
+                })->get();
 
-            $data = $members->map(function ($user) {
-                return MediaFormatter::formatUser($user);
+                return $members->map(function ($user) {
+                    return MediaFormatter::formatUser($user);
+                })->values()->all();
             });
 
             return response()->json([
                 'success' => true,
                 'data' => $data,
-            ]);
+            ])->header('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,

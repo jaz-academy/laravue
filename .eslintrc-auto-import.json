@@ -413,6 +413,7 @@
     "periode": true,
     "shorterName": true,
     "takePhoto": true,
-    "noPhoto": true
+    "noPhoto": true,
+    "useCachedApi": true
   }
 }

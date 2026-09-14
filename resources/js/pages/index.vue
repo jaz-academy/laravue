@@ -1,11 +1,11 @@
 <script setup>
-import { useApi } from '@/composables/useApi'
 import Footer from '@/views/front/front-page-footer.vue'
 import Navbar from '@/views/front/front-page-navbar.vue'
 import HeroSection from '@/views/front/sections/hero-section.vue'
 import HomeCard from '@/views/front/sections/HomeCard.vue'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useCachedApi } from '@/composables/useCachedApi'
 
 const route = useRoute()
 const router = useRouter()
@@ -13,35 +13,20 @@ const searchQuery = ref(route.query.search || '')
 const hasQuery = computed(() => Object.keys(route.query).length > 0)
 const activeSectionId = ref(null)
 
-const tasks = ref([])
-const loading = ref(true)
+const { data: rawTasks, loading } = useCachedApi('/public/tasks/best', {
+  ttl: 10 * 60 * 1000,
+  persist: true,
+  swr: true,
+})
 
-const fetchTasks = async () => {
-  const cachedTasks = localStorage.getItem('jaz_best_tasks')
-  if (cachedTasks) {
-    try {
-      tasks.value = JSON.parse(cachedTasks).slice(0, 6)
-      loading.value = false
-    } catch(e) {}
-  } else {
-    loading.value = true
+const tasks = computed(() => {
+  if (Array.isArray(rawTasks.value)) {
+    return rawTasks.value.slice(0, 6)
   }
-
-  try {
-    const { data } = await useApi('/public/tasks/best')
-    if (data.value && data.value.data) {
-      localStorage.setItem('jaz_best_tasks', JSON.stringify(data.value.data))
-      tasks.value = data.value.data.slice(0, 6)
-    }
-  } catch (error) {
-    console.error('Failed to fetch tasks:', error)
-  } finally {
-    loading.value = false
+  if (Array.isArray(rawTasks.value?.data)) {
+    return rawTasks.value.data.slice(0, 6)
   }
-}
-
-onMounted(() => {
-  fetchTasks()
+  return []
 })
 
 const applySearch = () => {
