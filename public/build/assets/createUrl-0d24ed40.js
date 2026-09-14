@@ -1,0 +1,1 @@
+import{j as m,f as e,aN as j}from"./vendor-core-cfb14039.js";const b=(c,r)=>m(()=>{if(!(r!=null&&r.query))return e(c);const a=e(c),t=e(r==null?void 0:r.query),u=Object.fromEntries(Object.entries(t).map(([y,f])=>[y,e(f)]));return`${a}${u?`?${j(u)}`:""}`});export{b as c};

@@ -44,22 +44,33 @@ class OAuthClientController extends Controller
 
         $confidential = $request->boolean('confidential', true);
 
-        $client = $this->clients->create(
-            $request->user()?->id ?? null,
-            $request->name,
-            $request->redirect,
-            null,
-            false,
-            false,
-            $confidential
-        );
+        try {
+            $client = $this->clients->create(
+                $request->user()?->id ?? null,
+                $request->name,
+                $request->redirect,
+                null,
+                false,
+                false,
+                $confidential
+            );
 
-        return response()->json([
-            'message' => 'OAuth Client created successfully.',
-            'client' => $client,
-            // Plain text secret for the user to copy immediately
-            'plainSecret' => $client->plainSecret ?? $client->secret,
-        ], 201);
+            return response()->json([
+                'message' => 'OAuth Client created successfully.',
+                'client' => $client,
+                // Plain text secret for the user to copy immediately
+                'plainSecret' => $client->plainSecret ?? $client->secret,
+            ], 201);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Gagal membuat OAuth client: ' . $e->getMessage(), [
+                'exception' => $e,
+            ]);
+
+            return response()->json([
+                'message' => 'Gagal membuat OAuth Client di database: ' . $e->getMessage(),
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**

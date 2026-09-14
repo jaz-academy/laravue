@@ -16,7 +16,7 @@ const sidebar = ref(false)
 const lastScrollY = ref(0)
 const isNavbarVisible = ref(true)
 
-watch(y, (newY) => {
+watch(y, newY => {
   const diff = newY - lastScrollY.value
 
   // Always show navbar near the top of the page
@@ -43,24 +43,7 @@ const menuItems = [
   {
     listTitle: 'Page',
     listIcon: 'tabler-layout-grid',
-    navItems: [
-      {
-        name: 'Pricing',
-        to: { name: 'front-pages-pricing' },
-      },
-      {
-        name: 'Payment',
-        to: { name: 'front-pages-payment' },
-      },
-      {
-        name: 'Checkout',
-        to: { name: 'front-pages-checkout' },
-      },
-      {
-        name: 'Help Center',
-        to: { name: 'front-pages-help-center' },
-      },
-    ],
+    navItems: [],
   },
   {
     listTitle: 'Auth Demo',
@@ -417,20 +400,19 @@ const isPageActive = computed(() => menuItems.some(item => item.navItems.some(li
 .front-page-navbar::after{
   position: fixed;
   z-index: 1;
-  inset-block-start: 0;
-  inset-inline-start: 0;
   backdrop-filter: saturate(100%) blur(6px);
-  -webkit-backdrop-filter: saturate(100%) blur(6px);
   block-size: 5rem;
   content: '';
   inline-size: 100%;
+  inset-block-start: 0;
+  inset-inline-start: 0;
   pointer-events: none;
   transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease;
 }
 
 .front-page-navbar:has(.navbar-hidden)::after {
-  transform: translateY(-100%);
   opacity: 0;
+  transform: translateY(-100%);
 }
 </style>
 
@@ -450,8 +432,8 @@ const isPageActive = computed(() => menuItems.some(item => item.navItems.some(li
   }
 
   .v-toolbar {
-    inset-inline: 0 !important;
     inset-block-start: 0 !important;
+    inset-inline: 0 !important;
     margin-block-start: 1rem !important;
     margin-inline: auto !important;
     transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease, box-shadow 0.2s ease !important;
