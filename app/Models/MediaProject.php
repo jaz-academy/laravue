@@ -17,6 +17,7 @@ class MediaProject extends Model
         'description',
         'status',
         'mentor_id',
+        'admin_teacher_id',
         'project_manager_id',
         'creator_id',
     ];
@@ -24,6 +25,11 @@ class MediaProject extends Model
     public function mentor()
     {
         return $this->belongsTo(User::class, 'mentor_id');
+    }
+
+    public function mentorTeacher()
+    {
+        return $this->belongsTo(AdminTeacher::class, 'admin_teacher_id');
     }
 
     public function projectManager()
@@ -39,6 +45,11 @@ class MediaProject extends Model
     public function participants()
     {
         return $this->belongsToMany(User::class, 'media_project_participants', 'media_project_id', 'user_id');
+    }
+
+    public function studentParticipants()
+    {
+        return $this->belongsToMany(AdminStudent::class, 'media_project_participants', 'media_project_id', 'admin_student_id');
     }
 
     public function tasks()

@@ -13,6 +13,7 @@ class Reflection extends Model
 
     protected $fillable = [
         'user_id',
+        'admin_student_id',
         'date',
         'achievement',
         'obstacles',
@@ -33,5 +34,10 @@ class Reflection extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function student()
+    {
+        return $this->belongsTo(AdminStudent::class, 'admin_student_id');
     }
 }

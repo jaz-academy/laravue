@@ -133,15 +133,25 @@ class TaskMediaController extends Controller
             $task = MediaTask::create([
                 'media_project_id' => $project->id,
                 'user_id' => $user->id,
+                'admin_student_id' => $user->admin_student_id,
                 'media_url' => $mediaUrls[0] ?? null,
                 'media_urls' => $mediaUrls,
                 'media_type' => $request->input('mediaType', 'image'),
                 'caption' => $request->input('caption', ''),
                 'status' => 'pending',
+                'mentor_id' => $project->mentor_id,
+                'admin_teacher_id' => $project->admin_teacher_id ?: ($project->mentor?->admin_teacher_id),
             ]);
 
             if (!empty($collaboratorIds)) {
-                $task->collaborators()->sync($collaboratorIds);
+                $collabSync = [];
+                $collabUsers = User::whereIn('id', $collaboratorIds)->get()->keyBy('id');
+                foreach ($collaboratorIds as $cId) {
+                    $collabSync[$cId] = [
+                        'admin_student_id' => $collabUsers[$cId]->admin_student_id ?? null,
+                    ];
+                }
+                $task->collaborators()->sync($collabSync);
             }
 
             return response()->json([
@@ -392,12 +402,14 @@ class TaskMediaController extends Controller
         try {
             if ($status === 'pending') {
                 $task->mentor_id = null;
+                $task->admin_teacher_id = null;
                 $task->grade = null;
                 $task->review_comment = null;
                 $task->reviewed_at = null;
                 $task->status = 'pending';
             } else {
                 $task->mentor_id = $user->id;
+                $task->admin_teacher_id = $user->admin_teacher_id;
                 $task->grade = $status === 'rejected' ? 0 : (float) $request->input('grade', 0);
                 $task->review_comment = $request->input('comment', '');
                 $task->reviewed_at = now();

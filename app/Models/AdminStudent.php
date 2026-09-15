@@ -78,6 +78,26 @@ class AdminStudent extends Model
         return $this->hasMany(PaymentItem::class);
     }
 
+    public function user()
+    {
+        return $this->hasOne(User::class, 'admin_student_id');
+    }
+
+    public function mediaTasks()
+    {
+        return $this->hasMany(MediaTask::class, 'admin_student_id');
+    }
+
+    public function reflections()
+    {
+        return $this->hasMany(Reflection::class, 'admin_student_id');
+    }
+
+    public function mediaProjects()
+    {
+        return $this->belongsToMany(MediaProject::class, 'media_project_participants', 'admin_student_id', 'media_project_id');
+    }
+
     public function paymentSaving()
     {
         return $this->hasMany(PaymentSaving::class);
