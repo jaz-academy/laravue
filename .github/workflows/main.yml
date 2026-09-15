@@ -16,7 +16,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           dangerous-clean-slate: false
           protocol: ftp
-          server-dir: /laravue/
+          server-dir: ./
           exclude: |
             **/.git**
             **/.git/**
