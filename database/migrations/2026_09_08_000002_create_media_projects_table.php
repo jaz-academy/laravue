@@ -18,6 +18,7 @@ return new class extends Migration
             $table->text('description');
             $table->string('status')->default('active'); // active, completed, archived
             $table->foreignId('mentor_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('admin_teacher_id')->nullable()->constrained('admin_teachers')->nullOnDelete();
             $table->foreignId('project_manager_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('creator_id')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
@@ -26,9 +27,10 @@ return new class extends Migration
         Schema::create('media_project_participants', function (Blueprint $table) {
             $table->id();
             $table->foreignId('media_project_id')->constrained('media_projects')->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('admin_student_id')->nullable()->constrained('admin_students')->cascadeOnDelete();
             $table->timestamps();
-            $table->unique(['media_project_id', 'user_id']);
+            $table->index(['media_project_id', 'admin_student_id']);
         });
     }
 
