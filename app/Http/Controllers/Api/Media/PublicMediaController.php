@@ -300,17 +300,12 @@ class PublicMediaController extends Controller
     public function taskByStudent($studentId)
     {
         try {
-            $userIds = User::where('admin_student_id', $studentId)->pluck('id');
-
-            $tasks = MediaTask::with(['user.adminStudent', 'mentor.adminTeacher', 'collaborators.adminStudent', 'project'])
-                ->where(function ($q) use ($userIds, $studentId) {
-                    if ($userIds->isNotEmpty()) {
-                        $q->whereIn('user_id', $userIds)
-                          ->orWhereHas('collaborators', fn($cq) => $cq->whereIn('user_id', $userIds));
-                    } else {
-                        $q->whereHas('user', fn($uq) => $uq->where('admin_student_id', $studentId))
-                          ->orWhereHas('collaborators', fn($cq) => $cq->where('admin_student_id', $studentId));
-                    }
+            $tasks = MediaTask::with(['student', 'user.adminStudent', 'mentorTeacher', 'mentor.adminTeacher', 'studentCollaborators', 'collaborators.adminStudent', 'project'])
+                ->where(function ($q) use ($studentId) {
+                    $q->where('admin_student_id', $studentId)
+                      ->orWhereHas('studentCollaborators', fn($cq) => $cq->where('admin_students.id', $studentId))
+                      ->orWhereHas('user', fn($uq) => $uq->where('admin_student_id', $studentId))
+                      ->orWhereHas('collaborators', fn($cq) => $cq->where('admin_student_id', $studentId));
                 })
                 ->orderByDesc('created_at')
                 ->get();
@@ -333,16 +328,10 @@ class PublicMediaController extends Controller
     public function taskByTeacher($teacherId)
     {
         try {
-            $userIds = User::where('admin_teacher_id', $teacherId)->pluck('id');
-
-            $tasks = MediaTask::with(['user.adminStudent', 'mentor.adminTeacher', 'collaborators.adminStudent', 'project'])
-                ->where(function ($q) use ($userIds, $teacherId) {
-                    if ($userIds->isNotEmpty()) {
-                        $q->whereIn('mentor_id', $userIds)
-                          ->orWhereIn('user_id', $userIds);
-                    } else {
-                        $q->whereHas('mentor', fn($mq) => $mq->where('admin_teacher_id', $teacherId));
-                    }
+            $tasks = MediaTask::with(['student', 'user.adminStudent', 'mentorTeacher', 'mentor.adminTeacher', 'studentCollaborators', 'collaborators.adminStudent', 'project'])
+                ->where(function ($q) use ($teacherId) {
+                    $q->where('admin_teacher_id', $teacherId)
+                      ->orWhereHas('mentor', fn($mq) => $mq->where('admin_teacher_id', $teacherId));
                 })
                 ->orderByDesc('created_at')
                 ->get();

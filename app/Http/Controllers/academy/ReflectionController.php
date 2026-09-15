@@ -21,13 +21,26 @@ class ReflectionController extends Controller
             $user = Auth::user();
             $query = Reflection::with('user:id,name,username,image');
 
-            // If user_id is passed and current user has permission or is viewing own
-            if ($request->filled('user_id')) {
-                $query->where('user_id', $request->user_id);
+            // Filter by admin_student_id or user_id
+            if ($request->filled('admin_student_id')) {
+                $query->where('admin_student_id', $request->admin_student_id);
+            } elseif ($request->filled('user_id')) {
+                $query->where(function ($q) use ($request) {
+                    $q->where('user_id', $request->user_id);
+                    $u = User::find($request->user_id);
+                    if ($u?->admin_student_id) {
+                        $q->orWhere('admin_student_id', $u->admin_student_id);
+                    }
+                });
             } else {
                 // If student or regular user, restrict to own reflections
                 if ($user) {
-                    $query->where('user_id', $user->id);
+                    $query->where(function ($q) use ($user) {
+                        $q->where('user_id', $user->id);
+                        if ($user->admin_student_id) {
+                            $q->orWhere('admin_student_id', $user->admin_student_id);
+                        }
+                    });
                 }
             }
 
@@ -216,6 +229,8 @@ class ReflectionController extends Controller
         try {
             $user = Auth::user();
             $userId = $request->input('user_id', $user?->id);
+            $targetUser = $userId ? User::find($userId) : $user;
+            $studentId = $request->input('admin_student_id', $targetUser?->admin_student_id);
 
             $date = Carbon::parse($request->date)->format('Y-m-d');
 
@@ -235,6 +250,7 @@ class ReflectionController extends Controller
                     'date' => $date,
                 ],
                 [
+                    'admin_student_id' => $studentId,
                     'achievement' => $formatIndicator($request->achievement),
                     'obstacles' => $formatIndicator($request->obstacles),
                     'lessons' => $formatIndicator($request->lessons),

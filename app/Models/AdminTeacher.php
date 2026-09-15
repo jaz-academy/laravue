@@ -40,4 +40,18 @@ class AdminTeacher extends Model
         return $this->hasMany(AcademyCompetence::class);
     }
 
+    public function user()
+    {
+        return $this->hasOne(User::class, 'admin_teacher_id');
+    }
+
+    public function mentoredTasks()
+    {
+        return $this->hasMany(MediaTask::class, 'admin_teacher_id');
+    }
+
+    public function mentoredProjects()
+    {
+        return $this->hasMany(MediaProject::class, 'admin_teacher_id');
+    }
 }
