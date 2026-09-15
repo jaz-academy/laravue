@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('reflections', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('admin_student_id')->nullable()->constrained('admin_students')->cascadeOnDelete();
             $table->date('date');
             $table->jsonb('achievement')->nullable();
             $table->jsonb('obstacles')->nullable();
@@ -22,7 +23,7 @@ return new class extends Migration
             $table->jsonb('health')->nullable();
             $table->timestamps();
 
-            $table->unique(['user_id', 'date']);
+            $table->index(['admin_student_id', 'date']);
             $table->index(['user_id', 'date']);
         });
     }

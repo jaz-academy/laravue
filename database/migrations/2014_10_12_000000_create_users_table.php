@@ -22,6 +22,19 @@ return new class extends Migration
             $table->integer('role')->default(0);
             $table->string('access')->nullable();
             $table->string('image')->nullable();
+            
+            // Email system fields
+            $table->timestamp('email_provisioned_at')->nullable();
+            $table->enum('email_status', ['pending', 'active', 'failed'])->default('pending');
+
+            // JazMedia fields
+            $table->string('mongodb_id', 36)->nullable()->index();
+            $table->string('username')->nullable()->unique();
+            $table->text('bio')->nullable();
+            $table->json('skills')->nullable();
+            $table->string('instagram_id')->nullable()->unique();
+            $table->string('media_role')->default('member');
+
             $table->rememberToken();
             $table->timestamps();
         });

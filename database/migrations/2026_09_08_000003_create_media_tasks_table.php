@@ -15,7 +15,9 @@ return new class extends Migration
             $table->id();
             $table->string('mongodb_id', 36)->nullable()->index();
             $table->foreignId('media_project_id')->constrained('media_projects')->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete(); // author
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete(); // author user (optional)
+            $table->foreignId('admin_student_id')->nullable()->constrained('admin_students')->cascadeOnDelete(); // author student
+            $table->foreignId('admin_teacher_id')->nullable()->constrained('admin_teachers')->nullOnDelete(); // mentor teacher
             $table->text('media_url')->nullable();
             $table->json('media_urls')->nullable();
             $table->string('media_type')->default('image'); // image, video, document
@@ -29,20 +31,22 @@ return new class extends Migration
             $table->timestamp('reviewed_at')->nullable();
 
             $table->timestamps();
+            $table->index(['admin_student_id', 'status']);
         });
 
         Schema::create('media_task_collaborators', function (Blueprint $table) {
             $table->id();
             $table->foreignId('media_task_id')->constrained('media_tasks')->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('admin_student_id')->nullable()->constrained('admin_students')->cascadeOnDelete();
             $table->timestamps();
-            $table->unique(['media_task_id', 'user_id']);
+            $table->index(['media_task_id', 'admin_student_id']);
         });
 
         Schema::create('media_task_likes', function (Blueprint $table) {
             $table->id();
             $table->foreignId('media_task_id')->constrained('media_tasks')->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained('users')->cascadeOnDelete();
             $table->timestamps();
             $table->unique(['media_task_id', 'user_id']);
         });
