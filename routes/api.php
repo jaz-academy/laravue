@@ -57,10 +57,12 @@ Route::get('login', function () {
 
 Route::group(['prefix' => 'public'], function () {
   Route::get('tasks/best', [PublicMediaController::class, 'bestTasks']);
+  Route::get('tasks/all', [PublicMediaController::class, 'allMediaTasks']);
   Route::get('members', [PublicMediaController::class, 'members']);
   Route::get('members/{id}', [PublicMediaController::class, 'memberById']);
   Route::get('tasks/member/{id}', [PublicMediaController::class, 'tasksByMember']);
   Route::get('media/stream/{id}', [PublicMediaController::class, 'streamMedia']);
+  Route::get('media/image/{id}', [PublicMediaController::class, 'proxyImage']);
   Route::get('media/proxy-pdf', [PublicMediaController::class, 'proxyPdf']);
   Route::get('drive/stream/{id}', [PublicMediaController::class, 'streamMedia']);
   Route::get('proxy-pdf', [PublicMediaController::class, 'proxyPdf']);

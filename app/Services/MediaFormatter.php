@@ -50,25 +50,70 @@ class MediaFormatter
 
     public static function formatTask($task, $currentUserId = null): array
     {
-        $author = $task->user;
-        $authorFormatted = [
-            'id' => $author ? (string) $author->id : '',
-            '_id' => $author ? (string) ($author->mongodb_id ?: $author->id) : '',
-            'name' => $author ? $author->name : 'Member',
-            'username' => $author ? ($author->username ?: '') : '',
-            'image' => $author && $author->image ? $author->image : '/no-photo.png',
-            'email' => $author ? $author->email : '',
-        ];
-
-        $collaborators = $task->collaborators->map(function ($c) {
-            return [
-                'id' => (string) $c->id,
-                '_id' => (string) ($c->mongodb_id ?: $c->id),
-                'name' => $c->name,
-                'username' => $c->username ?: '',
-                'image' => $c->image ?: '/no-photo.png',
+        $student = $task->student ?: ($task->user?->adminStudent ?: null);
+        if ($student) {
+            $authorFormatted = [
+                'id' => (string) $student->id,
+                '_id' => (string) $student->id,
+                'name' => $student->name,
+                'nickname' => $student->nickname ?: $student->name,
+                'username' => $student->nickname ?: ($student->user?->username ?: ''),
+                'image' => $student->image ?: ($student->user?->image ?: '/no-photo.png'),
+                'email' => $student->email ?: ($student->user?->email ?: ''),
+                'type' => 'student',
             ];
-        })->values()->all();
+        } else {
+            $author = $task->user;
+            $authorFormatted = [
+                'id' => $author ? (string) $author->id : '',
+                '_id' => $author ? (string) ($author->mongodb_id ?: $author->id) : '',
+                'name' => $author ? $author->name : 'Member',
+                'nickname' => $author ? ($author->nickname ?: $author->name) : 'Member',
+                'username' => $author ? ($author->username ?: '') : '',
+                'image' => $author && $author->image ? $author->image : '/no-photo.png',
+                'email' => $author ? $author->email : '',
+                'type' => 'user',
+            ];
+        }
+
+        $collaborators = [];
+        if ($task->relationLoaded('studentCollaborators') && $task->studentCollaborators->isNotEmpty()) {
+            $collaborators = $task->studentCollaborators->map(function ($c) {
+                return [
+                    'id' => (string) $c->id,
+                    '_id' => (string) $c->id,
+                    'name' => $c->name,
+                    'nickname' => $c->nickname ?: $c->name,
+                    'username' => $c->nickname ?: ($c->user?->username ?: ''),
+                    'image' => $c->image ?: ($c->user?->image ?: '/no-photo.png'),
+                    'type' => 'student',
+                ];
+            })->values()->all();
+        } elseif ($task->relationLoaded('collaborators') && $task->collaborators->isNotEmpty()) {
+            $collaborators = $task->collaborators->map(function ($c) {
+                $st = $c->adminStudent;
+                if ($st) {
+                    return [
+                        'id' => (string) $st->id,
+                        '_id' => (string) $st->id,
+                        'name' => $st->name,
+                        'nickname' => $st->nickname ?: $st->name,
+                        'username' => $st->nickname ?: ($c->username ?: ''),
+                        'image' => $st->image ?: ($c->image ?: '/no-photo.png'),
+                        'type' => 'student',
+                    ];
+                }
+                return [
+                    'id' => (string) $c->id,
+                    '_id' => (string) ($c->mongodb_id ?: $c->id),
+                    'name' => $c->name,
+                    'nickname' => $c->nickname ?: $c->name,
+                    'username' => $c->username ?: '',
+                    'image' => $c->image ?: '/no-photo.png',
+                    'type' => 'user',
+                ];
+            })->values()->all();
+        }
 
         $project = $task->project;
         $projectFormatted = $project ? [
@@ -117,11 +162,19 @@ class MediaFormatter
 
         $review = null;
         if ($task->grade !== null || $task->review_comment) {
+            $teacher = $task->mentorTeacher ?: ($task->mentor?->adminTeacher ?: null);
+            $mentorName = $teacher ? $teacher->name : ($task->mentor ? $task->mentor->name : 'Mentor');
+            $mentorNickname = $teacher ? ($teacher->nickname ?: $teacher->name) : $mentorName;
+            $mentorImage = $teacher && $teacher->image ? $teacher->image : ($task->mentor && $task->mentor->image ? $task->mentor->image : null);
+            $mentorId = $teacher ? (string) $teacher->id : ($task->mentor_id ? (string) $task->mentor_id : null);
+
             $review = [
                 'grade' => $task->grade !== null ? (float) $task->grade : null,
                 'comment' => $task->review_comment,
-                'mentorName' => $task->mentor ? $task->mentor->name : 'Mentor',
-                'mentorId' => $task->mentor_id ? (string) $task->mentor_id : null,
+                'mentorName' => $mentorName,
+                'mentorNickname' => $mentorNickname,
+                'mentorImage' => $mentorImage,
+                'mentorId' => $mentorId,
                 'reviewedAt' => $task->reviewed_at ? $task->reviewed_at->toISOString() : null,
             ];
         }
