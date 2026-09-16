@@ -1,21 +1,24 @@
 <script setup>
-const { data: notifData, error } = useApi('/notifications').json()
-
+const accessToken = useCookie('accessToken')
 const notifications = ref([])
 
-watchEffect(() => {
-  if (Array.isArray(notifData.value)) {
-    notifications.value = notifData.value.map(n => ({
-      id: n.id,
-      title: n.data?.title ?? 'Notification',
-      subtitle: n.data?.message ?? '',
-      img: n.data?.img,
-      text: n.data?.text || 'Abu Kafa',
-      time: new Date(n.created_at).toLocaleString(),
-      isSeen: n.read_at !== null,
-    }))
-  }
-})
+if (accessToken.value) {
+  const { data: notifData } = useApi('/notifications').json()
+
+  watchEffect(() => {
+    if (Array.isArray(notifData.value)) {
+      notifications.value = notifData.value.map(n => ({
+        id: n.id,
+        title: n.data?.title ?? 'Notification',
+        subtitle: n.data?.message ?? '',
+        img: n.data?.img,
+        text: n.data?.text || 'Abu Kafa',
+        time: new Date(n.created_at).toLocaleString(),
+        isSeen: n.read_at !== null,
+      }))
+    }
+  })
+}
 
 const removeNotification = async notificationId => {
   await useApi(`/notifications/${notificationId}`, { method: 'DELETE' })

@@ -11,7 +11,7 @@ const props = defineProps({
   description: String,
   mediaType: String,
   mediaUrl: String,
-  mediaUrls: Array,
+  mediaUrls: [Array, String],
   grade: Number,
   students: Array,
   teacher: Object,
@@ -20,15 +20,27 @@ const props = defineProps({
   date: String,
 })
 
+const activeImageCarouselIndex = ref(0)
+
 const dataStorageParticipant = localStorage.getItem('participant')
 const participant = dataStorageParticipant ? JSON.parse(dataStorageParticipant) : null
 const showModalRating = ref(false)
 const errorMessage = ref('')
-const mentor = ref(props.teacher || { name: 'Unknown' })
+const mentor = ref(props.teacher || null)
 const accepted = ref('Yes')
 const review = ref(props.review)
 const rating = ref(props.grade ? props.grade / 20 : 0) // Convert 0-100 grade to 0-5 stars
 const ratingCol = ref(true)
+
+watch(() => props.teacher, val => {
+  mentor.value = val || null
+})
+watch(() => props.review, val => {
+  review.value = val || ''
+})
+watch(() => props.grade, val => {
+  rating.value = val ? val / 20 : 0
+})
 
 const showFullDescription = ref(false)
 
@@ -111,6 +123,7 @@ onMounted(() => {
         cardObserver?.disconnect()
       }
     }, { rootMargin: '300px' })
+
     const el = cardElement.value?.$el || cardElement.value
     if (el) {
       cardObserver.observe(el)
@@ -138,16 +151,97 @@ const activeCarouselPage = ref(0)
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '/api'
 
-const getDriveId = url => {
-  const match = url?.match(/id=([^&]+)/)
+const cleanUrl = url => {
+  if (typeof url !== 'string') return url
   
-  return match ? match[1] : null
+  return url.replace(/\\/g, '').trim()
 }
+
+const getDriveId = url => {
+  if (!url || typeof url !== 'string') return null
+  const cleaned = cleanUrl(url)
+  const idParam = cleaned.match(/[?&]id=([^&]+)/)
+  if (idParam) return idParam[1]
+  const dSlash = cleaned.match(/\/d\/([^/?]+)/)
+  if (dSlash) return dSlash[1]
+  
+  return null
+}
+
+const visitedSlideIndexes = ref(new Set([0]))
+
+watch(activeImageCarouselIndex, newIdx => {
+  visitedSlideIndexes.value.add(newIdx)
+  if (parsedMediaUrls.value.length > 0) {
+    visitedSlideIndexes.value.add((newIdx + 1) % parsedMediaUrls.value.length)
+  }
+})
+
+const shouldLoadSlide = index => {
+  if (visitedSlideIndexes.value.has(index)) return true
+  if (Math.abs(activeImageCarouselIndex.value - index) <= 1) {
+    visitedSlideIndexes.value.add(index)
+    
+    return true
+  }
+  
+  return false
+}
+
+const getImageUrl = (url, width = 1000) => {
+  if (!url) return ''
+  const cleaned = cleanUrl(url)
+  const id = getDriveId(cleaned)
+  if (id) {
+    return `https://lh3.googleusercontent.com/d/${id}=w${width}`
+  }
+  
+  return cleaned
+}
+
+const handleImageError = (event, rawUrl) => {
+  const id = getDriveId(rawUrl)
+  if (!id) return
+
+  const stage = parseInt(event.target.dataset.fallbackStage || '0', 10)
+  if (stage === 0) {
+    // Stage 1: Coba Google Drive thumbnail
+    event.target.dataset.fallbackStage = '1'
+    event.target.src = `https://drive.google.com/thumbnail?id=${id}&sz=w1000`
+  } else if (stage === 1) {
+    // Stage 2: Coba proxy server Laravel Jazmedia
+    event.target.dataset.fallbackStage = '2'
+    event.target.src = `${apiBaseUrl}/public/media/image/${id}`
+  } else if (stage === 2) {
+    // Stage 3: Coba direct usercontent download
+    event.target.dataset.fallbackStage = '3'
+    event.target.src = `https://drive.usercontent.google.com/download?id=${id}&export=download`
+  }
+}
+
+const parsedMediaUrls = computed(() => {
+  let urls = props.mediaUrls
+  if (typeof urls === 'string' && urls.trim().startsWith('[')) {
+    try {
+      urls = JSON.parse(urls)
+    } catch (e) {
+      console.warn('Failed to parse mediaUrls JSON:', e)
+    }
+  }
+  if (Array.isArray(urls)) {
+    return urls.map(cleanUrl).filter(Boolean)
+  }
+  if (props.mediaUrl) {
+    return [cleanUrl(props.mediaUrl)]
+  }
+  
+  return []
+})
 
 const getStreamUrl = url => {
   const id = getDriveId(url)
   
-  return id ? `${apiBaseUrl}/public/media/stream/${id}` : url
+  return id ? `${apiBaseUrl}/public/media/stream/${id}` : cleanUrl(url)
 }
 
 const videoStreamUrl = computed(() => {
@@ -160,17 +254,26 @@ const pdfProxyUrl = computed(() => {
 
 const pdfBlobUrl = ref(null)
 const isLoadingPdf = ref(false)
+const pdfLoadFailed = ref(false)
+const pdfDriveId = computed(() => getDriveId(props.mediaUrl))
 
 watchEffect(async () => {
-  if (props.mediaType === 'document' && props.mediaUrl && isIntersecting.value && !pdfBlobUrl.value) {
+  if (props.mediaType === 'document' && props.mediaUrl && isIntersecting.value && !pdfBlobUrl.value && !pdfLoadFailed.value) {
     isLoadingPdf.value = true
     try {
       const response = await fetch(pdfProxyUrl.value)
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
       const blob = await response.blob()
+      if (blob.size < 500) {
+        throw new Error('Invalid PDF content')
+      }
 
       pdfBlobUrl.value = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }))
     } catch (e) {
-      console.error('Failed to load PDF:', e)
+      console.warn('Proxy PDF fetch failed, activating Google Drive preview:', e)
+      pdfLoadFailed.value = true
     } finally {
       isLoadingPdf.value = false
     }
@@ -187,33 +290,64 @@ watchEffect(async () => {
     <!-- Media Rendering (Full width, top) -->
     <div
       v-if="props.mediaType === 'image'"
-      class="media-section bg-grey-200 w-100"
+      class="media-section bg-grey-200 w-100 position-relative"
     >
       <VCarousel
-        v-if="props.mediaUrls && props.mediaUrls.length > 1"
+        v-if="parsedMediaUrls.length > 1"
+        v-model="activeImageCarouselIndex"
         hide-delimiters
-        height="100%"
+        :height="500"
         :touch="false"
         prev-icon="tabler-chevron-left"
         next-icon="tabler-chevron-right"
         class="media-carousel"
       >
         <VCarouselItem
-          v-for="(url, i) in props.mediaUrls"
+          v-for="(url, i) in parsedMediaUrls"
           :key="`${props.taskId || 'task'}-img-${i}`"
-          :src="getStreamUrl(url)"
-          cover
           class="h-100"
-        />
+        >
+          <div
+            class="h-100 w-100 d-flex align-center justify-center bg-grey-100"
+            style="position: relative;"
+          >
+            <img
+              v-if="shouldLoadSlide(i)"
+              :src="getImageUrl(url)"
+              decoding="async"
+              draggable="false"
+              style="display: block; block-size: 100%; inline-size: 100%; object-fit: cover; -webkit-user-drag: none; user-select: none;"
+              alt="Task Media Image"
+              @error="handleImageError($event, url)"
+            >
+            <VProgressCircular
+              v-else
+              indeterminate
+              color="primary"
+              size="28"
+            />
+          </div>
+        </VCarouselItem>
       </VCarousel>
+
+      <!-- Carousel Counter Badge -->
+      <div
+        v-if="parsedMediaUrls.length > 1"
+        class="carousel-counter-badge"
+        style="position: absolute; z-index: 2; border-radius: 14px; backdrop-filter: blur(4px); background: rgba(0, 0, 0, 65%); color: #fff; font-size: 12px; font-weight: 600; inset-block-start: 12px; inset-inline-end: 12px; padding-block: 3px; padding-inline: 10px; pointer-events: none;"
+      >
+        {{ activeImageCarouselIndex + 1 }} / {{ parsedMediaUrls.length }}
+      </div>
+
       <img
-        v-else-if="props.mediaUrl"
-        :src="getStreamUrl(props.mediaUrl)"
+        v-else-if="parsedMediaUrls.length === 1 || props.mediaUrl"
+        :src="getImageUrl(parsedMediaUrls[0] || props.mediaUrl)"
         loading="lazy"
         decoding="async"
         draggable="false"
         style="display: block; block-size: 100%; inline-size: 100%; max-block-size: 550px; object-fit: cover; -webkit-user-drag: none; user-select: none;"
         alt="Task Media"
+        @error="handleImageError($event, parsedMediaUrls[0] || props.mediaUrl)"
       >
     </div>
 
@@ -247,8 +381,9 @@ watchEffect(async () => {
         />
       </div>
       
+      <!-- Vue PDF Embed Renderer -->
       <div
-        v-if="pdfBlobUrl"
+        v-if="pdfBlobUrl && !pdfLoadFailed"
         class="h-100 w-100"
       >
         <!-- Hidden renderer to get numPages -->
@@ -257,8 +392,8 @@ watchEffect(async () => {
           v-show="false"
           :source="pdfBlobUrl"
           @loaded="onPdfLoaded"
-          @error="handlePdfError"
-          @rendering-failed="handlePdfError"
+          @error="() => { pdfLoadFailed = true }"
+          @rendering-failed="() => { pdfLoadFailed = true }"
         />
 
         <VCarousel 
@@ -285,8 +420,8 @@ watchEffect(async () => {
                 :source="pdfBlobUrl"
                 :page="page"
                 style="inline-size: 100%; max-inline-size: 800px;"
-                @error="handlePdfError"
-                @rendering-failed="handlePdfError"
+                @error="() => { pdfLoadFailed = true }"
+                @rendering-failed="() => { pdfLoadFailed = true }"
               />
               <div
                 v-else
@@ -297,6 +432,46 @@ watchEffect(async () => {
             </div>
           </VCarouselItem>
         </VCarousel>
+      </div>
+
+      <!-- Fallback Google Drive Document Preview (jika blob proxy gagal) -->
+      <div
+        v-else-if="pdfLoadFailed && pdfDriveId"
+        class="h-100 w-100 position-relative"
+      >
+        <iframe
+          :src="`https://drive.google.com/file/d/${pdfDriveId}/preview`"
+          width="100%"
+          height="100%"
+          style=" display: block;border: none;"
+          allow="autoplay"
+        />
+      </div>
+
+      <!-- Fallback Tombol Buka Dokumen jika masih kosong -->
+      <div
+        v-else-if="!isLoadingPdf && !pdfBlobUrl"
+        class="d-flex flex-column align-center justify-center h-100 pa-4 text-center"
+      >
+        <VIcon
+          icon="tabler-file-text"
+          size="48"
+          color="primary"
+          class="mb-2"
+        />
+        <span class="text-body-2 font-weight-medium mb-2">Dokumen Portofolio (PDF)</span>
+        <VBtn
+          v-if="props.mediaUrl"
+          :href="props.mediaUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          size="small"
+          variant="tonal"
+          color="primary"
+          prepend-icon="tabler-external-link"
+        >
+          Buka Dokumen
+        </VBtn>
       </div>
     </div>
     
@@ -355,7 +530,7 @@ watchEffect(async () => {
             class="d-flex flex-column text-decoration-none"
           >
             <h6 class="text-subtitle-2 font-weight-semibold text-high-emphasis mb-0">
-              {{ abbreviateName(props.students[0].name, 30, 3) }}
+              {{ abbreviateName(props.students[0].name, 15, 2) }}
             </h6>
             <span class="text-caption text-medium-emphasis">
               {{ props.students.length > 1 ? `+${props.students.length - 1} others` : (props.students[0].nickname || props.students[0].email) }}
@@ -664,14 +839,14 @@ watchEffect(async () => {
 .media-section {
   position: relative;
   overflow: hidden;
-  touch-action: pan-y !important;
   overscroll-behavior-x: contain !important;
+  touch-action: pan-y !important;
   user-select: none !important;
 
   .media-carousel,
   .pdf-carousel {
-    touch-action: pan-y !important;
     overscroll-behavior-x: contain !important;
+    touch-action: pan-y !important;
   }
 
   .media-carousel {
@@ -688,13 +863,13 @@ watchEffect(async () => {
     .v-img {
       block-size: 100% !important;
       inline-size: 100% !important;
-      user-select: none !important;
       -webkit-user-drag: none !important;
+      user-select: none !important;
 
       img {
-        user-select: none !important;
-        -webkit-user-drag: none !important;
         pointer-events: none;
+        -webkit-user-drag: none !important;
+        user-select: none !important;
       }
     }
   }
@@ -720,28 +895,28 @@ watchEffect(async () => {
 
   .v-window__left,
   .v-window__right {
-    margin-inline: 4px !important;
     z-index: 5;
+    margin-inline: 4px !important;
 
     .v-btn {
-      inline-size: 32px !important;
-      block-size: 32px !important;
-      min-inline-size: 32px !important;
-      min-block-size: 32px !important;
+      border: 1px solid rgba(255, 255, 255, 40%) !important;
       border-radius: 50% !important;
-      border: 1px solid rgba(255, 255, 255, 0.4) !important;
-      background: rgba(255, 255, 255, 0.85) !important;
       backdrop-filter: blur(8px) !important;
+      background: rgba(255, 255, 255, 85%) !important;
+      block-size: 32px !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 18%) !important;
       color: #1e2130 !important;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important;
+      inline-size: 32px !important;
+      min-block-size: 32px !important;
+      min-inline-size: 32px !important;
       opacity: 0.9;
       transition: all 0.2s ease !important;
 
       &:hover {
+        background: rgba(255, 255, 255, 100%) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 25%) !important;
         opacity: 1 !important;
-        background: rgba(255, 255, 255, 1) !important;
         transform: scale(1.12);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
       }
 
       &:active {
@@ -749,9 +924,9 @@ watchEffect(async () => {
       }
 
       .v-icon {
+        block-size: 18px !important;
         font-size: 18px !important;
         inline-size: 18px !important;
-        block-size: 18px !important;
       }
     }
   }

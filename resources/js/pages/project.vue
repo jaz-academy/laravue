@@ -2,19 +2,27 @@
 import Footer from '@/views/front/front-page-footer.vue'
 import Navbar from '@/views/front/front-page-navbar.vue'
 import HomeCard from '@/views/front/sections/HomeCard.vue'
+import { takePic } from '@/@core/utils/helpers'
 import { useWindowScroll } from '@vueuse/core'
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useCachedApi } from '@/composables/useCachedApi'
 
 definePage({ meta: { layout: 'blank', public: true } })
 
 const activeSectionId = ref(null)
-const displayCount = ref(6)
+const displayCount = ref(7)
 const gridColumns = ref(1) // 1 or 2 columns on md-xl
 const sentinelRef = ref(null)
 let observer = null
+let isLoadingMore = false
 
-const { data: rawTasks, loading } = useCachedApi('/public/tasks/best', {
+const { data: rawTasks, loading } = useCachedApi('/public/tasks/all', {
+  ttl: 5 * 60 * 1000,
+  persist: true,
+  swr: true,
+})
+
+const { data: rawBestTasks, loading: bestLoading } = useCachedApi('/public/tasks/best', {
   ttl: 10 * 60 * 1000,
   persist: true,
   swr: true,
@@ -58,13 +66,20 @@ const hasMore = computed(() => {
 })
 
 const loadMore = () => {
-  if (hasMore.value) {
-    displayCount.value += 6
+  if (hasMore.value && !isLoadingMore) {
+    isLoadingMore = true
+    displayCount.value += 7
+    setTimeout(() => {
+      isLoadingMore = false
+    }, 250)
   }
 }
 
 const bestTasks = computed(() => {
-  return allTasks.value.slice(0, 5)
+  const list = Array.isArray(rawBestTasks.value)
+    ? rawBestTasks.value
+    : (Array.isArray(rawBestTasks.value?.data) ? rawBestTasks.value.data : [])
+  return list.slice(0, 5)
 })
 
 const setupIntersectionObserver = () => {
@@ -76,7 +91,7 @@ const setupIntersectionObserver = () => {
         loadMore()
       }
     },
-    { rootMargin: '200px' }
+    { rootMargin: '250px' }
   )
 
   if (sentinelRef.value) {
@@ -84,8 +99,16 @@ const setupIntersectionObserver = () => {
   }
 }
 
+watch(() => allTasks.value.length, () => {
+  nextTick(() => {
+    setupIntersectionObserver()
+  })
+})
+
 onMounted(() => {
-  setupIntersectionObserver()
+  nextTick(() => {
+    setupIntersectionObserver()
+  })
 })
 
 onBeforeUnmount(() => {
@@ -147,7 +170,7 @@ onBeforeUnmount(() => {
 
             <!-- List items -->
             <div
-              v-if="loading && bestTasks.length === 0"
+              v-if="bestLoading && bestTasks.length === 0"
               class="text-center py-6"
             >
               <VProgressCircular
@@ -195,7 +218,7 @@ onBeforeUnmount(() => {
                     >
                       <VImg
                         v-if="task.authorId?.image"
-                        :src="task.authorId.image"
+                        :src="takePic(task.authorId.image)"
                       />
                       <span
                         v-else
@@ -332,13 +355,15 @@ onBeforeUnmount(() => {
                 <HomeCard
                   class="card-post"
                   :task-id="task._id"
-                  :task-name="task.caption || 'Project Task'"
+                  :task-name="task.projectTitle || 'Project Task'"
                   :description="task.caption"
                   :media-type="task.mediaType"
                   :media-url="task.mediaUrl"
                   :media-urls="task.mediaUrls"
                   :grade="task.review?.grade"
-                  :students="[task.authorId]"
+                  :students="[task.authorId, ...(task.collaborators || [])].filter(Boolean)"
+                  :teacher="task.review?.mentorName ? { name: task.review.mentorNickname || task.review.mentorName, nickname: task.review.mentorNickname } : null"
+                  :teacher-img="task.review?.mentorImage || null"
                   :review="task.review?.comment || ''"
                   :date="task.createdAt"
                 />

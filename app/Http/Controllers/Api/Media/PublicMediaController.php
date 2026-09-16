@@ -21,13 +21,29 @@ class PublicMediaController extends Controller
     public function bestTasks(Request $request)
     {
         try {
+            $forceRefresh = $request->boolean('refresh') || $request->has('nocache');
+            $cacheKey = 'public_best_tasks_v2';
+            if ($forceRefresh) {
+                Cache::forget($cacheKey);
+            }
+
             // Cache for 10 minutes (600 seconds)
-            $formatted = Cache::remember('public_best_tasks_v1', 600, function () {
-                $tasks = MediaTask::with(['user', 'mentor', 'collaborators', 'project', 'likes', 'comments.user'])
-                    ->whereNotNull('grade')
-                    ->orderByDesc('grade')
-                    ->limit(10)
-                    ->get();
+            $formatted = Cache::remember($cacheKey, 600, function () {
+                $tasks = MediaTask::with([
+                    'student.user',
+                    'mentorTeacher.user',
+                    'studentCollaborators.user',
+                    'user.adminStudent',
+                    'mentor.adminTeacher',
+                    'collaborators.adminStudent',
+                    'project',
+                    'likes',
+                    'comments.user'
+                ])
+                ->whereNotNull('grade')
+                ->orderByDesc('grade')
+                ->limit(10)
+                ->get();
 
                 return $tasks->map(function ($task) {
                     return MediaFormatter::formatTask($task);
@@ -42,6 +58,50 @@ class PublicMediaController extends Controller
             return response()->json([
                 'success' => false,
                 'error' => 'Failed to fetch best tasks: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get all tasks sorted from the latest (created_at DESC).
+     */
+    public function allMediaTasks(Request $request)
+    {
+        try {
+            $forceRefresh = $request->boolean('refresh') || $request->has('nocache');
+            $cacheKey = 'public_all_media_tasks_v3';
+            if ($forceRefresh) {
+                Cache::forget($cacheKey);
+            }
+
+            $formatted = Cache::remember($cacheKey, 180, function () {
+                $tasks = MediaTask::with([
+                    'student.user',
+                    'mentorTeacher.user',
+                    'studentCollaborators.user',
+                    'user.adminStudent',
+                    'mentor.adminTeacher',
+                    'collaborators.adminStudent',
+                    'project',
+                    'likes',
+                    'comments.user'
+                ])
+                ->orderByDesc('created_at')
+                ->get();
+
+                return $tasks->map(function ($task) {
+                    return MediaFormatter::formatTask($task);
+                })->values()->all();
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $formatted,
+            ])->header('Cache-Control', 'public, max-age=60, stale-while-revalidate=180');
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Failed to fetch all tasks: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -156,7 +216,55 @@ class PublicMediaController extends Controller
         try {
             return GoogleDriveService::streamFile($id, $request);
         } catch (\Throwable $e) {
-            return redirect()->to("https://drive.usercontent.google.com/download?id={$id}&export=download");
+            return redirect()->to("https://lh3.googleusercontent.com/d/{$id}=w1000");
+        }
+    }
+
+    /**
+     * Proxy external image with caching and fallback
+     */
+    public function proxyImage($id)
+    {
+        try {
+            $cacheKey = "media_img_raw_{$id}";
+            $data = Cache::remember($cacheKey, 604800, function () use ($id) {
+                $urls = [
+                    "https://lh3.googleusercontent.com/d/{$id}=w1000",
+                    "https://drive.usercontent.google.com/download?id={$id}&export=download",
+                ];
+                foreach ($urls as $u) {
+                    try {
+                        $resp = Http::withoutVerifying()
+                            ->withHeaders([
+                                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                            ])
+                            ->timeout(12)
+                            ->get($u);
+
+                        if ($resp->successful() && strlen($resp->body()) > 1000) {
+                            return [
+                                'content' => base64_encode($resp->body()),
+                                'type' => $resp->header('Content-Type') ?: 'image/jpeg',
+                            ];
+                        }
+                    } catch (\Throwable $e) {
+                        continue;
+                    }
+                }
+                return null;
+            });
+
+            if (!$data) {
+                return redirect()->to("https://lh3.googleusercontent.com/d/{$id}=w1000");
+            }
+
+            return response(base64_decode($data['content']), 200, [
+                'Content-Type' => $data['type'],
+                'Cache-Control' => 'public, max-age=604800, immutable',
+                'Access-Control-Allow-Origin' => '*',
+            ]);
+        } catch (\Throwable $e) {
+            return redirect()->to("https://lh3.googleusercontent.com/d/{$id}=w1000");
         }
     }
 
@@ -171,21 +279,62 @@ class PublicMediaController extends Controller
         }
 
         try {
+            preg_match('/id=([^&]+)/', $url, $m);
+            $fileId = $m[1] ?? null;
+
+            // 1. Try Google Drive API if token available
+            $token = GoogleDriveService::getAccessToken();
+            if ($fileId && $token) {
+                $response = Http::withoutVerifying()
+                    ->withToken($token)
+                    ->get("https://www.googleapis.com/drive/v3/files/{$fileId}?alt=media");
+
+                if ($response->successful()) {
+                    return response($response->body(), 200, [
+                        'Content-Type' => 'application/pdf',
+                        'Access-Control-Allow-Origin' => '*',
+                        'Cache-Control' => 'public, max-age=86400',
+                    ]);
+                }
+            }
+
+            // 2. Try direct download link
+            $fetchUrl = $fileId
+                ? "https://drive.usercontent.google.com/download?id={$fileId}&export=download"
+                : $url;
+
             $response = Http::withoutVerifying()
                 ->withHeaders([
                     'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
                 ])
-                ->get($url);
+                ->get($fetchUrl);
 
-            if (!$response->successful()) {
-                return response('Failed to fetch document', $response->status());
+            if ($response->successful()) {
+                return response($response->body(), 200, [
+                    'Content-Type' => 'application/pdf',
+                    'Access-Control-Allow-Origin' => '*',
+                    'Cache-Control' => 'public, max-age=86400',
+                ]);
             }
 
-            return response($response->body(), 200, [
-                'Content-Type' => $response->header('Content-Type') ?: 'application/pdf',
-                'Access-Control-Allow-Origin' => '*',
-                'Cache-Control' => 'public, max-age=86400',
-            ]);
+            // 3. Fallback to original URL
+            if ($fetchUrl !== $url) {
+                $response = Http::withoutVerifying()
+                    ->withHeaders([
+                        'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                    ])
+                    ->get($url);
+
+                if ($response->successful()) {
+                    return response($response->body(), 200, [
+                        'Content-Type' => 'application/pdf',
+                        'Access-Control-Allow-Origin' => '*',
+                        'Cache-Control' => 'public, max-age=86400',
+                    ]);
+                }
+            }
+
+            return response('Failed to fetch document', 502);
         } catch (\Throwable $e) {
             return response('Error fetching document: ' . $e->getMessage(), 500);
         }

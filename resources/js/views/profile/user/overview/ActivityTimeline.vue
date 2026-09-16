@@ -3,6 +3,7 @@ import { humanDate } from '@/@core/utils/helpers'
 import { activities } from '@/composables/fetchMemberData'
 import avatar from '@images/avatars/no-profile.png'
 
+const showFullDescription = ref(false)
 </script>
 
 <template>
@@ -37,7 +38,9 @@ import avatar from '@images/avatars/no-profile.png'
           size="40"
           class="mb-2"
         />
-        <p class="mb-0">Belum ada aktivitas tugas.</p>
+        <p class="mb-0">
+          Belum ada aktivitas tugas.
+        </p>
       </div>
 
       <VTimeline
@@ -54,9 +57,20 @@ import avatar from '@images/avatars/no-profile.png'
           size="x-small"
         >
           <div class="d-flex justify-space-between align-center flex-wrap">
-            <span class="app-timeline-title">
+            <span 
+              class="app-timeline-title"
+              :style="!showFullDescription ? 'display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; white-space: pre-wrap; line-height: 1.6;' : 'white-space: pre-wrap; line-height: 1.6;'"
+            >
               {{ task.name || task.caption || `Task #${task.id}` }}
             </span>
+            <a 
+              v-if="(task.name || task.caption || `Task #${task.id}`) && (task.name || task.caption || `Task #${task.id}`).length > 100" 
+              href="#" 
+              class="text-primary text-caption font-weight-semibold text-decoration-none mt-1 d-inline-block" 
+              @click.prevent="showFullDescription = !showFullDescription"
+            >
+              {{ showFullDescription ? 'Show less' : 'Read more' }}
+            </a>
             <span class="app-timeline-meta">{{ humanDate(task.date || task.created_at) }}</span>
           </div>
           <div class="d-flex justify-space-between align-center flex-wrap">

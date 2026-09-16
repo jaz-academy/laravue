@@ -3,7 +3,7 @@ import Footer from '@/views/front/front-page-footer.vue'
 import Navbar from '@/views/front/front-page-navbar.vue'
 import HeroSection from '@/views/front/sections/hero-section.vue'
 import HomeCard from '@/views/front/sections/HomeCard.vue'
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCachedApi } from '@/composables/useCachedApi'
 
@@ -15,6 +15,10 @@ definePage({ meta: { layout: 'blank', public: true } })
 const searchQuery = ref(route.query.search || '')
 const hasQuery = computed(() => Object.keys(route.query).length > 0)
 const activeSectionId = ref(null)
+const displayCount = ref(7)
+const sentinelRef = ref(null)
+let observer = null
+let isLoadingMore = false
 
 const { data: rawTasks, loading } = useCachedApi('/public/tasks/best', {
   ttl: 10 * 60 * 1000,
@@ -22,14 +26,83 @@ const { data: rawTasks, loading } = useCachedApi('/public/tasks/best', {
   swr: true,
 })
 
-const tasks = computed(() => {
+const allFilteredTasks = computed(() => {
+  let list = []
   if (Array.isArray(rawTasks.value)) {
-    return rawTasks.value.slice(0, 6)
+    list = rawTasks.value
+  } else if (Array.isArray(rawTasks.value?.data)) {
+    list = rawTasks.value.data
   }
-  if (Array.isArray(rawTasks.value?.data)) {
-    return rawTasks.value.data.slice(0, 6)
+
+  if (searchQuery.value) {
+    const q = searchQuery.value.toLowerCase().trim()
+    list = list.filter(task => {
+      const authorName = task.authorId?.name?.toLowerCase() || ''
+      const authorNick = task.authorId?.nickname?.toLowerCase() || ''
+      const caption = task.caption?.toLowerCase() || ''
+      const projTitle = task.projectTitle?.toLowerCase() || ''
+      const collabs = (task.collaborators || []).some(c =>
+        c.name?.toLowerCase().includes(q) || c.nickname?.toLowerCase().includes(q)
+      )
+      return authorName.includes(q) || authorNick.includes(q) || caption.includes(q) || projTitle.includes(q) || collabs
+    })
   }
-  return []
+
+  return list
+})
+
+const tasks = computed(() => {
+  return allFilteredTasks.value.slice(0, displayCount.value)
+})
+
+const hasMore = computed(() => {
+  return displayCount.value < allFilteredTasks.value.length
+})
+
+const loadMore = () => {
+  if (hasMore.value && !isLoadingMore) {
+    isLoadingMore = true
+    displayCount.value += 7
+    setTimeout(() => {
+      isLoadingMore = false
+    }, 250)
+  }
+}
+
+const setupIntersectionObserver = () => {
+  if (observer) observer.disconnect()
+
+  observer = new IntersectionObserver(
+    entries => {
+      if (entries[0].isIntersecting && hasMore.value) {
+        loadMore()
+      }
+    },
+    { rootMargin: '250px' }
+  )
+
+  if (sentinelRef.value) {
+    observer.observe(sentinelRef.value)
+  }
+}
+
+watch(() => allFilteredTasks.value.length, () => {
+  displayCount.value = 7
+  nextTick(() => {
+    setupIntersectionObserver()
+  })
+})
+
+onMounted(() => {
+  nextTick(() => {
+    setupIntersectionObserver()
+  })
+})
+
+onBeforeUnmount(() => {
+  if (observer) {
+    observer.disconnect()
+  }
 })
 
 const applySearch = () => {
@@ -52,7 +125,7 @@ watch(() => route.query.search, val => {
     />
 
     <div
-      v-if="loading"
+      v-if="loading && tasks.length === 0"
       class="text-center py-10 w-100"
     >
       <VProgressCircular
@@ -67,6 +140,7 @@ watch(() => route.query.search, val => {
       No tasks available.
     </div>
     <div
+      v-else
       id="content-post"
       class="masonry-container homecard"
     >
@@ -78,17 +152,38 @@ watch(() => route.query.search, val => {
         <HomeCard
           class="card-post"
           :task-id="task._id"
-          :task-name="task.caption || 'Project Task'"
+          :task-name="task.projectTitle || 'Project Task'"
           :description="task.caption"
           :media-type="task.mediaType"
           :media-url="task.mediaUrl"
           :media-urls="task.mediaUrls"
           :grade="task.review?.grade"
-          :students="[task.authorId]"
+          :students="[task.authorId, ...(task.collaborators || [])].filter(Boolean)"
+          :teacher="task.review?.mentorName ? { name: task.review.mentorNickname || task.review.mentorName, nickname: task.review.mentorNickname } : null"
+          :teacher-img="task.review?.mentorImage || null"
           :review="task.review?.comment || ''"
           :date="task.createdAt"
         />
       </div>
+    </div>
+
+    <!-- Sentinel for Infinite Scroll -->
+    <div
+      ref="sentinelRef"
+      class="sentinel-element d-flex justify-center align-center py-6"
+    >
+      <VProgressCircular
+        v-if="hasMore"
+        indeterminate
+        color="primary"
+        size="32"
+      />
+      <span
+        v-else-if="allFilteredTasks.length > 7"
+        class="text-caption text-medium-emphasis"
+      >
+        Semua karya pilihan telah dimuat
+      </span>
     </div>
 
     <!-- 👉 Footer -->
