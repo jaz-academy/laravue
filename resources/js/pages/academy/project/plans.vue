@@ -32,11 +32,14 @@ const plansData = computed(() => {
     is_active: Number(plan.is_active ?? 0),
     start_date: plan.start_date || '',
     end_date: plan.end_date || '',
+    admin_teacher_id: plan.admin_teacher_id || plan.admin_teacher?.id || null,
+    mentor_name: plan.mentor_name || plan.admin_teacher?.nickname || plan.admin_teacher?.name || '',
   }))
 })
 
 const headers = [
   { title: 'Theme', key: 'theme' },
+  { title: 'Mentor', key: 'mentor_name' },
   { title: 'Status', key: 'is_active' },
   { title: 'Started', key: 'start_date' },
   { title: 'Deadline', key: 'end_date' },
@@ -192,6 +195,22 @@ const searchQuery = ref('')
                   {{ item.description?.substring(0,50) + '...' }}
                 </div>
               </div>
+            </div>
+          </template>
+
+          <template #item.mentor_name="{ item }">
+            <div class="d-flex align-center gap-x-2">
+              <VAvatar
+                size="28"
+                variant="tonal"
+                color="primary"
+              >
+                <VIcon
+                  icon="tabler-school"
+                  size="16"
+                />
+              </VAvatar>
+              <span class="text-body-2 font-weight-medium">{{ item.mentor_name || '-' }}</span>
             </div>
           </template>
 

@@ -50,58 +50,60 @@ const duplicateTask = task => {
   isDrawerOpen.value = true
 }
 
+const getTaskType = task => {
+  const m = (task?.media_type || task?.media || '').toLowerCase()
+  const u = (task?.media_url || task?.link || '').toLowerCase()
+  if (m === 'document' || m.includes('pdf') || m.includes('drive') || u.endsWith('.pdf')) return 'document'
+  if (m === 'video' || m.includes('youtube') || m.includes('tiktok') || u.endsWith('.mp4')) return 'video'
+  return 'image'
+}
+
 // data untuk widgets
 const widgetData = computed(() => {
-  const Tasks = computed(() => allTasks.value || [])
+  const list = allTasks.value || []
   
+  const calcMetric = filterFn => {
+    const subset = list.filter(filterFn)
+    const total = subset.length
+    const completed = subset.filter(t => t.accepted == '1' || t.status === 'Completed').length
+    const unapproved = subset.filter(t => t.accepted == '0' && t.status !== 'Completed').length
+    const change = total ? ((completed / total) * 100).toFixed(1) : 0
+    return { total, unapproved, change }
+  }
+
+  const allM = calcMetric(() => true)
+  const imgM = calcMetric(t => getTaskType(t) === 'image')
+  const vidM = calcMetric(t => getTaskType(t) === 'video')
+  const docM = calcMetric(t => getTaskType(t) === 'document')
+
   return [
     {
-      title: 'Instagram',
-      value: Tasks.value.filter(task => task.media === 'Instagram').length,
-      icon: 'tabler-brand-instagram',
-      desc: `${Tasks.value.filter(task => task.media === 'Instagram' && task.accepted == '0').length} unchecked`,
-      change: (() => {
-        const total = Tasks.value.filter(task => task.media === 'Instagram').length
-        const completed = Tasks.value.filter(task => task.media === 'Instagram' && task.accepted == '1').length
-        
-        return total ? ((completed / total) * 100).toFixed(1) : 0
-      })(),
+      title: 'Semua Karya',
+      value: allM.total,
+      icon: 'tabler-layout-grid',
+      desc: `${allM.unapproved} unapproved`,
+      change: allM.change,
     },
     {
-      title: 'TikTok',
-      value: Tasks.value.filter(task => task.media == 'TikTok').length,
-      icon: 'tabler-brand-tiktok',
-      desc: `${Tasks.value.filter(task => task.media == 'TikTok' && task.accepted == '0').length} unchecked`,
-      change: (() => {
-        const total = Tasks.value.filter(task => task.media == 'TikTok').length
-        const completed = Tasks.value.filter(task => task.media == 'TikTok' && task.accepted == '1').length
-        
-        return total ? ((completed / total) * 100).toFixed(1) : 0
-      })(),
+      title: 'Gambar / Carousel',
+      value: imgM.total,
+      icon: 'tabler-photo',
+      desc: `${imgM.unapproved} unapproved`,
+      change: imgM.change,
     },
     {
-      title: 'YouTube',
-      value: Tasks.value.filter(task => task.media === 'YouTube').length,
-      icon: 'tabler-brand-youtube',
-      desc: `${Tasks.value.filter(task => task.media === 'YouTube' && task.accepted == '0').length} unchecked`,
-      change: (() => {
-        const total = Tasks.value.filter(task => task.media === 'YouTube').length
-        const completed = Tasks.value.filter(task => task.media === 'YouTube' && task.accepted == '1').length
-        
-        return total ? ((completed / total) * 100).toFixed(1) : 0
-      })(),
+      title: 'Video',
+      value: vidM.total,
+      icon: 'tabler-video',
+      desc: `${vidM.unapproved} unapproved`,
+      change: vidM.change,
     },
     {
-      title: 'Others',
-      value: Tasks.value.filter(task => task.media !== 'Instagram' && task.media !== 'TikTok' && task.media !== 'YouTube').length,
-      icon: 'tabler-world',
-      desc: `${Tasks.value.filter(task => task.media !== 'Instagram' && task.media !== 'TikTok' && task.media !== 'YouTube' && task.accepted == '0').length} unchecked`,
-      change: (() => {
-        const total = Tasks.value.filter(task => task.media !== 'Instagram' && task.media !== 'TikTok' && task.media !== 'YouTube').length
-        const completed = Tasks.value.filter(task => task.media !== 'Instagram' && task.media !== 'TikTok' && task.media !== 'YouTube' && task.accepted == '1').length
-
-        return total ? ((completed / total) * 100).toFixed(1) : 0
-      })(),
+      title: 'Dokumen PDF',
+      value: docM.total,
+      icon: 'tabler-file-text',
+      desc: `${docM.unapproved} unapproved`,
+      change: docM.change,
     },
   ]
 })
@@ -160,12 +162,11 @@ const dataTasks = computed(() => tasksData.value?.tasks || [] )
 const totalTasks = computed(() => tasksData.value?.totalTasks || 0)
 
 // data untuk option select
-const mediaOptions = computed(() => {
-  const medias = tasksData.value?.tasks?.map(task => task.media) || []
-  const uniqueMedias = [...new Set(medias.filter(Boolean))]
-
-  return uniqueMedias.map(media => ({ title: media, value: media }))
-})
+const mediaOptions = ref([
+  { title: 'Gambar / Carousel', value: 'image' },
+  { title: 'Video', value: 'video' },
+  { title: 'Dokumen PDF', value: 'document' },
+])
 
 const statusOptions = ref([
   {
@@ -229,31 +230,26 @@ const headers = [
 
 // icon media tasks
 const resolveMedia = media => {
-  if (media == 'Instagram')
-    return {
-      color: 'primary',
-      icon: 'tabler-brand-instagram',
-    }
-  if (media == 'TikTok')
-    return {
-      color: 'info',
-      icon: 'tabler-brand-tiktok',
-    }
-  if (media == 'YouTube')
-    return {
-      color: 'error',
-      icon: 'tabler-brand-youtube',
-    }
-  if (media == 'Google Drive')
+  const m = (media || '').toLowerCase()
+  if (m === 'document' || m.includes('pdf') || m.includes('google drive') || m.includes('doc')) {
     return {
       color: 'warning',
-      icon: 'tabler-brand-google',
+      icon: 'tabler-file-text',
+      title: 'Dokumen PDF',
     }
-  else
+  }
+  if (m === 'video' || m.includes('tiktok') || m.includes('youtube') || m.includes('mp4')) {
     return {
-      color: 'primary',
-      icon: 'tabler-world',
+      color: 'error',
+      icon: 'tabler-video',
+      title: 'Video',
     }
+  }
+  return {
+    color: 'primary',
+    icon: 'tabler-photo',
+    title: 'Gambar',
+  }
 }
 
 // warna teks status

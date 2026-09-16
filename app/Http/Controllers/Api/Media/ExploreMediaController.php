@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Media;
 
 use App\Http\Controllers\Controller;
+use App\Models\AdminStudent;
 use App\Models\MediaProject;
 use App\Models\MediaTask;
 use App\Models\User;
@@ -26,13 +27,13 @@ class ExploreMediaController extends Controller
         try {
             $currentUserId = Auth::guard('sanctum')->id();
 
-            $tasks = MediaTask::with(['user', 'mentor', 'collaborators', 'project', 'likes', 'comments.user'])
+            $tasks = MediaTask::with(['student', 'mentorTeacher', 'studentCollaborators', 'project', 'likes', 'comments.user'])
                 ->where(function ($q) use ($query) {
                     $q->where('caption', 'like', "%{$query}%")
                       ->orWhere('media_type', 'like', "%{$query}%")
-                      ->orWhereHas('user', function ($uq) use ($query) {
-                          $uq->where('name', 'like', "%{$query}%")
-                             ->orWhere('username', 'like', "%{$query}%");
+                      ->orWhereHas('student', function ($sq) use ($query) {
+                          $sq->where('name', 'like', "%{$query}%")
+                             ->orWhere('nickname', 'like', "%{$query}%");
                       })
                       ->orWhereHas('project', function ($pq) use ($query) {
                           $pq->where('title', 'like', "%{$query}%");
@@ -52,7 +53,7 @@ class ExploreMediaController extends Controller
     }
 
     /**
-     * Search users by query
+     * Search users / students by query
      */
     public function searchUsers(Request $request)
     {
@@ -62,23 +63,24 @@ class ExploreMediaController extends Controller
         }
 
         try {
-            $users = User::where(function ($q) use ($query) {
+            $students = AdminStudent::where(function ($q) use ($query) {
                 $q->where('name', 'like', "%{$query}%")
-                  ->orWhere('username', 'like', "%{$query}%")
-                  ->orWhere('bio', 'like', "%{$query}%");
+                  ->orWhere('nickname', 'like', "%{$query}%")
+                  ->orWhere('role', 'like', "%{$query}%")
+                  ->orWhere('note', 'like', "%{$query}%");
             })
             ->limit(15)
             ->get();
 
-            $data = $users->map(function ($u) {
+            $data = $students->map(function ($s) {
                 return [
-                    'id' => (string) $u->id,
-                    '_id' => (string) ($u->mongodb_id ?: $u->id),
-                    'name' => $u->name,
-                    'username' => $u->username ?: '',
-                    'image' => $u->image ?: '/no-photo.png',
-                    'role' => $u->media_role ?: 'member',
-                    'bio' => $u->bio ?: '',
+                    'id' => (string) $s->id,
+                    '_id' => (string) $s->id,
+                    'name' => $s->name,
+                    'username' => $s->nickname ?: '',
+                    'image' => MediaFormatter::formatAvatarUrl($s->image),
+                    'role' => $s->role ?: 'member',
+                    'bio' => $s->note ?: ($s->ambition ?: ''),
                 ];
             });
 
@@ -130,37 +132,34 @@ class ExploreMediaController extends Controller
         $query = $request->query('q', '');
 
         try {
-            $membersQuery = User::where(function ($q) {
-                $q->where('media_role', 'member')
-                  ->orWhere('role', '<=', 2);
-            });
+            $studentsQuery = AdminStudent::query();
 
             if (trim($query) !== '') {
-                $membersQuery->where(function ($q) use ($query) {
+                $studentsQuery->where(function ($q) use ($query) {
                     $q->where('name', 'like', "%{$query}%")
-                      ->orWhere('username', 'like', "%{$query}%");
+                      ->orWhere('nickname', 'like', "%{$query}%");
                 });
             }
 
-            $members = $membersQuery->get(['id', 'mongodb_id', 'name', 'username', 'image']);
-            $memberIds = $members->pluck('id')->toArray();
+            $students = $studentsQuery->get(['id', 'name', 'nickname', 'image']);
+            $studentIds = $students->pluck('id')->toArray();
 
-            // All tasks where author or collaborator
-            $tasks = MediaTask::with('collaborators')
-                ->whereIn('user_id', $memberIds)
-                ->orWhereHas('collaborators', function ($q) use ($memberIds) {
-                    $q->whereIn('user_id', $memberIds);
+            // All tasks where student is author or collaborator
+            $tasks = MediaTask::with('studentCollaborators')
+                ->whereIn('admin_student_id', $studentIds)
+                ->orWhereHas('studentCollaborators', function ($q) use ($studentIds) {
+                    $q->whereIn('admin_students.id', $studentIds);
                 })
-                ->get(['id', 'user_id', 'created_at']);
+                ->get(['id', 'admin_student_id', 'created_at']);
 
             $now = Carbon::now();
 
-            $streaks = $members->map(function ($member) use ($tasks, $now) {
-                $mId = $member->id;
+            $streaks = $students->map(function ($student) use ($tasks, $now) {
+                $sId = $student->id;
 
-                $authoredTasks = $tasks->filter(fn($t) => $t->user_id === $mId);
-                $collabTasks = $tasks->filter(function ($t) use ($mId) {
-                    return $t->collaborators->contains('id', $mId);
+                $authoredTasks = $tasks->filter(fn($t) => $t->admin_student_id === $sId);
+                $collabTasks = $tasks->filter(function ($t) use ($sId) {
+                    return $t->studentCollaborators->contains('id', $sId);
                 });
 
                 $streakTaskCount = 0;
@@ -189,11 +188,11 @@ class ExploreMediaController extends Controller
                 });
 
                 return [
-                    'id' => (string) ($member->mongodb_id ?: $member->id),
-                    'numeric_id' => $member->id,
-                    'name' => $member->name,
-                    'username' => $member->username ?: '',
-                    'image' => $member->image ?: '/no-photo.png',
+                    'id' => (string) $student->id,
+                    'numeric_id' => $student->id,
+                    'name' => $student->name,
+                    'username' => $student->nickname ?: '',
+                    'image' => MediaFormatter::formatAvatarUrl($student->image),
                     'totalTasks' => $authoredTasks->count(),
                     'totalCollabs' => $collabTasks->count(),
                     'streakCount' => $streakTaskCount,

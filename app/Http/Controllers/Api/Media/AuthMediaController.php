@@ -7,8 +7,10 @@ use App\Models\User;
 use App\Services\MediaFormatter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 class AuthMediaController extends Controller
 {
@@ -24,14 +26,24 @@ class AuthMediaController extends Controller
             'password' => 'required|string|min:6',
         ]);
 
+        if (!str_ends_with(strtolower($request->email), '@jazacademy.id')) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Pendaftaran hanya diperbolehkan untuk akun resmi @jazacademy.id',
+            ], 422);
+        }
+
         try {
+            $student = \App\Models\AdminStudent::where('email', $request->email)->first();
+
             $user = User::create([
-                'name' => $request->name,
+                'name' => $student ? $student->name : $request->name,
                 'email' => $request->email,
                 'username' => $request->username,
                 'password' => Hash::make($request->password),
+                'admin_student_id' => $student ? $student->id : null,
                 'media_role' => 'member',
-                'role' => 1,
+                'role' => 2,
             ]);
 
             $token = $user->createToken('JazMedia Access Token')->plainTextToken;
@@ -44,6 +56,111 @@ class AuthMediaController extends Controller
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * Login for JazMedia user (supports email or username)
+     */
+    public function login(Request $request)
+    {
+        $request->validate([
+            'username' => 'required|string',
+            'password' => 'required|string',
+        ]);
+
+        try {
+            $identifier = $request->username;
+            $user = User::where('email', $identifier)
+                ->orWhere('username', $identifier)
+                ->first();
+
+            if (!$user || !Hash::check($request->password, $user->password)) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Email/Username atau kata sandi tidak valid',
+                ], 401);
+            }
+
+            $token = $user->createToken('JazMedia Access Token')->plainTextToken;
+
+            return response()->json([
+                'success' => true,
+                'token' => $token,
+                'user' => MediaFormatter::formatUser($user),
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Create single-use SSO Ticket for authenticated user
+     */
+    public function createSsoTicket(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['success' => false, 'error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            // Generate secure ticket
+            $ticket = 'sso_' . Str::random(64);
+
+            // Store in cache for 5 minutes (300s)
+            Cache::put("jazmedia_sso_ticket:{$ticket}", $user->id, 300);
+
+            $mediaBaseUrl = env('JAZMEDIA_BASE_URL', 'http://localhost:3000');
+            $redirectUrl = rtrim($mediaBaseUrl, '/') . '/auth/sso?ticket=' . $ticket;
+
+            return response()->json([
+                'success' => true,
+                'ticket' => $ticket,
+                'redirectUrl' => $redirectUrl,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Exchange single-use SSO Ticket for user session & token
+     */
+    public function exchangeSsoTicket(Request $request)
+    {
+        $request->validate([
+            'ticket' => 'required|string',
+        ]);
+
+        $ticket = $request->ticket;
+        $cacheKey = "jazmedia_sso_ticket:{$ticket}";
+
+        $userId = Cache::get($cacheKey);
+        if (!$userId) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Tiket SSO tidak valid atau sudah kedaluwarsa',
+            ], 400);
+        }
+
+        // Single-use: burn ticket immediately
+        Cache::forget($cacheKey);
+
+        $user = User::find($userId);
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'error' => 'User tidak ditemukan',
+            ], 404);
+        }
+
+        $token = $user->createToken('JazMedia SSO Token')->plainTextToken;
+
+        return response()->json([
+            'success' => true,
+            'token' => $token,
+            'user' => MediaFormatter::formatUser($user),
+        ]);
     }
 
     /**

@@ -33,6 +33,7 @@ use App\Http\Controllers\Api\Media\UserMediaController;
 use App\Http\Controllers\Api\Media\AdminMediaController;
 use App\Http\Controllers\Api\Media\AuthMediaController;
 use App\Http\Controllers\Api\Media\DriveMediaController;
+use App\Http\Controllers\Api\Media\ReflectionMediaController;
 use App\Models\FinanceDeposit;
 use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
@@ -94,6 +95,8 @@ Route::group(['prefix' => 'public'], function () {
 Route::group(['prefix' => 'media'], function () {
   // Auth & Instagram (Public)
   Route::post('auth/register', [AuthMediaController::class, 'register']);
+  Route::post('auth/login', [AuthMediaController::class, 'login']);
+  Route::post('auth/sso-exchange', [AuthMediaController::class, 'exchangeSsoTicket']);
   Route::post('auth/instagram/exchange-code', [AuthMediaController::class, 'exchangeInstagramCode']);
 
   // Public / Read Endpoints
@@ -116,6 +119,10 @@ Route::group(['prefix' => 'media'], function () {
   Route::get('explore/streaks', [ExploreMediaController::class, 'getStreaks']);
 
   Route::get('users/{id}/public', [UserMediaController::class, 'publicProfile']);
+
+  // Reflections (Public Feed)
+  Route::get('reflections', [ReflectionMediaController::class, 'index']);
+  Route::get('reflections/{id}', [ReflectionMediaController::class, 'show']);
 
   // Authenticated Endpoints (Sanctum)
   Route::group(['middleware' => 'auth:sanctum'], function () {
@@ -152,9 +159,14 @@ Route::group(['prefix' => 'media'], function () {
     Route::put('profile', [UserMediaController::class, 'updateProfile']);
     Route::post('profile/upload-picture', [UserMediaController::class, 'uploadPicture']);
 
-    // Instagram Account Link / Unlink
+    // Instagram Account Link / Unlink & SSO Ticket
+    Route::post('auth/sso-ticket', [AuthMediaController::class, 'createSsoTicket']);
     Route::post('auth/instagram/link', [AuthMediaController::class, 'linkInstagram']);
     Route::post('auth/instagram/unlink', [AuthMediaController::class, 'unlinkInstagram']);
+
+    // Reflections
+    Route::post('reflections', [ReflectionMediaController::class, 'store']);
+    Route::get('reflections/user/me', [ReflectionMediaController::class, 'myReflections']);
 
     // Google Drive Upload
     Route::post('drive/upload-session', [DriveMediaController::class, 'createUploadSession']);
