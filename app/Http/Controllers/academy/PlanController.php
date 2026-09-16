@@ -20,6 +20,7 @@ class PlanController extends Controller
                 'tasks.user.adminStudent',
                 'tasks.collaborators.adminStudent',
                 'mentor.adminTeacher',
+                'mentorTeacher',
             ])
             ->orderByDesc('id')
             ->get();
@@ -28,6 +29,7 @@ class PlanController extends Controller
                 $parts = explode(' - ', $p->title, 2);
                 $subject = count($parts) > 1 ? trim($parts[0]) : $p->title;
                 $theme = count($parts) > 1 ? trim($parts[1]) : $p->title;
+                $mentorName = $p->mentorTeacher?->name ?: ($p->mentor?->adminTeacher?->name ?: ($p->mentor?->name ?: ''));
 
                 return [
                     'id' => $p->id,
@@ -36,6 +38,8 @@ class PlanController extends Controller
                     'description' => $p->description ?: '',
                     'is_active' => $p->status === 'active' ? 1 : 0,
                     'status' => $p->status,
+                    'admin_teacher_id' => $p->admin_teacher_id ?: ($p->mentor?->admin_teacher_id),
+                    'mentor_name' => $mentorName,
                     'start_date' => $p->created_at?->toDateString() ?: now()->toDateString(),
                     'end_date' => Carbon::now()->addMonths(6)->toDateString(),
                     'tasks_count' => $p->tasks->count(),
@@ -62,6 +66,7 @@ class PlanController extends Controller
             'subject' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'is_active' => 'nullable',
+            'admin_teacher_id' => 'nullable',
             'start_date' => 'nullable|string',
             'end_date' => 'nullable|string',
         ]);
@@ -73,11 +78,16 @@ class PlanController extends Controller
         $status = ($request->has('is_active') && !$request->is_active) ? 'archived' : 'active';
         $creatorId = Auth::id() ?: \App\Models\User::first()?->id;
 
+        $adminTeacherId = $request->admin_teacher_id ? (int) $request->admin_teacher_id : null;
+        $mentorUser = $adminTeacherId ? \App\Models\User::where('admin_teacher_id', $adminTeacherId)->first() : null;
+
         $project = MediaProject::create([
             'title' => $title,
             'description' => $request->description ?: '',
             'status' => $status,
             'creator_id' => $creatorId,
+            'admin_teacher_id' => $adminTeacherId,
+            'mentor_id' => $mentorUser?->id,
         ]);
 
         $parts = explode(' - ', $project->title, 2);
@@ -160,11 +170,18 @@ class PlanController extends Controller
             $project->status = $request->is_active ? 'active' : 'archived';
         }
 
+        if ($request->has('admin_teacher_id')) {
+            $project->admin_teacher_id = $request->admin_teacher_id ? (int) $request->admin_teacher_id : null;
+            $mentorUser = $project->admin_teacher_id ? \App\Models\User::where('admin_teacher_id', $project->admin_teacher_id)->first() : null;
+            $project->mentor_id = $mentorUser?->id;
+        }
+
         $project->save();
 
         $parts = explode(' - ', $project->title, 2);
         $subject = count($parts) > 1 ? trim($parts[0]) : $project->title;
         $theme = count($parts) > 1 ? trim($parts[1]) : $project->title;
+        $mentorName = $project->mentorTeacher?->name ?: ($project->mentor?->adminTeacher?->name ?: ($project->mentor?->name ?: ''));
 
         return response()->json([
             'success' => true,
@@ -175,6 +192,9 @@ class PlanController extends Controller
                 'subject' => $subject,
                 'description' => $project->description,
                 'is_active' => $project->status === 'active' ? 1 : 0,
+                'status' => $project->status,
+                'admin_teacher_id' => $project->admin_teacher_id ?: ($project->mentor?->admin_teacher_id),
+                'mentor_name' => $mentorName,
                 'start_date' => $project->created_at?->toDateString(),
                 'end_date' => Carbon::now()->addMonths(6)->toDateString(),
             ],

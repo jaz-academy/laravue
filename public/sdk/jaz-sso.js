@@ -167,26 +167,29 @@
       var scope = opt.scope || config.scope;
       var callback = opt.callback || config.callback;
 
-      if (!clientId) {
-        console.error('[JazId] Cannot sign in: client_id is missing.');
-        return;
-      }
-
-      if (!redirectUri) {
-        if (uxMode === 'popup') {
-          redirectUri = idpUrl.replace(/\/$/, '') + '/oauth/popup-callback';
-        } else {
-          redirectUri = window.location.href.split('#')[0];
+      var authUrl = opt.auth_url;
+      if (!authUrl) {
+        if (!clientId) {
+          console.error('[JazId] Cannot sign in: client_id is missing.');
+          return;
         }
-      }
 
-      var state = 'jaz_' + Math.random().toString(36).substring(2, 15);
-      var authUrl = idpUrl.replace(/\/$/, '') + '/oauth/authorize' +
-        '?client_id=' + encodeURIComponent(clientId) +
-        '&redirect_uri=' + encodeURIComponent(redirectUri) +
-        '&response_type=code' +
-        '&scope=' + encodeURIComponent(scope) +
-        '&state=' + encodeURIComponent(state);
+        if (!redirectUri) {
+          if (uxMode === 'popup') {
+            redirectUri = idpUrl.replace(/\/$/, '') + '/oauth/popup-callback';
+          } else {
+            redirectUri = window.location.href.split('#')[0];
+          }
+        }
+
+        var state = 'jaz_' + Math.random().toString(36).substring(2, 15);
+        authUrl = idpUrl.replace(/\/$/, '') + (opt.endpoint || '/oauth/authorize') +
+          '?client_id=' + encodeURIComponent(clientId) +
+          '&redirect_uri=' + encodeURIComponent(redirectUri) +
+          '&response_type=code' +
+          '&scope=' + encodeURIComponent(scope) +
+          '&state=' + encodeURIComponent(state);
+      }
 
       if (uxMode === 'redirect') {
         window.location.href = authUrl;
@@ -199,7 +202,7 @@
       var left = (window.screen.width - width) / 2;
       var top = (window.screen.height - height) / 2;
       var popup = window.open(
-        authUrl + '&display=popup',
+        authUrl + (authUrl.indexOf('?') === -1 ? '?' : '&') + 'display=popup',
         'JazAcademyAuthPopup',
         'width=' + width + ',height=' + height + ',top=' + top + ',left=' + left + ',toolbar=no,menubar=no,status=no,resizable=yes'
       );
@@ -257,10 +260,11 @@
       var size = opt.size || 'md';       // 'sm', 'md', 'lg'
       var shape = opt.shape || 'rounded';// 'rounded', 'pill', 'square'
       var text = opt.text || 'Login via Jaz Academy';
+      var customClass = opt.className ? ' ' + opt.className : '';
 
       var btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'jaz-btn-base jaz-btn-' + size + ' jaz-theme-' + theme + ' jaz-shape-' + shape;
+      btn.className = 'jaz-btn-base jaz-btn-' + size + ' jaz-theme-' + theme + ' jaz-shape-' + shape + customClass;
       btn.innerHTML = JAZ_LOGO_SVG + '<span>' + text + '</span>';
 
       btn.addEventListener('click', function (e) {

@@ -2,9 +2,11 @@
 import AppSelect from '@/@core/components/app-form-elements/AppSelect.vue'
 import { useUserAccess } from '@/@core/utils/helpers'
 import { useApi } from '@/composables/useApi'
+import { fetchTeacherData, teachers } from '@/composables/fetchTeacherData'
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 import { VBtn } from 'vuetify/components/VBtn' // pastikan path benar
 import { VForm } from 'vuetify/components/VForm'
+import { onMounted } from 'vue'
 
 const props = defineProps({
   isDrawerOpen: { type: Boolean, required: true },
@@ -13,6 +15,10 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:isDrawerOpen', 'planData'])
+
+onMounted(async () => {
+  await fetchTeacherData()
+})
 
 const subjectsData = await useApi('/subjects')
 
@@ -37,6 +43,7 @@ const form = reactive({
   start_date: '',
   end_date: '',
   is_active: 1,
+  admin_teacher_id: '',
 })
 
 watch(
@@ -50,6 +57,7 @@ watch(
         start_date: props.planData.start_date || '',
         end_date: props.planData.end_date || '',
         is_active: props.planData.is_active ?? 1,
+        admin_teacher_id: props.planData.admin_teacher_id || props.planData.admin_teacher?.id || '',
       })
     } else {
       Object.assign(form, {
@@ -59,6 +67,7 @@ watch(
         start_date: '',
         end_date: '',
         is_active: 1,
+        admin_teacher_id: '',
       })
     }
   },
@@ -183,6 +192,18 @@ const onSubmit = () => {
                   ]"
                   item-title="title"
                   item-value="value"
+                />
+              </VCol>
+
+              <VCol cols="12">
+                <AppSelect
+                  v-model="form.admin_teacher_id"
+                  label="Mentor (Guru)"
+                  placeholder="Pilih Mentor Guru"
+                  :items="teachers"
+                  item-title="nickname"
+                  item-value="id"
+                  clearable
                 />
               </VCol>
 

@@ -25,26 +25,80 @@ class MediaFormatter
         return "{$diffInYears} tahun yang lalu";
     }
 
+    public static function formatAvatarUrl(?string $image): ?string
+    {
+        if (empty($image)) {
+            return '/no-photo.png';
+        }
+
+        // If explicitly set to no-photo
+        if ($image === '/no-photo.png' || $image === 'no-photo' || str_contains($image, 'no-photo')) {
+            return '/no-photo.png';
+        }
+
+        // If it's an absolute URL (Google Drive, HTTPS, etc.) or internal stream
+        if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://') || str_starts_with($image, '/api/')) {
+            return $image;
+        }
+
+        // If it's a local storage path (e.g. avatars/teacher/... or avatars/student/...)
+        $relativePath = ltrim(str_replace('storage/', '', $image), '/');
+        if (file_exists(storage_path('app/public/' . $relativePath))) {
+            $baseUrl = config('app.url') ?: url('');
+            return rtrim($baseUrl, '/') . '/storage/' . $relativePath;
+        }
+
+        // Image was specified but not found on disk (like legacy avatars/teacher/1.png)
+        // Return null so frontend displays the user's initials instead of a 404 error
+        return null;
+    }
+
     public static function formatUser($user): ?array
     {
         if (!$user) return null;
 
-        $role = $user->media_role;
-        if (!$role) {
-            $role = $user->role >= 4 ? 'admin' : ($user->role >= 2 ? 'mentor' : 'member');
+        $student = $user->adminStudent;
+        $teacher = $user->adminTeacher;
+
+        // Image comes from student or teacher profile!
+        $avatarImage = $student?->image ?: ($teacher?->image ?: null);
+
+        // Bio comes from student note/ambition or teacher note
+        $bio = $student?->note ?: ($student?->ambition ?: ($teacher?->note ?: ($user->bio ?: '')));
+
+        // Skills from student or user
+        $skills = [];
+        if ($student && !empty($student->skills)) {
+            $skills = is_array($student->skills) ? $student->skills : (json_decode($student->skills, true) ?: []);
+        } elseif (is_array($user->skills)) {
+            $skills = $user->skills;
+        }
+
+        // Role mapping:
+        // Teacher / Manager -> mentor / admin
+        // Student -> member
+        if ($user->role >= 4 || $user->media_role === 'admin') {
+            $role = 'admin';
+        } elseif ($teacher || $user->admin_teacher_id || $user->media_role === 'mentor') {
+            $role = 'mentor';
+        } else {
+            $role = 'member';
         }
 
         return [
             'id' => (string) $user->id,
             '_id' => (string) ($user->mongodb_id ?: $user->id),
-            'name' => $user->name,
-            'username' => $user->username ?: '',
+            'student_id' => $student?->id,
+            'teacher_id' => $teacher?->id,
+            'name' => $student?->name ?: ($teacher?->name ?: $user->name),
+            'username' => $user->username ?: ($student?->nickname ?: ''),
             'email' => $user->email,
-            'image' => $user->image,
-            'bio' => $user->bio ?: '',
-            'skills' => is_array($user->skills) ? $user->skills : [],
+            'image' => self::formatAvatarUrl($avatarImage),
+            'bio' => $bio,
+            'skills' => $skills,
             'role' => $role,
-            'instagramId' => $user->instagram_id,
+            'student_role' => $student?->role,
+            'instagramId' => $student?->instagram ?: $user->instagram_id,
         ];
     }
 
@@ -58,7 +112,7 @@ class MediaFormatter
                 'name' => $student->name,
                 'nickname' => $student->nickname ?: $student->name,
                 'username' => $student->nickname ?: ($student->user?->username ?: ''),
-                'image' => $student->image ?: ($student->user?->image ?: '/no-photo.png'),
+                'image' => self::formatAvatarUrl($student->image ?: ($student->user?->image ?: null)),
                 'email' => $student->email ?: ($student->user?->email ?: ''),
                 'type' => 'student',
             ];
@@ -70,7 +124,7 @@ class MediaFormatter
                 'name' => $author ? $author->name : 'Member',
                 'nickname' => $author ? ($author->nickname ?: $author->name) : 'Member',
                 'username' => $author ? ($author->username ?: '') : '',
-                'image' => $author && $author->image ? $author->image : '/no-photo.png',
+                'image' => self::formatAvatarUrl($author ? $author->image : null),
                 'email' => $author ? $author->email : '',
                 'type' => 'user',
             ];
@@ -85,7 +139,7 @@ class MediaFormatter
                     'name' => $c->name,
                     'nickname' => $c->nickname ?: $c->name,
                     'username' => $c->nickname ?: ($c->user?->username ?: ''),
-                    'image' => $c->image ?: ($c->user?->image ?: '/no-photo.png'),
+                    'image' => self::formatAvatarUrl($c->image ?: ($c->user?->image ?: null)),
                     'type' => 'student',
                 ];
             })->values()->all();
@@ -99,7 +153,7 @@ class MediaFormatter
                         'name' => $st->name,
                         'nickname' => $st->nickname ?: $st->name,
                         'username' => $st->nickname ?: ($c->username ?: ''),
-                        'image' => $st->image ?: ($c->image ?: '/no-photo.png'),
+                        'image' => self::formatAvatarUrl($st->image ?: ($c->image ?: null)),
                         'type' => 'student',
                     ];
                 }
@@ -109,7 +163,7 @@ class MediaFormatter
                     'name' => $c->name,
                     'nickname' => $c->nickname ?: $c->name,
                     'username' => $c->username ?: '',
-                    'image' => $c->image ?: '/no-photo.png',
+                    'image' => self::formatAvatarUrl($c->image ?: null),
                     'type' => 'user',
                 ];
             })->values()->all();
@@ -151,7 +205,7 @@ class MediaFormatter
                     '_id' => $cAuthor ? (string) ($cAuthor->mongodb_id ?: $cAuthor->id) : '',
                     'name' => $cAuthor ? $cAuthor->name : 'Anonim',
                     'username' => $cAuthor ? ($cAuthor->username ?: '') : '',
-                    'image' => $cAuthor && $cAuthor->image ? $cAuthor->image : '/no-photo.png',
+                    'image' => self::formatAvatarUrl($cAuthor ? $cAuthor->image : null),
                     'email' => $cAuthor ? $cAuthor->email : '',
                 ],
                 'createdAt' => $c->created_at ? $c->created_at->toISOString() : null,
@@ -173,7 +227,7 @@ class MediaFormatter
                 'comment' => $task->review_comment,
                 'mentorName' => $mentorName,
                 'mentorNickname' => $mentorNickname,
-                'mentorImage' => $mentorImage,
+                'mentorImage' => self::formatAvatarUrl($mentorImage),
                 'mentorId' => $mentorId,
                 'reviewedAt' => $task->reviewed_at ? $task->reviewed_at->toISOString() : null,
             ];
@@ -191,10 +245,10 @@ class MediaFormatter
             'collaborators' => $collaborators,
             'projectTitle' => $project ? $project->title : 'Project',
             'project' => $projectFormatted,
-            'mediaUrl' => $task->media_url,
+            'mediaUrl' => $task->media_url ?: ($mediaUrls[0] ?? ''),
             'mediaUrls' => $mediaUrls,
             'mediaType' => $task->media_type ?: 'image',
-            'caption' => $task->caption,
+            'caption' => $task->caption ?: '',
             'timeAgo' => self::timeAgo($task->created_at),
             'review' => $review,
             'likes' => $likes,
@@ -212,7 +266,7 @@ class MediaFormatter
     {
         $author = $blog->user;
         $resolvedAuthorName = $blog->author_name ?: ($author ? $author->name : 'Tim Jazmedia');
-        $resolvedAuthorAvatar = $blog->author_avatar ?: ($author ? $author->image : '');
+        $resolvedAuthorAvatar = self::formatAvatarUrl($blog->author_avatar ?: ($author ? $author->image : null));
         $resolvedAuthorId = $blog->user_id ? (string) $blog->user_id : null;
 
         $likedBy = $blog->userLikes->map(function ($u) {
@@ -267,6 +321,137 @@ class MediaFormatter
             'participantsCount' => $project->participants()->count(),
             'tasks' => $tasksByProject[$project->id] ?? [],
             'createdAt' => $project->created_at ? $project->created_at->toISOString() : null,
+        ];
+    }
+
+    public static function formatReflection($reflection, $previousReflection = null): array
+    {
+        $student = $reflection->student ?: $reflection->user?->adminStudent;
+
+        $resolvedAuthorId = (string) ($student ? $student->id : ($reflection->user?->id ?? ''));
+        $resolvedAuthorName = $student ? $student->name : ($reflection->user?->name ?? 'Siswa');
+        $resolvedAuthorUsername = $reflection->user?->username ?: ($student ? \Illuminate\Support\Str::slug($student->name) : 'siswa');
+        $resolvedAuthorAvatar = self::formatAvatarUrl($student?->image ?: $reflection->user?->image);
+        $resolvedAuthorRole = $student?->role ?: ($reflection->user?->role ?? 'member');
+
+        $ach = is_array($reflection->achievement) ? $reflection->achievement : json_decode($reflection->achievement ?: '{}', true);
+        $obs = is_array($reflection->obstacles) ? $reflection->obstacles : json_decode($reflection->obstacles ?: '{}', true);
+        $les = is_array($reflection->lessons) ? $reflection->lessons : json_decode($reflection->lessons ?: '{}', true);
+        $prio = is_array($reflection->priority) ? $reflection->priority : json_decode($reflection->priority ?: '{}', true);
+        $hlth = is_array($reflection->health) ? $reflection->health : json_decode($reflection->health ?: '{}', true);
+
+        $achVal = isset($ach['nilai']) ? (float) $ach['nilai'] : 0.0;
+        $obsVal = isset($obs['nilai']) ? (float) $obs['nilai'] : 0.0;
+        $lesVal = isset($les['nilai']) ? (float) $les['nilai'] : 0.0;
+        $prioVal = isset($prio['nilai']) ? (float) $prio['nilai'] : 0.0;
+        $hlthVal = isset($hlth['nilai']) ? (float) $hlth['nilai'] : 0.0;
+
+        $achDesc = isset($ach['deskripsi']) ? trim((string) $ach['deskripsi']) : '';
+        $obsDesc = isset($obs['deskripsi']) ? trim((string) $obs['deskripsi']) : '';
+        $lesDesc = isset($les['deskripsi']) ? trim((string) $les['deskripsi']) : '';
+        $prioDesc = isset($prio['deskripsi']) ? trim((string) $prio['deskripsi']) : '';
+        $hlthDesc = isset($hlth['deskripsi']) ? trim((string) $hlth['deskripsi']) : '';
+
+        // Previous deltas
+        $prevAch = null;
+        $prevObs = null;
+        $prevLes = null;
+        $prevPrio = null;
+        $prevHlth = null;
+
+        if ($previousReflection) {
+            $pAch = is_array($previousReflection->achievement) ? $previousReflection->achievement : json_decode($previousReflection->achievement ?: '{}', true);
+            $pObs = is_array($previousReflection->obstacles) ? $previousReflection->obstacles : json_decode($previousReflection->obstacles ?: '{}', true);
+            $pLes = is_array($previousReflection->lessons) ? $previousReflection->lessons : json_decode($previousReflection->lessons ?: '{}', true);
+            $pPrio = is_array($previousReflection->priority) ? $previousReflection->priority : json_decode($previousReflection->priority ?: '{}', true);
+            $pHlth = is_array($previousReflection->health) ? $previousReflection->health : json_decode($previousReflection->health ?: '{}', true);
+
+            $prevAch = isset($pAch['nilai']) ? (float) $pAch['nilai'] : 0.0;
+            $prevObs = isset($pObs['nilai']) ? (float) $pObs['nilai'] : 0.0;
+            $prevLes = isset($pLes['nilai']) ? (float) $pLes['nilai'] : 0.0;
+            $prevPrio = isset($pPrio['nilai']) ? (float) $pPrio['nilai'] : 0.0;
+            $prevHlth = isset($pHlth['nilai']) ? (float) $pHlth['nilai'] : 0.0;
+        }
+
+        // Compose 1 fluent narrative paragraph
+        $parts = [];
+        if ($achDesc !== '') {
+            $parts[] = "Minggu ini, saya berhasil " . lcfirst(rtrim($achDesc, '.')) . ".";
+        }
+        if ($obsDesc !== '') {
+            $parts[] = "Kendala yang dihadapi: " . lcfirst(rtrim($obsDesc, '.')) . ".";
+        }
+        if ($lesDesc !== '') {
+            $parts[] = "Pelajaran yang dipetik adalah " . lcfirst(rtrim($lesDesc, '.')) . ".";
+        }
+        if ($prioDesc !== '') {
+            $parts[] = "Fokus prioritas ke depan adalah " . lcfirst(rtrim($prioDesc, '.')) . ".";
+        }
+        if ($hlthDesc !== '') {
+            $parts[] = "Kondisi kesehatan dan stamina: " . lcfirst(rtrim($hlthDesc, '.')) . ".";
+        }
+        $narrative = implode(' ', $parts);
+
+        $avgVal = round(($achVal + $obsVal + $lesVal + $prioVal + $hlthVal) / 5, 1);
+        $prevAvg = ($previousReflection) ? round(($prevAch + $prevObs + $prevLes + $prevPrio + $prevHlth) / 5, 1) : null;
+        $avgDelta = ($prevAvg !== null) ? round($avgVal - $prevAvg, 1) : null;
+
+        $dateFormatted = $reflection->date ? Carbon::parse($reflection->date)->translatedFormat('d F Y') : '';
+
+        return [
+            'id' => (string) $reflection->id,
+            'numeric_id' => $reflection->id,
+            'date' => $reflection->date ? Carbon::parse($reflection->date)->format('Y-m-d') : '',
+            'formattedDate' => $dateFormatted,
+            'timeAgo' => self::timeAgo($reflection->created_at ?: $reflection->date),
+            'author' => [
+                'id' => $resolvedAuthorId,
+                'name' => $resolvedAuthorName,
+                'username' => $resolvedAuthorUsername,
+                'image' => $resolvedAuthorAvatar,
+                'role' => $resolvedAuthorRole,
+            ],
+            'narrative' => $narrative,
+            'metrics' => [
+                'achievement' => [
+                    'label' => 'Capaian',
+                    'value' => $achVal,
+                    'description' => $achDesc,
+                    'delta' => $prevAch !== null ? round($achVal - $prevAch, 1) : null,
+                ],
+                'obstacles' => [
+                    'label' => 'Kendala',
+                    'value' => $obsVal,
+                    'description' => $obsDesc,
+                    'delta' => $prevObs !== null ? round($obsVal - $prevObs, 1) : null,
+                ],
+                'lessons' => [
+                    'label' => 'Pelajaran',
+                    'value' => $lesVal,
+                    'description' => $lesDesc,
+                    'delta' => $prevLes !== null ? round($lesVal - $prevLes, 1) : null,
+                ],
+                'priority' => [
+                    'label' => 'Prioritas',
+                    'value' => $prioVal,
+                    'description' => $prioDesc,
+                    'delta' => $prevPrio !== null ? round($prioVal - $prevPrio, 1) : null,
+                ],
+                'health' => [
+                    'label' => 'Kesehatan',
+                    'value' => $hlthVal,
+                    'description' => $hlthDesc,
+                    'delta' => $prevHlth !== null ? round($hlthVal - $prevHlth, 1) : null,
+                ],
+                'average' => [
+                    'label' => 'Rata-rata',
+                    'value' => $avgVal,
+                    'description' => 'Skor rata-rata performa dari 5 indikator mingguan',
+                    'delta' => $avgDelta,
+                ],
+            ],
+            'isFirstReflection' => is_null($previousReflection),
+            'createdAt' => $reflection->created_at ? $reflection->created_at->toISOString() : null,
         ];
     }
 }

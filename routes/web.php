@@ -42,6 +42,19 @@ Route::get('/.well-known/openid-configuration', function () {
     ]);
 });
 
+Route::get('/sso/jazmedia', function (\Illuminate\Http\Request $request) {
+    if (\Illuminate\Support\Facades\Auth::check()) {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $ticket = 'sso_' . \Illuminate\Support\Str::random(64);
+        \Illuminate\Support\Facades\Cache::put("jazmedia_sso_ticket:{$ticket}", $user->id, 300);
+
+        $mediaBaseUrl = env('JAZMEDIA_BASE_URL', 'http://localhost:3000');
+        return redirect(rtrim($mediaBaseUrl, '/') . '/auth/sso?ticket=' . $ticket);
+    }
+
+    return redirect('/login?redirect=' . urlencode('/sso/jazmedia'));
+});
+
 Route::get('{any?}', function () {
     return view('application');
 })->where('any', '.*');

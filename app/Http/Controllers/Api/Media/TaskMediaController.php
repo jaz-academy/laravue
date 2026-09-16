@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\Media;
 
 use App\Http\Controllers\Controller;
+use App\Models\AdminStudent;
+use App\Models\AdminTeacher;
 use App\Models\MediaComment;
 use App\Models\MediaProject;
 use App\Models\MediaTask;
@@ -11,12 +13,25 @@ use App\Services\MediaFormatter;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class TaskMediaController extends Controller
 {
+    protected $defaultTaskRelations = [
+        'student',
+        'mentorTeacher',
+        'studentCollaborators',
+        'user.adminStudent',
+        'mentor.adminTeacher',
+        'collaborators.adminStudent',
+        'project',
+        'likes',
+        'comments.user',
+    ];
+
     protected function resolveTask($id)
     {
-        return MediaTask::with(['user', 'mentor', 'collaborators', 'project', 'likes', 'comments.user'])
+        return MediaTask::with($this->defaultTaskRelations)
             ->where('id', $id)
             ->orWhere('mongodb_id', $id)
             ->first();
@@ -48,7 +63,7 @@ class TaskMediaController extends Controller
 
             $currentUserId = Auth::guard('sanctum')->id();
 
-            $query = MediaTask::with(['user', 'mentor', 'collaborators', 'project', 'likes', 'comments.user'])
+            $query = MediaTask::with($this->defaultTaskRelations)
                 ->orderByDesc('created_at');
 
             // Optional status filter
@@ -113,7 +128,7 @@ class TaskMediaController extends Controller
             }
 
             // Parse collaborators
-            $collaboratorIds = [];
+            $collabList = [];
             if ($request->has('collaborators')) {
                 $rawCollaborators = $request->collaborators;
                 if (is_string($rawCollaborators)) {
@@ -122,9 +137,28 @@ class TaskMediaController extends Controller
                 foreach ($rawCollaborators as $c) {
                     $cId = is_array($c) ? ($c['id'] ?? $c['_id'] ?? null) : $c;
                     if ($cId) {
-                        $collabUser = $this->resolveUser($cId);
-                        if ($collabUser) {
-                            $collaboratorIds[] = $collabUser->id;
+                        $sId = null;
+                        $uId = null;
+                        if (is_numeric($cId)) {
+                            $student = AdminStudent::find((int)$cId);
+                            if ($student) {
+                                $sId = $student->id;
+                                $linkedUser = User::where('admin_student_id', $student->id)->first();
+                                $uId = $linkedUser?->id;
+                            }
+                        }
+                        if (!$sId) {
+                            $collabUser = $this->resolveUser($cId);
+                            if ($collabUser) {
+                                $uId = $collabUser->id;
+                                $sId = $collabUser->admin_student_id;
+                            }
+                        }
+                        if ($sId || $uId) {
+                            $collabList[] = [
+                                'user_id' => $uId,
+                                'admin_student_id' => $sId,
+                            ];
                         }
                     }
                 }
@@ -143,16 +177,19 @@ class TaskMediaController extends Controller
                 'admin_teacher_id' => $project->admin_teacher_id ?: ($project->mentor?->admin_teacher_id),
             ]);
 
-            if (!empty($collaboratorIds)) {
-                $collabSync = [];
-                $collabUsers = User::whereIn('id', $collaboratorIds)->get()->keyBy('id');
-                foreach ($collaboratorIds as $cId) {
-                    $collabSync[$cId] = [
-                        'admin_student_id' => $collabUsers[$cId]->admin_student_id ?? null,
-                    ];
+            if (!empty($collabList)) {
+                foreach ($collabList as $data) {
+                    DB::table('media_task_collaborators')->insert([
+                        'media_task_id' => $task->id,
+                        'user_id' => $data['user_id'],
+                        'admin_student_id' => $data['admin_student_id'],
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
                 }
-                $task->collaborators()->sync($collabSync);
             }
+
+            $task->load($this->defaultTaskRelations);
 
             return response()->json([
                 'success' => true,
@@ -173,12 +210,32 @@ class TaskMediaController extends Controller
             $oneMonthAgo = Carbon::now()->subDays(30);
             $currentUserId = Auth::guard('sanctum')->id();
 
-            $tasks = MediaTask::with(['user', 'mentor', 'collaborators', 'project', 'likes', 'comments.user'])
+            $withRelations = [
+                'student.user',
+                'mentorTeacher.user',
+                'studentCollaborators.user',
+                'user.adminStudent',
+                'mentor.adminTeacher',
+                'collaborators.adminStudent',
+                'project',
+                'likes',
+                'comments.user',
+            ];
+
+            $tasks = MediaTask::with($withRelations)
                 ->where('created_at', '>=', $oneMonthAgo)
                 ->whereNotNull('grade')
                 ->orderByDesc('grade')
                 ->limit(5)
                 ->get();
+
+            if ($tasks->isEmpty()) {
+                $tasks = MediaTask::with($withRelations)
+                    ->whereNotNull('grade')
+                    ->orderByDesc('grade')
+                    ->limit(5)
+                    ->get();
+            }
 
             $formatted = $tasks->map(function ($task) use ($currentUserId) {
                 return MediaFormatter::formatTask($task, $currentUserId);
@@ -199,21 +256,41 @@ class TaskMediaController extends Controller
     public function userTasks($userId)
     {
         try {
-            $user = $this->resolveUser($userId);
-            if (!$user) {
-                return response()->json(['success' => false, 'error' => 'User not found'], 404);
+            $student = null;
+            $user = null;
+            if (is_numeric($userId)) {
+                $student = AdminStudent::find((int)$userId);
+            }
+            if (!$student) {
+                $user = $this->resolveUser($userId);
+                if ($user && $user->admin_student_id) {
+                    $student = AdminStudent::find($user->admin_student_id);
+                }
             }
 
-            $uId = $user->id;
             $currentUserId = Auth::guard('sanctum')->id();
 
-            $tasks = MediaTask::with(['user', 'mentor', 'collaborators', 'project', 'likes', 'comments.user'])
-                ->where('user_id', $uId)
-                ->orWhereHas('collaborators', function ($q) use ($uId) {
-                    $q->where('user_id', $uId);
-                })
-                ->orderByDesc('created_at')
-                ->get();
+            if ($student) {
+                $sId = $student->id;
+                $tasks = MediaTask::with($this->defaultTaskRelations)
+                    ->where('admin_student_id', $sId)
+                    ->orWhereHas('studentCollaborators', function ($q) use ($sId) {
+                        $q->where('admin_student_id', $sId);
+                    })
+                    ->orderByDesc('created_at')
+                    ->get();
+            } elseif ($user) {
+                $uId = $user->id;
+                $tasks = MediaTask::with($this->defaultTaskRelations)
+                    ->where('user_id', $uId)
+                    ->orWhereHas('collaborators', function ($q) use ($uId) {
+                        $q->where('user_id', $uId);
+                    })
+                    ->orderByDesc('created_at')
+                    ->get();
+            } else {
+                return response()->json(['success' => false, 'error' => 'User not found'], 404);
+            }
 
             $formatted = $tasks->map(function ($task) use ($currentUserId) {
                 return MediaFormatter::formatTask($task, $currentUserId);
@@ -224,7 +301,7 @@ class TaskMediaController extends Controller
                 'data' => $formatted,
             ]);
         } catch (\Throwable $e) {
-            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+            return response()->json(['success' => false, 'data' => []], 500);
         }
     }
 
