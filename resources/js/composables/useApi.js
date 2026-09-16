@@ -36,5 +36,25 @@ export const useApi = createFetch({
       
       return { data: parsedData, response }
     },
+    onFetchError(ctx) {
+      const { response, error } = ctx
+
+      if (response?.status === 401) {
+        // Clear stale credentials
+        useCookie('accessToken').value = null
+        useCookie('userData').value = null
+        useCookie('userAbilityRules').value = null
+
+        if (typeof window !== 'undefined') {
+          const path = window.location.pathname
+          const isPublic = ['/', '/login', '/register', '/about', '/contact', '/learning', '/project'].includes(path) || path.startsWith('/front')
+          if (!isPublic) {
+            window.location.href = `/login?to=${encodeURIComponent(path + window.location.search)}`
+          }
+        }
+      }
+
+      return { error, response }
+    },
   },
 })

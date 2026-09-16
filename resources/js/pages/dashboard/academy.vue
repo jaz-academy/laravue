@@ -18,6 +18,9 @@ const semester = ref('')
 const scores = ref({ semester: null, data: {} })
 
 async function fetchScores() {
+  const token = useCookie('accessToken').value
+  if (!token) return
+
   const res = await useApi(`/dashboard-academic?student_id=${studentId.value}&semester=${semester.value}`)
 
   scores.value = res.data.value || { semester: semester.value, data: {} }
@@ -91,7 +94,8 @@ onMounted(async () => {
 })
 
 watch([studentId, semester], async ([newId, newSem]) => {
-  if (newId && newSem) {
+  const token = useCookie('accessToken').value
+  if (token && newId && newSem) {
     const res = await useApi(`/dashboard-academic?student_id=${newId}&semester=${newSem}`)
 
     scores.value = structuredClone(res.data.value)
