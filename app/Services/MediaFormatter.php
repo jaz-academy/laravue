@@ -326,13 +326,32 @@ class MediaFormatter
 
     public static function formatReflection($reflection, $previousReflection = null): array
     {
-        $student = $reflection->student ?: $reflection->user?->adminStudent;
+        $user = $reflection->user;
+        $student = $reflection->student ?: $user?->adminStudent;
+        $teacher = $user?->adminTeacher;
 
-        $resolvedAuthorId = (string) ($student ? $student->id : ($reflection->user?->id ?? ''));
-        $resolvedAuthorName = $student ? $student->name : ($reflection->user?->name ?? 'Siswa');
-        $resolvedAuthorUsername = $reflection->user?->username ?: ($student ? \Illuminate\Support\Str::slug($student->name) : 'siswa');
-        $resolvedAuthorAvatar = self::formatAvatarUrl($student?->image ?: $reflection->user?->image);
-        $resolvedAuthorRole = $student?->role ?: ($reflection->user?->role ?? 'member');
+        if ($student) {
+            $resolvedAuthorId = (string) ($student->id ?: ($user?->id ?? ''));
+            $resolvedAuthorName = $student->name ?: ($user?->name ?? 'Siswa');
+            $resolvedAuthorUsername = $user?->username ?: \Illuminate\Support\Str::slug($student->name);
+            $resolvedAuthorAvatar = self::formatAvatarUrl($student->image ?: $user?->image);
+            $resolvedAuthorRole = $student->role ?: ($user?->role ? 'Mentor' : 'Siswa');
+            $resolvedAuthorType = 'student';
+        } elseif ($teacher) {
+            $resolvedAuthorId = (string) ($user?->id ?? '');
+            $resolvedAuthorName = $teacher->name ?: ($user?->name ?? 'Mentor');
+            $resolvedAuthorUsername = $user?->username ?: ($teacher->nickname ? \Illuminate\Support\Str::slug($teacher->nickname) : 'mentor');
+            $resolvedAuthorAvatar = self::formatAvatarUrl($teacher->image ?: $user?->image);
+            $resolvedAuthorRole = 'Mentor';
+            $resolvedAuthorType = 'teacher';
+        } else {
+            $resolvedAuthorId = (string) ($user?->id ?? '');
+            $resolvedAuthorName = $user?->name ?? 'Member';
+            $resolvedAuthorUsername = $user?->username ?: 'member';
+            $resolvedAuthorAvatar = self::formatAvatarUrl($user?->image);
+            $resolvedAuthorRole = $user?->media_role ?? 'member';
+            $resolvedAuthorType = 'user';
+        }
 
         $ach = is_array($reflection->achievement) ? $reflection->achievement : json_decode($reflection->achievement ?: '{}', true);
         $obs = is_array($reflection->obstacles) ? $reflection->obstacles : json_decode($reflection->obstacles ?: '{}', true);
@@ -410,6 +429,7 @@ class MediaFormatter
                 'username' => $resolvedAuthorUsername,
                 'image' => $resolvedAuthorAvatar,
                 'role' => $resolvedAuthorRole,
+                'type' => $resolvedAuthorType,
             ],
             'narrative' => $narrative,
             'metrics' => [

@@ -51,6 +51,7 @@ class OAuthUserController extends Controller
             'avatar' => $avatarUrl,
             'role' => (int) $user->role,
             'role_name' => $user->role > 0 ? 'Admin' : 'Member',
+            'media_role' => $user->media_role,
             'member_type' => $memberType,
             'bio' => $user->bio,
             'skills' => $user->skills ?? [],

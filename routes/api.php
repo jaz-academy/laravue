@@ -123,6 +123,7 @@ Route::group(['prefix' => 'media'], function () {
   // Reflections (Public Feed)
   Route::get('reflections', [ReflectionMediaController::class, 'index']);
   Route::get('reflections/{id}', [ReflectionMediaController::class, 'show']);
+  Route::get('students-select', [ReflectionMediaController::class, 'studentsSelect']);
 
   // Authenticated Endpoints (Sanctum & Passport)
   Route::group(['middleware' => 'auth:sanctum,api'], function () {
@@ -166,6 +167,7 @@ Route::group(['prefix' => 'media'], function () {
 
     // Reflections
     Route::post('reflections', [ReflectionMediaController::class, 'store']);
+    Route::delete('reflections/{id}', [ReflectionMediaController::class, 'destroy']);
     Route::get('reflections/user/me', [ReflectionMediaController::class, 'myReflections']);
 
     // Google Drive Upload

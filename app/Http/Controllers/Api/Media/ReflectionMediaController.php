@@ -20,7 +20,7 @@ class ReflectionMediaController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = Reflection::with(['user.adminStudent', 'student'])
+            $query = Reflection::with(['user.adminStudent', 'user.adminTeacher', 'student'])
                 ->orderBy('date', 'desc')
                 ->orderBy('id', 'desc');
 
@@ -107,9 +107,19 @@ class ReflectionMediaController extends Controller
                 return response()->json(['success' => false, 'error' => 'Unauthorized'], 401);
             }
 
+            $isAdmin = ($user->media_role === 'admin' || $user->role >= 2);
+
             $studentId = $user->admin_student_id;
-            if (!$studentId && $request->filled('admin_student_id')) {
-                $studentId = $request->input('admin_student_id');
+            $targetUserId = $user->id;
+
+            // Admin can dynamically input reflection for any student
+            if ($isAdmin && $request->filled('admin_student_id')) {
+                $studentId = (int) $request->input('admin_student_id');
+                $targetStudent = AdminStudent::with('user')->find($studentId);
+                // Student's user_id if they have a linked user account, or fallback to admin user_id
+                $targetUserId = $targetStudent?->user?->id ?: $user->id;
+            } elseif (!$studentId && $request->filled('admin_student_id')) {
+                $studentId = (int) $request->input('admin_student_id');
             }
 
             $date = Carbon::parse($request->date)->format('Y-m-d');
@@ -124,12 +134,23 @@ class ReflectionMediaController extends Controller
                 ];
             };
 
-            $reflection = Reflection::updateOrCreate(
-                [
-                    'user_id' => $user->id,
+            $matchCriteria = [];
+            if ($studentId) {
+                $matchCriteria = [
+                    'admin_student_id' => $studentId,
                     'date' => $date,
-                ],
+                ];
+            } else {
+                $matchCriteria = [
+                    'user_id' => $targetUserId,
+                    'date' => $date,
+                ];
+            }
+
+            $reflection = Reflection::updateOrCreate(
+                $matchCriteria,
                 [
+                    'user_id' => $targetUserId,
                     'admin_student_id' => $studentId,
                     'achievement' => $formatIndicator($request->achievement),
                     'obstacles' => $formatIndicator($request->obstacles),
@@ -139,7 +160,7 @@ class ReflectionMediaController extends Controller
                 ]
             );
 
-            $reflection->load(['user.adminStudent', 'student']);
+            $reflection->load(['user.adminStudent', 'user.adminTeacher', 'student']);
 
             $prevReflection = Reflection::where(function ($q) use ($reflection) {
                 if ($reflection->admin_student_id) {
@@ -171,7 +192,7 @@ class ReflectionMediaController extends Controller
     public function show($id)
     {
         try {
-            $ref = Reflection::with(['user.adminStudent', 'student'])->findOrFail($id);
+            $ref = Reflection::with(['user.adminStudent', 'user.adminTeacher', 'student'])->findOrFail($id);
 
             $prevReflection = Reflection::where(function ($q) use ($ref) {
                 if ($ref->admin_student_id) {
@@ -207,7 +228,7 @@ class ReflectionMediaController extends Controller
                 return response()->json(['success' => false, 'error' => 'Unauthorized'], 401);
             }
 
-            $query = Reflection::with(['user.adminStudent', 'student'])
+            $query = Reflection::with(['user.adminStudent', 'user.adminTeacher', 'student'])
                 ->where(function ($q) use ($user) {
                     $q->where('user_id', $user->id);
                     if ($user->admin_student_id) {
@@ -241,6 +262,74 @@ class ReflectionMediaController extends Controller
             return response()->json([
                 'success' => false,
                 'error' => $th->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete a reflection (Admin only: media_role = admin).
+     */
+    public function destroy($id)
+    {
+        try {
+            $user = Auth::user();
+            if (!$user || $user->media_role !== 'admin') {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Unauthorized: Hanya admin (media_role = admin) yang memiliki hak akses untuk menghapus data refleksi',
+                ], 403);
+            }
+
+            $reflection = Reflection::findOrFail($id);
+            $reflection->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data refleksi berhasil dihapus',
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Data refleksi tidak ditemukan',
+            ], 404);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Gagal menghapus refleksi: ' . $th->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get list of active students for dropdown selection (Admin use).
+     */
+    public function studentsSelect()
+    {
+        try {
+            $students = AdminStudent::with('user:id,name,admin_student_id,username,image')
+                ->orderBy('name', 'asc')
+                ->get();
+
+            $data = $students->map(function ($s) {
+                return [
+                    'id' => $s->id,
+                    'name' => $s->name,
+                    'nickname' => $s->nickname ?: $s->name,
+                    'nis' => $s->nis,
+                    'role' => $s->role,
+                    'image' => MediaFormatter::formatAvatarUrl($s->image ?: ($s->user?->image ?: null)),
+                    'user_id' => $s->user?->id,
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Gagal memuat daftar siswa: ' . $e->getMessage(),
             ], 500);
         }
     }
