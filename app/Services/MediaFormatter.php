@@ -36,6 +36,11 @@ class MediaFormatter
             return '/no-photo.png';
         }
 
+        // If it's already an absolute URL starting with localhost, strip host to re-resolve properly
+        if (preg_match('#^https?://localhost(?::\d+)?/storage/#', $image)) {
+            $image = preg_replace('#^https?://localhost(?::\d+)?/storage/#', '', $image);
+        }
+
         // If it's an absolute URL (Google Drive, HTTPS, etc.) or internal stream
         if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://') || str_starts_with($image, '/api/')) {
             return $image;
@@ -45,6 +50,18 @@ class MediaFormatter
         $relativePath = ltrim(str_replace('storage/', '', $image), '/');
         if (file_exists(storage_path('app/public/' . $relativePath))) {
             $baseUrl = config('app.url') ?: url('');
+            if (empty($baseUrl) || $baseUrl === 'http://localhost' || $baseUrl === 'https://localhost') {
+                try {
+                    $reqHost = request()->getSchemeAndHttpHost();
+                    if ($reqHost && !str_contains($reqHost, 'localhost')) {
+                        $baseUrl = $reqHost;
+                    } else {
+                        $baseUrl = 'https://jazacademy.id';
+                    }
+                } catch (\Throwable $e) {
+                    $baseUrl = 'https://jazacademy.id';
+                }
+            }
             return rtrim($baseUrl, '/') . '/storage/' . $relativePath;
         }
 
