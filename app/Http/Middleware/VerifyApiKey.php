@@ -84,8 +84,11 @@ class VerifyApiKey
         // Update last_used_at
         $apiKey->update(['last_used_at' => now()]);
 
-        // Attach to request
+        // Attach to request and authenticate user if available
         $request->attributes->set('api_key', $apiKey);
+        if ($apiKey->user && !\Illuminate\Support\Facades\Auth::check()) {
+            \Illuminate\Support\Facades\Auth::setUser($apiKey->user);
+        }
 
         $response = $next($request);
 
