@@ -124,8 +124,8 @@ Route::group(['prefix' => 'media'], function () {
   Route::get('reflections', [ReflectionMediaController::class, 'index']);
   Route::get('reflections/{id}', [ReflectionMediaController::class, 'show']);
 
-  // Authenticated Endpoints (Sanctum)
-  Route::group(['middleware' => 'auth:sanctum'], function () {
+  // Authenticated Endpoints (Sanctum & Passport)
+  Route::group(['middleware' => 'auth:sanctum,api'], function () {
     // Tasks
     Route::post('tasks', [TaskMediaController::class, 'store']);
     Route::get('tasks/form-data', [TaskMediaController::class, 'formData']);
