@@ -41,6 +41,10 @@ class OAuthUserController extends Controller
             $memberType = 'Admin';
         }
 
+        $resolvedMediaRole = ($user->media_role === 'admin' || $user->role >= 3)
+            ? 'admin'
+            : (($user->admin_teacher_id || $user->media_role === 'mentor') ? 'mentor' : 'member');
+
         $payload = [
             'sub' => (string) $user->id,
             'id' => $user->id,
@@ -50,8 +54,8 @@ class OAuthUserController extends Controller
             'email_verified' => (bool) $user->email_verified_at,
             'avatar' => $avatarUrl,
             'role' => (int) $user->role,
-            'role_name' => $user->role > 0 ? 'Admin' : 'Member',
-            'media_role' => $user->media_role,
+            'role_name' => $resolvedMediaRole === 'admin' ? 'Admin' : ($resolvedMediaRole === 'mentor' ? 'Mentor' : 'Member'),
+            'media_role' => $resolvedMediaRole,
             'member_type' => $memberType,
             'bio' => $user->bio,
             'skills' => $user->skills ?? [],

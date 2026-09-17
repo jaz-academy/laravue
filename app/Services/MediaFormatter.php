@@ -77,7 +77,7 @@ class MediaFormatter
         // Role mapping:
         // Teacher / Manager -> mentor / admin
         // Student -> member
-        if ($user->role >= 4 || $user->media_role === 'admin') {
+        if ($user->role >= 3 || $user->media_role === 'admin') {
             $role = 'admin';
         } elseif ($teacher || $user->admin_teacher_id || $user->media_role === 'mentor') {
             $role = 'mentor';

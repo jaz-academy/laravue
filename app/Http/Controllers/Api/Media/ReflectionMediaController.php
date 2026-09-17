@@ -107,7 +107,12 @@ class ReflectionMediaController extends Controller
                 return response()->json(['success' => false, 'error' => 'Unauthorized'], 401);
             }
 
-            $isAdmin = ($user->media_role === 'admin' || $user->role >= 2);
+            $isAdmin = (
+                $user->media_role === 'admin' ||
+                $user->media_role === 'mentor' ||
+                $user->role >= 3 ||
+                $user->admin_teacher_id
+            );
 
             $studentId = $user->admin_student_id;
             $targetUserId = $user->id;
@@ -267,16 +272,23 @@ class ReflectionMediaController extends Controller
     }
 
     /**
-     * Delete a reflection (Admin only: media_role = admin).
+     * Delete a reflection (Admin & Mentor only).
      */
     public function destroy($id)
     {
         try {
             $user = Auth::user();
-            if (!$user || $user->media_role !== 'admin') {
+            $isAuthorized = $user && (
+                $user->media_role === 'admin' ||
+                $user->media_role === 'mentor' ||
+                $user->role >= 3 ||
+                $user->admin_teacher_id
+            );
+
+            if (!$isAuthorized) {
                 return response()->json([
                     'success' => false,
-                    'error' => 'Unauthorized: Hanya admin (media_role = admin) yang memiliki hak akses untuk menghapus data refleksi',
+                    'error' => 'Unauthorized: Hanya admin atau mentor yang memiliki hak akses untuk menghapus data refleksi',
                 ], 403);
             }
 
