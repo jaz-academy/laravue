@@ -67,11 +67,11 @@ class UserMediaController extends Controller
                 $user->username = $username;
             }
 
-            if ($request->has('name')) $user->name = $request->name;
+            if ($request->has('name') && $request->filled('name')) $user->name = $request->name;
             if ($request->has('bio')) $user->bio = $request->bio;
-            if ($request->has('image')) $user->image = $request->image;
+            if ($request->has('image')) $user->image = $request->image ?: null;
 
-            if ($request->has('role')) {
+            if ($request->has('role') && $request->filled('role')) {
                 $user->media_role = $request->role;
             }
 
@@ -86,8 +86,9 @@ class UserMediaController extends Controller
             // Sync with AdminStudent if user is student
             if ($user->adminStudent) {
                 $student = $user->adminStudent;
-                if ($request->has('name')) $student->name = $request->name;
+                if ($request->has('name') && $request->filled('name')) $student->name = $request->name;
                 if ($request->has('bio')) $student->note = $request->bio;
+                if ($request->has('image')) $student->image = $request->image ?: null;
                 if ($request->has('skills')) {
                     $skills = $request->skills;
                     $student->skills = is_string($skills) ? $skills : json_encode($skills);
@@ -101,8 +102,9 @@ class UserMediaController extends Controller
             // Sync with AdminTeacher if user is teacher
             if ($user->adminTeacher) {
                 $teacher = $user->adminTeacher;
-                if ($request->has('name')) $teacher->name = $request->name;
+                if ($request->has('name') && $request->filled('name')) $teacher->name = $request->name;
                 if ($request->has('bio')) $teacher->note = $request->bio;
+                if ($request->has('image')) $teacher->image = $request->image ?: null;
                 $teacher->save();
             }
 

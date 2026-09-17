@@ -77,8 +77,8 @@ class MediaFormatter
         $student = $user->adminStudent;
         $teacher = $user->adminTeacher;
 
-        // Image comes from student or teacher profile!
-        $avatarImage = $student?->image ?: ($teacher?->image ?: null);
+        // Image comes from custom user image, student, or teacher profile!
+        $avatarImage = $user->image ?: ($student?->image ?: ($teacher?->image ?: null));
 
         // Bio comes from student note/ambition or teacher note
         $bio = $student?->note ?: ($student?->ambition ?: ($teacher?->note ?: ($user->bio ?: '')));

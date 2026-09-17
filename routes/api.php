@@ -157,7 +157,7 @@ Route::group(['prefix' => 'media'], function () {
 
     // Profile & Users
     Route::get('profile', [UserMediaController::class, 'profile']);
-    Route::put('profile', [UserMediaController::class, 'updateProfile']);
+    Route::match(['put', 'post'], 'profile', [UserMediaController::class, 'updateProfile']);
     Route::post('profile/upload-picture', [UserMediaController::class, 'uploadPicture']);
 
     // Instagram Account Link / Unlink & SSO Ticket
