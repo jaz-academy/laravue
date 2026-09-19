@@ -318,7 +318,8 @@ class ReflectionMediaController extends Controller
     public function studentsSelect()
     {
         try {
-            $students = AdminStudent::with('user:id,name,admin_student_id,username,image')
+            $students = AdminStudent::whereNull('graduation')
+                ->with('user:id,name,admin_student_id,username,image')
                 ->orderBy('name', 'asc')
                 ->get();
 

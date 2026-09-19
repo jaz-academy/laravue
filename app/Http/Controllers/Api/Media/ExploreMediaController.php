@@ -63,7 +63,14 @@ class ExploreMediaController extends Controller
         }
 
         try {
-            $students = AdminStudent::where(function ($q) use ($query) {
+            $studentsQuery = AdminStudent::query();
+
+            // Default: only active students
+            if ($request->query('status', 'active') === 'active') {
+                $studentsQuery->whereNull('graduation');
+            }
+
+            $students = $studentsQuery->where(function ($q) use ($query) {
                 $q->where('name', 'like', "%{$query}%")
                   ->orWhere('nickname', 'like', "%{$query}%")
                   ->orWhere('role', 'like', "%{$query}%")
@@ -110,10 +117,11 @@ class ExploreMediaController extends Controller
 
             $data = $projects->map(function ($p) {
                 return [
-                    'id' => (string) ($p->mongodb_id ?: $p->id),
-                    'numeric_id' => $p->id,
+                    'id' => (string) $p->id,
+                    '_id' => (string) $p->id,
                     'title' => $p->title,
                     'description' => $p->description,
+                    'cover' => $p->cover_url ?: '',
                     'status' => $p->status,
                 ];
             });
@@ -130,9 +138,19 @@ class ExploreMediaController extends Controller
     public function getStreaks(Request $request)
     {
         $query = $request->query('q', '');
+        $status = $request->query('status', 'active');
 
         try {
             $studentsQuery = AdminStudent::query();
+
+            // Default: Filter only active students (graduation is null)
+            if ($status === 'active' || ($request->has('graduated') && $request->graduated === '')) {
+                $studentsQuery->whereNull('graduation');
+            } elseif ($status === 'graduated') {
+                $studentsQuery->whereNotNull('graduation')->where('graduation', '!=', 0);
+            } elseif ($status === 'inactive') {
+                $studentsQuery->where('graduation', 0);
+            }
 
             if (trim($query) !== '') {
                 $studentsQuery->where(function ($q) use ($query) {

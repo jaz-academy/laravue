@@ -57,6 +57,21 @@ class AdminStudent extends Model
         'birth_date' => 'datetime',
     ];
 
+    /**
+     * Scope for active students (graduation is null)
+     */
+    public function scopeActive($query)
+    {
+        return $query->whereNull('graduation');
+    }
+
+    /**
+     * Scope for graduated students
+     */
+    public function scopeGraduated($query)
+    {
+        return $query->whereNotNull('graduation')->where('graduation', '!=', 0);
+    }
 
     public function academyAward()
     {
