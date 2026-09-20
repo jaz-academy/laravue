@@ -133,6 +133,7 @@
     scope: 'profile email',
     ux_mode: 'popup', // 'popup' or 'redirect'
     callback: null,
+    prompt: null,
   };
 
   var JazId = {
@@ -146,6 +147,7 @@
       config.ux_mode = userConfig.ux_mode || 'popup';
       config.scope = userConfig.scope || 'profile email';
       config.callback = userConfig.callback || null;
+      config.prompt = userConfig.prompt || null;
 
       if (userConfig.redirect_uri) {
         config.redirect_uri = userConfig.redirect_uri;
@@ -166,6 +168,7 @@
       var redirectUri = opt.redirect_uri || config.redirect_uri;
       var scope = opt.scope || config.scope;
       var callback = opt.callback || config.callback;
+      var prompt = opt.prompt || config.prompt;
 
       var authUrl = opt.auth_url;
       if (!authUrl) {
@@ -189,6 +192,10 @@
           '&response_type=code' +
           '&scope=' + encodeURIComponent(scope) +
           '&state=' + encodeURIComponent(state);
+
+        if (prompt) {
+          authUrl += '&prompt=' + encodeURIComponent(prompt);
+        }
       }
 
       if (uxMode === 'redirect') {
@@ -288,6 +295,7 @@
         var callbackName = el.getAttribute('data-callback');
         var uxMode = el.getAttribute('data-ux_mode') || 'popup';
         var redirectUri = el.getAttribute('data-redirect_uri');
+        var prompt = el.getAttribute('data-prompt');
 
         if (clientId) {
           JazId.initialize({
@@ -295,7 +303,8 @@
             idp_url: idpUrl,
             redirect_uri: redirectUri,
             ux_mode: uxMode,
-            callback: callbackName
+            callback: callbackName,
+            prompt: prompt
           });
         }
 
@@ -308,7 +317,8 @@
           client_id: clientId,
           idp_url: idpUrl,
           ux_mode: uxMode,
-          redirect_uri: redirectUri
+          redirect_uri: redirectUri,
+          prompt: prompt
         });
       });
     }
