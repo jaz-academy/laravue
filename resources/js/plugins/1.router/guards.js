@@ -25,8 +25,11 @@ export const setupGuards = router => {
      */
     if (to.meta.unauthenticatedOnly) {
       const returnTarget = to.query.return_to || to.query.return_url || to.query.to
-      if (returnTarget && String(returnTarget).includes('prompt=login')) {
-        // Clear frontend session cookies so user can log in as a different account
+      if (returnTarget && (String(returnTarget).includes('prompt=login') || String(returnTarget).includes('/oauth/authorize'))) {
+        // Clear frontend session cookies synchronously so user can log in as another account
+        document.cookie = 'userData=; Max-Age=0; path=/'
+        document.cookie = 'accessToken=; Max-Age=0; path=/'
+        document.cookie = 'userAbilityRules=; Max-Age=0; path=/'
         useCookie('userData').value = null
         useCookie('accessToken').value = null
         useCookie('userAbilityRules').value = null

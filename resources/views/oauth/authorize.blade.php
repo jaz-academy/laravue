@@ -335,14 +335,14 @@
                 </div>
             </div>
 
-            <div style="text-align: right; margin-top: -12px; margin-bottom: 20px;">
-                <a href="{{ route('web.logout', ['return_url' => request()->fullUrl()]) }}" style="font-size: 12.5px; color: var(--primary); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
-                    <span>Bukan Anda? Masuk dengan akun lain</span>
-                    <span>&rarr;</span>
+            <div style="text-align: center; margin-top: -12px; margin-bottom: 20px; font-size: 12.5px; color: var(--text-muted);">
+                Bukan Anda? 
+                <a href="{{ route('web.logout', ['return_url' => request()->fullUrl()]) }}" style="color: var(--primary); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                    <span>Masuk dengan akun lain</span>
                 </a>
             </div>
 
-            <div class="scope-section-title">Izin yang diminta:</div>
+            <div class="scope-section-title">Akses yang diminta:</div>
             <ul class="scope-list">
                 @forelse($scopes as $scope)
                     <li class="scope-item">
@@ -380,7 +380,7 @@
                     <input type="hidden" name="state" value="{{ $request->state }}">
                     <input type="hidden" name="client_id" value="{{ $client->id }}">
                     <input type="hidden" name="auth_token" value="{{ $authToken }}">
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">Izinkan Akses</button>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Izinkan</button>
                 </form>
             </div>
         </div>

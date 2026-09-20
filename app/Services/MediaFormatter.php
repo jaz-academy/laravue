@@ -350,7 +350,9 @@ class MediaFormatter
         if ($student) {
             $resolvedAuthorId = (string) ($student->id ?: ($user?->id ?? ''));
             $resolvedAuthorName = $student->name ?: ($user?->name ?? 'Siswa');
-            $resolvedAuthorUsername = $user?->username ?: \Illuminate\Support\Str::slug($student->name);
+            $resolvedAuthorUsername = $student?->instagram
+                ?: $student?->nickname
+                ?: \Illuminate\Support\Str::slug($student->name);
             $resolvedAuthorAvatar = self::formatAvatarUrl($student->image ?: $user?->image);
             $resolvedAuthorRole = $student->role ?: ($user?->role ? 'Mentor' : 'Siswa');
             $resolvedAuthorType = 'student';
