@@ -16,6 +16,7 @@ const sdkSize = ref('md')
 const sdkShape = ref('rounded')
 const sdkUxMode = ref('popup')
 const sdkButtonText = ref('Login via Jaz Academy')
+const activePlatformTab = ref('sdk')
 
 watch(
   () => props.clients,
@@ -36,6 +37,7 @@ const copyToClipboard = text => {
   }
 }
 
+// 1. JavaScript Widget SDK Snippet
 const generatedSdkSnippet = computed(() => {
   const cid = selectedClientId.value || 'YOUR_CLIENT_ID'
 
@@ -54,23 +56,149 @@ const generatedSdkSnippet = computed(() => {
      data-callback="onJazAuthSuccess">
 </div>
 
+<!-- Tips Ganti Akun: Tambahkan data-prompt="login" jika ingin memaksa login akun baru -->
+
 <!-- 3. Callback Handler -->
 <script>
   function onJazAuthSuccess(data) {
     // Kirim data.code ke backend Anda untuk ditukar Access Token di:
     // POST ${originUrl}/oauth/token
+    console.log('Authorization Code:', data.code);
   }
 <\/script>`
+})
+
+// 2. Next.js / NextAuth Snippet
+const nextAuthSnippet = computed(() => {
+  const cid = selectedClientId.value || 'YOUR_CLIENT_ID'
+
+  return `// src/lib/auth.ts (Next.js dengan NextAuth.js)
+import { NextAuthOptions } from "next-auth";
+
+export const authOptions: NextAuthOptions = {
+  providers: [
+    {
+      id: "jazacademy",
+      name: "JazAcademy",
+      type: "oauth",
+      authorization: {
+        url: "${originUrl}/oauth/authorize",
+        params: { scope: "profile email" },
+      },
+      token: "${originUrl}/oauth/token",
+      userinfo: "${originUrl}/api/oauth/user",
+      clientId: process.env.JAZACADEMY_CLIENT_ID || "${cid}",
+      clientSecret: process.env.JAZACADEMY_CLIENT_SECRET || "YOUR_CLIENT_SECRET",
+      checks: ["state"],
+      profile(profile, tokens) {
+        return {
+          id: String(profile.id || profile.sub),
+          name: profile.name,
+          username: profile.username,
+          email: profile.email,
+          image: profile.avatar || profile.image,
+          role: profile.role > 0 ? "admin" : "member",
+          accessToken: tokens.access_token,
+        };
+      },
+    },
+  ],
+};
+
+// Tips: Untuk login akun lain / ganti akun dari frontend Next.js:
+// signIn("jazacademy", { callbackUrl: "/" }, { prompt: "login" });`
+})
+
+// 3. PHP / Laravel Backend Snippet
+const phpSnippet = computed(() => {
+  const cid = selectedClientId.value || 'YOUR_CLIENT_ID'
+
+  return `// 1. Redirect user ke Authorization URL
+$query = http_build_query([
+    'client_id' => '${cid}',
+    'redirect_uri' => 'https://app-anda.com/auth/callback',
+    'response_type' => 'code',
+    'scope' => 'profile email',
+    // 'prompt' => 'login', // Tambahkan jika ingin memaksa ganti akun
+]);
+
+return redirect('${originUrl}/oauth/authorize?' . $query);
+
+// 2. Di Callback Controller: Tukar 'code' dengan Access Token
+use Illuminate\\Support\\Facades\\Http;
+
+$response = Http::asForm()->post('${originUrl}/oauth/token', [
+    'grant_type' => 'authorization_code',
+    'client_id' => '${cid}',
+    'client_secret' => env('JAZACADEMY_CLIENT_SECRET'),
+    'redirect_uri' => 'https://app-anda.com/auth/callback',
+    'code' => $request->code,
+]);
+
+$accessToken = $response->json()['access_token'];
+
+// 3. Ambil data profil pengguna
+$userProfile = Http::withToken($accessToken)
+    ->get('${originUrl}/api/oauth/user')
+    ->json();`
 })
 </script>
 
 <template>
   <div class="sso-sdk-tab">
+    <!-- Top Action Bar: Download SDK & Playground -->
+    <VCard class="mb-6">
+      <VCardText class="d-flex flex-wrap align-center justify-space-between gap-4 py-4">
+        <div class="d-flex align-center gap-3">
+          <VAvatar
+            color="primary"
+            variant="tonal"
+            rounded
+            size="44"
+          >
+            <VIcon
+              icon="tabler-file-code"
+              size="26"
+            />
+          </VAvatar>
+          <div>
+            <h4 class="text-h6 font-weight-bold mb-0">
+              Jaz Academy Identity SDK (jaz-sso.js)
+            </h4>
+            <span class="text-caption text-medium-emphasis">
+              SDK JavaScript ringan tanpa dependensi untuk integrasi SSO instan.
+            </span>
+          </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+          <VBtn
+            variant="tonal"
+            color="primary"
+            href="/sdk/jaz-sso.js"
+            download="jaz-sso.js"
+            prepend-icon="tabler-download"
+          >
+            Unduh SDK (jaz-sso.js)
+          </VBtn>
+          <VBtn
+            variant="outlined"
+            color="secondary"
+            href="/demo-sso.html"
+            target="_blank"
+            prepend-icon="tabler-player-play"
+          >
+            Buka SDK Playground
+          </VBtn>
+        </div>
+      </VCardText>
+    </VCard>
+
     <VRow>
       <!-- Left: SDK Configurator & Preview -->
       <VCol
         cols="12"
-        md="6"
+        md="5"
       >
         <VCard class="mb-6">
           <VCardItem>
@@ -176,73 +304,150 @@ const generatedSdkSnippet = computed(() => {
           </VCardText>
         </VCard>
 
-        <!-- Discovery Endpoint Card -->
+        <!-- Discovery & Standard Endpoints -->
         <VCard>
           <VCardItem>
-            <VCardTitle>OpenID Connect Discovery</VCardTitle>
+            <VCardTitle>OAuth 2.0 & OIDC Endpoints</VCardTitle>
           </VCardItem>
-          <VCardText>
-            <p class="text-caption mb-2">
-              Endpoint discovery standard untuk library OAuth (NextAuth, Socialite, Passport):
-            </p>
-            <div class="d-flex align-center gap-2">
-              <VTextField
-                readonly
-                :model-value="`${originUrl}/.well-known/openid-configuration`"
-                density="compact"
-              />
-              <VBtn
-                variant="tonal"
-                color="primary"
-                @click="copyToClipboard(`${originUrl}/.well-known/openid-configuration`)"
-              >
-                Salin
-              </VBtn>
+          <VCardText class="space-y-4">
+            <div>
+              <span class="text-caption font-weight-bold">Discovery URL:</span>
+              <div class="d-flex align-center gap-2 mt-1">
+                <VTextField
+                  readonly
+                  :model-value="`${originUrl}/.well-known/openid-configuration`"
+                  density="compact"
+                />
+                <VBtn
+                  size="small"
+                  variant="tonal"
+                  color="primary"
+                  @click="copyToClipboard(`${originUrl}/.well-known/openid-configuration`)"
+                >
+                  Salin
+                </VBtn>
+              </div>
+            </div>
+
+            <div class="pt-2">
+              <span class="text-caption font-weight-bold">Daftar Endpoint Utama:</span>
+              <VTable density="compact" class="text-caption mt-1">
+                <tbody>
+                  <tr>
+                    <td class="font-weight-medium">Authorize</td>
+                    <td><code>GET /oauth/authorize</code></td>
+                  </tr>
+                  <tr>
+                    <td class="font-weight-medium">Token</td>
+                    <td><code>POST /oauth/token</code></td>
+                  </tr>
+                  <tr>
+                    <td class="font-weight-medium">User Profile</td>
+                    <td><code>GET /api/oauth/user</code></td>
+                  </tr>
+                  <tr>
+                    <td class="font-weight-medium">Web Logout</td>
+                    <td><code>GET /logout?return_url=...</code></td>
+                  </tr>
+                </tbody>
+              </VTable>
             </div>
           </VCardText>
         </VCard>
       </VCol>
 
-      <!-- Right: Code Snippet & Manual Flow -->
+      <!-- Right: Code Snippets by Platform -->
       <VCol
         cols="12"
-        md="6"
+        md="7"
       >
         <VCard class="mb-6">
           <VCardItem>
-            <div class="d-flex justify-space-between align-center">
-              <VCardTitle>Kode Integrasi (Siap Pakai)</VCardTitle>
+            <div class="d-flex flex-wrap justify-space-between align-center gap-2">
+              <div>
+                <VCardTitle>Panduan Integrasi Aplikasi</VCardTitle>
+                <VCardSubtitle>Pilih platform atau bahasa pemrograman aplikasi Anda</VCardSubtitle>
+              </div>
               <VBtn
                 size="small"
                 variant="tonal"
                 color="primary"
                 prepend-icon="tabler-copy"
-                @click="copyToClipboard(generatedSdkSnippet)"
+                @click="copyToClipboard(
+                  activePlatformTab === 'sdk' ? generatedSdkSnippet :
+                  activePlatformTab === 'nextauth' ? nextAuthSnippet : phpSnippet
+                )"
               >
                 Salin Kode
               </VBtn>
             </div>
           </VCardItem>
-          <VCardText>
-            <pre style="padding: 16px; border-radius: 10px; background: #2F2B3D; color: #CFCCE4; font-size: 12.5px; overflow-x: auto;"><code>{{ generatedSdkSnippet }}</code></pre>
 
-            <VAlert
-              color="info"
-              variant="tonal"
-              class="mt-4"
-            >
-              <div class="font-weight-bold mb-1">
-                Langkah Pertukaran Token di Backend:
-              </div>
-              <div class="text-caption">
-                <div class="mb-1">
-                  1. Kirim <code>code</code> via POST ke <code>{{ originUrl }}/oauth/token</code> bersama <code>client_id</code> & <code>client_secret</code>.
+          <VTabs
+            v-model="activePlatformTab"
+            class="px-4"
+          >
+            <VTab value="sdk">JavaScript SDK</VTab>
+            <VTab value="nextauth">Next.js (NextAuth)</VTab>
+            <VTab value="php">Laravel / PHP</VTab>
+          </VTabs>
+
+          <VCardText>
+            <!-- Platform 1: JavaScript Widget SDK -->
+            <div v-if="activePlatformTab === 'sdk'">
+              <pre style="padding: 16px; border-radius: 10px; background: #2F2B3D; color: #CFCCE4; font-size: 12px; overflow-x: auto;"><code>{{ generatedSdkSnippet }}</code></pre>
+
+              <VAlert
+                color="info"
+                variant="tonal"
+                class="mt-4"
+              >
+                <div class="font-weight-bold mb-1">
+                  Tips Pergantian Akun (Account Switching):
                 </div>
-                <div>
-                  2. Ambil profil user via <code>GET {{ originUrl }}/api/oauth/user</code> menggunakan header <code>Authorization: Bearer &lt;access_token&gt;</code>.
+                <div class="text-caption">
+                  Sematkan atribut <code>data-prompt="login"</code> atau opsi <code>prompt: 'login'</code> pada panggilan <code>JazId.signIn()</code> jika aplikasi ingin me-logout sesi aktif dan memaksa memunculkan form login akun baru.
                 </div>
-              </div>
-            </VAlert>
+              </VAlert>
+            </div>
+
+            <!-- Platform 2: NextAuth.js -->
+            <div v-else-if="activePlatformTab === 'nextauth'">
+              <pre style="padding: 16px; border-radius: 10px; background: #2F2B3D; color: #CFCCE4; font-size: 12px; overflow-x: auto;"><code>{{ nextAuthSnippet }}</code></pre>
+
+              <VAlert
+                color="success"
+                variant="tonal"
+                class="mt-4"
+              >
+                <div class="font-weight-bold mb-1">
+                  Mekanisme Google-Style Account Switcher:
+                </div>
+                <div class="text-caption">
+                  Di Next.js, Anda dapat menyimpan profil akun terakhir di <code>localStorage</code> saat logout, lalu saat user ingin beralih akun, panggil:
+                  <code class="d-block mt-1">signIn("jazacademy", { callbackUrl: "/" }, { prompt: "login" })</code>
+                </div>
+              </VAlert>
+            </div>
+
+            <!-- Platform 3: Laravel / PHP -->
+            <div v-else-if="activePlatformTab === 'php'">
+              <pre style="padding: 16px; border-radius: 10px; background: #2F2B3D; color: #CFCCE4; font-size: 12px; overflow-x: auto;"><code>{{ phpSnippet }}</code></pre>
+
+              <VAlert
+                color="primary"
+                variant="tonal"
+                class="mt-4"
+              >
+                <div class="font-weight-bold mb-1">
+                  Scope & Izin Tersedia:
+                </div>
+                <div class="text-caption">
+                  - <code>profile</code>: Mengakses nama, username, avatar, peran (student/teacher/admin).<br>
+                  - <code>email</code>: Mengakses alamat email resmi pengguna di Jaz Academy.
+                </div>
+              </VAlert>
+            </div>
           </VCardText>
         </VCard>
       </VCol>

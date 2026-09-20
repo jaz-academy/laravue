@@ -335,6 +335,13 @@
                 </div>
             </div>
 
+            <div style="text-align: right; margin-top: -12px; margin-bottom: 20px;">
+                <a href="{{ route('web.logout', ['return_url' => request()->fullUrl()]) }}" style="font-size: 12.5px; color: var(--primary); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                    <span>Bukan Anda? Masuk dengan akun lain</span>
+                    <span>&rarr;</span>
+                </a>
+            </div>
+
             <div class="scope-section-title">Izin yang diminta:</div>
             <ul class="scope-list">
                 @forelse($scopes as $scope)

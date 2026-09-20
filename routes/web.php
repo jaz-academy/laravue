@@ -23,6 +23,15 @@ Route::get('/login', function () {
     return view('application');
 })->name('login');
 
+Route::get('/logout', function (\Illuminate\Http\Request $request) {
+    \Illuminate\Support\Facades\Auth::logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
+    $returnUrl = $request->query('return_url', '/login');
+    return redirect($returnUrl);
+})->name('web.logout');
+
 Route::get('/oauth/popup-callback', function () {
     return view('oauth.popup-callback');
 })->name('oauth.popup-callback');

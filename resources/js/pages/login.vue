@@ -77,7 +77,7 @@ const login = async () => {
       localStorage.setItem('participant', JSON.stringify(safeData))
     }
     await nextTick(() => {
-      const returnTo = route.query.return_to || route.query.to
+      const returnTo = route.query.return_to || route.query.to || route.query.return_url
       if (returnTo) {
         if (String(returnTo).startsWith('http://') || String(returnTo).startsWith('https://') || String(returnTo).startsWith('/oauth/')) {
           window.location.href = String(returnTo)

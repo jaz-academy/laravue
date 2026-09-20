@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AdminStudent;
 use App\Models\MediaProject;
 use App\Models\MediaTask;
+use App\Models\Reflection;
 use App\Models\User;
 use App\Services\MediaFormatter;
 use Carbon\Carbon;
@@ -63,7 +64,14 @@ class ExploreMediaController extends Controller
         }
 
         try {
-            $students = AdminStudent::where(function ($q) use ($query) {
+            $studentsQuery = AdminStudent::query();
+
+            // Default: only active students
+            if ($request->query('status', 'active') === 'active') {
+                $studentsQuery->whereNull('graduation');
+            }
+
+            $students = $studentsQuery->where(function ($q) use ($query) {
                 $q->where('name', 'like', "%{$query}%")
                   ->orWhere('nickname', 'like', "%{$query}%")
                   ->orWhere('role', 'like', "%{$query}%")
@@ -110,10 +118,11 @@ class ExploreMediaController extends Controller
 
             $data = $projects->map(function ($p) {
                 return [
-                    'id' => (string) ($p->mongodb_id ?: $p->id),
-                    'numeric_id' => $p->id,
+                    'id' => (string) $p->id,
+                    '_id' => (string) $p->id,
                     'title' => $p->title,
                     'description' => $p->description,
+                    'cover' => $p->cover_url ?: '',
                     'status' => $p->status,
                 ];
             });
@@ -130,9 +139,19 @@ class ExploreMediaController extends Controller
     public function getStreaks(Request $request)
     {
         $query = $request->query('q', '');
+        $status = $request->query('status', 'active');
 
         try {
             $studentsQuery = AdminStudent::query();
+
+            // Default: Filter only active students (graduation is null)
+            if ($status === 'active' || ($request->has('graduated') && $request->graduated === '')) {
+                $studentsQuery->whereNull('graduation');
+            } elseif ($status === 'graduated') {
+                $studentsQuery->whereNotNull('graduation')->where('graduation', '!=', 0);
+            } elseif ($status === 'inactive') {
+                $studentsQuery->where('graduation', 0);
+            }
 
             if (trim($query) !== '') {
                 $studentsQuery->where(function ($q) use ($query) {
@@ -141,8 +160,9 @@ class ExploreMediaController extends Controller
                 });
             }
 
-            $students = $studentsQuery->get(['id', 'name', 'nickname', 'image']);
+            $students = $studentsQuery->with('user:id,admin_student_id')->get(['id', 'name', 'nickname', 'image']);
             $studentIds = $students->pluck('id')->toArray();
+            $studentUserIds = $students->pluck('user.id')->filter()->toArray();
 
             // All tasks where student is author or collaborator
             $tasks = MediaTask::with('studentCollaborators')
@@ -153,8 +173,22 @@ class ExploreMediaController extends Controller
                 ->get(['id', 'admin_student_id', 'created_at']);
 
             $now = Carbon::now();
+            $sevenDaysAgo = $now->copy()->subDays(7)->startOfDay();
 
-            $streaks = $students->map(function ($student) use ($tasks, $now) {
+            // Reflections in the past 7 days (1 week / 5 school days)
+            $reflections = Reflection::where(function ($q) use ($studentIds, $studentUserIds) {
+                    $q->whereIn('admin_student_id', $studentIds);
+                    if (!empty($studentUserIds)) {
+                        $q->orWhereIn('user_id', $studentUserIds);
+                    }
+                })
+                ->where(function ($q) use ($sevenDaysAgo) {
+                    $q->where('date', '>=', $sevenDaysAgo)
+                      ->orWhere('created_at', '>=', $sevenDaysAgo);
+                })
+                ->get(['id', 'admin_student_id', 'user_id', 'date', 'created_at']);
+
+            $streaks = $students->map(function ($student) use ($tasks, $reflections, $now, $sevenDaysAgo) {
                 $sId = $student->id;
 
                 $authoredTasks = $tasks->filter(fn($t) => $t->admin_student_id === $sId);
@@ -187,6 +221,17 @@ class ExploreMediaController extends Controller
                     return $now->diffInDays($t->created_at) < 7;
                 });
 
+                $userId = $student->user?->id;
+                $hasReflectionThisWeek = $reflections->contains(function ($r) use ($sId, $userId, $sevenDaysAgo) {
+                    $isOwner = ($r->admin_student_id && (int)$r->admin_student_id === (int)$sId) ||
+                               ($userId && (int)$r->user_id === (int)$userId);
+                    if (!$isOwner) {
+                        return false;
+                    }
+                    $refDate = $r->date ? Carbon::parse($r->date) : $r->created_at;
+                    return $refDate >= $sevenDaysAgo;
+                });
+
                 return [
                     'id' => (string) $student->id,
                     'numeric_id' => $student->id,
@@ -197,16 +242,23 @@ class ExploreMediaController extends Controller
                     'totalCollabs' => $collabTasks->count(),
                     'streakCount' => $streakTaskCount,
                     'hasTaskThisWeek' => $hasTaskThisWeek,
+                    'hasReflectionThisWeek' => $hasReflectionThisWeek,
                 ];
             });
 
             $sorted = $streaks->sort(function ($a, $b) {
+                if ($b['streakCount'] !== $a['streakCount']) {
+                    return $b['streakCount'] <=> $a['streakCount'];
+                }
+                if ($b['hasReflectionThisWeek'] !== $a['hasReflectionThisWeek']) {
+                    return $b['hasReflectionThisWeek'] ? 1 : -1;
+                }
                 $totalA = $a['totalTasks'] + $a['totalCollabs'];
                 $totalB = $b['totalTasks'] + $b['totalCollabs'];
                 if ($totalA !== $totalB) {
                     return $totalB <=> $totalA;
                 }
-                return $b['streakCount'] <=> $a['streakCount'];
+                return strcmp($a['name'], $b['name']);
             })->values()->all();
 
             return response()->json($sorted);
