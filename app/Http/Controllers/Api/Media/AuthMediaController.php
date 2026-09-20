@@ -42,8 +42,7 @@ class AuthMediaController extends Controller
                 'username' => $request->username,
                 'password' => Hash::make($request->password),
                 'admin_student_id' => $student ? $student->id : null,
-                'media_role' => 'member',
-                'role' => 2,
+                'role' => $student ? 2 : 0,
             ]);
 
             $token = $user->createToken('JazMedia Access Token')->plainTextToken;

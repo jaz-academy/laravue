@@ -35,7 +35,6 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
-        'media_role',
         'access',
         'image',
         'bio',

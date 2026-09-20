@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
+use App\Services\MediaFormatter;
+
 class OAuthUserController extends Controller
 {
     /**
@@ -25,25 +27,54 @@ class OAuthUserController extends Controller
             ], 401);
         }
 
-        $avatarUrl = null;
-        if ($user->image) {
-            $avatarUrl = Str::startsWith($user->image, ['http://', 'https://'])
-                ? $user->image
-                : asset('storage/' . $user->image);
+        // Avatar priority: student.image -> teacher.image -> user.image
+        $avatarImage = $user->adminStudent?->image ?: ($user->adminTeacher?->image ?: $user->image);
+        $avatarUrl = MediaFormatter::formatAvatarUrl($avatarImage);
+        if (!$avatarUrl && $avatarImage) {
+            $avatarUrl = Str::startsWith($avatarImage, ['http://', 'https://'])
+                ? $avatarImage
+                : asset('storage/' . ltrim(str_replace('storage/', '', $avatarImage), '/'));
         }
 
-        $memberType = 'Member';
-        if ($user->admin_student_id) {
-            $memberType = 'Student';
-        } elseif ($user->admin_teacher_id) {
-            $memberType = 'Teacher';
-        } elseif ($user->role > 0) {
+        $rawRole = (int) $user->role;
+
+        // Role mapping based strictly on users.role (0-5) and admin_student/teacher relations:
+        // 5: Programmer
+        // 4: Superadmin / Manager
+        // 3: Superuser / Admin
+        // 2 + admin_teacher_id: Member Mentor
+        // 2 + admin_student_id (or role 2): Member Student
+        // 1: Guest (parents / second account / view only)
+        // 0: Anonymous (need approval)
+        if ($rawRole === 5) {
+            $roleName = 'Programmer';
+            $roleSlug = 'admin';
+            $memberType = 'Programmer';
+        } elseif ($rawRole === 4) {
+            $roleName = 'Superadmin';
+            $roleSlug = 'admin';
+            $memberType = 'Manager';
+        } elseif ($rawRole === 3) {
+            $roleName = 'Admin';
+            $roleSlug = 'admin';
             $memberType = 'Admin';
+        } elseif ($user->admin_teacher_id) {
+            $roleName = 'Mentor';
+            $roleSlug = 'mentor';
+            $memberType = 'Teacher';
+        } elseif ($rawRole === 2 || $user->admin_student_id) {
+            $roleName = 'Student';
+            $roleSlug = 'student';
+            $memberType = 'Student';
+        } elseif ($rawRole === 1) {
+            $roleName = 'Guest';
+            $roleSlug = 'guest';
+            $memberType = 'Guest';
+        } else {
+            $roleName = 'Anonymous';
+            $roleSlug = 'anonymous';
+            $memberType = 'Anonymous';
         }
-
-        $resolvedMediaRole = ($user->media_role === 'admin' || $user->role >= 3)
-            ? 'admin'
-            : (($user->admin_teacher_id || $user->media_role === 'mentor') ? 'mentor' : 'member');
 
         $payload = [
             'sub' => (string) $user->id,
@@ -53,11 +84,13 @@ class OAuthUserController extends Controller
             'email' => $user->email,
             'email_verified' => (bool) $user->email_verified_at,
             'avatar' => $avatarUrl,
-            'role' => (int) $user->role,
-            'role_name' => $resolvedMediaRole === 'admin' ? 'Admin' : ($resolvedMediaRole === 'mentor' ? 'Mentor' : 'Member'),
-            'media_role' => $resolvedMediaRole,
+            'role' => $rawRole,
+            'role_name' => $roleName,
+            'role_slug' => $roleSlug,
             'member_type' => $memberType,
-            'bio' => $user->bio,
+            'admin_student_id' => $user->admin_student_id,
+            'admin_teacher_id' => $user->admin_teacher_id,
+            'bio' => $user->adminStudent?->note ?: ($user->adminStudent?->ambition ?: ($user->adminTeacher?->note ?: $user->bio)),
             'skills' => $user->skills ?? [],
             'created_at' => $user->created_at ? $user->created_at->toIso8601String() : null,
         ];

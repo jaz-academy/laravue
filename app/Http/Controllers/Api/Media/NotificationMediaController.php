@@ -98,7 +98,7 @@ class NotificationMediaController extends Controller
             }
 
             // Reminders for mentors/admins
-            if (in_array($user->media_role, ['mentor', 'admin']) || $user->role >= 2) {
+            if ($user->admin_teacher_id || $user->role >= 3) {
                 $pendingCount = MediaTask::where('status', 'pending')->count();
                 if ($pendingCount > 0) {
                     $reminders[] = [
@@ -129,7 +129,7 @@ class NotificationMediaController extends Controller
 
         try {
             $count = 0;
-            if (in_array($user->media_role, ['mentor', 'admin']) || $user->role >= 2) {
+            if ($user->admin_teacher_id || $user->role >= 3) {
                 $count = MediaTask::where('status', 'pending')->count();
             } else {
                 $count = MediaTask::where('user_id', $user->id)
