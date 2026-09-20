@@ -15,7 +15,7 @@ class AdminMediaController extends Controller
     {
         $user = Auth::user();
         if (!$user) return false;
-        return $user->media_role === 'admin' || $user->role >= 4;
+        return $user->role >= 3;
     }
 
     /**
@@ -28,16 +28,28 @@ class AdminMediaController extends Controller
         }
 
         try {
-            $users = User::orderByDesc('created_at')->get();
+            $users = User::with(['adminStudent', 'adminTeacher'])->orderByDesc('created_at')->get();
             $data = $users->map(function ($u) {
+                $r = (int) $u->role;
+                if ($r === 5) $roleSlug = 'programmer';
+                elseif ($r === 4) $roleSlug = 'superadmin';
+                elseif ($r === 3) $roleSlug = 'admin';
+                elseif ($u->admin_teacher_id) $roleSlug = 'mentor';
+                elseif ($r === 2 || $u->admin_student_id) $roleSlug = 'student';
+                elseif ($r === 1) $roleSlug = 'guest';
+                else $roleSlug = 'anonymous';
+
+                $avatarImage = $u->adminStudent?->image ?: ($u->adminTeacher?->image ?: $u->image);
+
                 return [
                     'id' => (string) ($u->mongodb_id ?: $u->id),
                     'numeric_id' => $u->id,
                     'name' => $u->name,
                     'username' => $u->username ?: '',
                     'email' => $u->email ?: '',
-                    'role' => $u->media_role ?: ($u->role >= 4 ? 'admin' : ($u->role >= 2 ? 'mentor' : 'member')),
-                    'image' => $u->image,
+                    'role' => $roleSlug,
+                    'role_number' => $r,
+                    'image' => MediaFormatter::formatAvatarUrl($avatarImage),
                 ];
             });
 
@@ -70,13 +82,16 @@ class AdminMediaController extends Controller
         }
 
         try {
-            $user->media_role = $request->role;
-            if ($request->role === 'admin') {
-                $user->role = 4;
-            } elseif ($request->role === 'mentor') {
+            if (is_numeric($request->role)) {
+                $user->role = (int) $request->role;
+            } elseif ($request->role === 'admin' || $request->role === 'superadmin' || $request->role === 'programmer') {
                 $user->role = 3;
-            } else {
+            } elseif ($request->role === 'mentor' || $request->role === 'student') {
+                $user->role = 2;
+            } elseif ($request->role === 'guest') {
                 $user->role = 1;
+            } else {
+                $user->role = 0;
             }
             $user->save();
 
@@ -117,10 +132,9 @@ class AdminMediaController extends Controller
     public function mentors()
     {
         try {
-            $mentors = User::where(function ($q) {
-                $q->where('media_role', 'mentor')
-                  ->orWhere('role', '>=', 2);
-            })->get(['id', 'mongodb_id', 'name']);
+            $mentors = User::whereNotNull('admin_teacher_id')
+                ->orWhere('role', '>=', 3)
+                ->get(['id', 'mongodb_id', 'name']);
 
             $data = $mentors->map(function ($m) {
                 return [

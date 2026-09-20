@@ -69,10 +69,12 @@ class UserMediaController extends Controller
 
             if ($request->has('name') && $request->filled('name')) $user->name = $request->name;
             if ($request->has('bio')) $user->bio = $request->bio;
-            if ($request->has('image')) $user->image = $request->image ?: null;
-
-            if ($request->has('role') && $request->filled('role')) {
-                $user->media_role = $request->role;
+            if ($request->has('image')) {
+                $img = $request->image ?: null;
+                if ($img && preg_match('#/storage/(.+)$#', $img, $m)) {
+                    $img = $m[1];
+                }
+                $user->image = $img;
             }
 
             if ($request->has('skills')) {
@@ -88,7 +90,7 @@ class UserMediaController extends Controller
                 $student = $user->adminStudent;
                 if ($request->has('name') && $request->filled('name')) $student->name = $request->name;
                 if ($request->has('bio')) $student->note = $request->bio;
-                if ($request->has('image')) $student->image = $request->image ?: null;
+                if ($request->has('image')) $student->image = $user->image;
                 if ($request->has('skills')) {
                     $skills = $request->skills;
                     $student->skills = is_string($skills) ? $skills : json_encode($skills);
@@ -104,7 +106,7 @@ class UserMediaController extends Controller
                 $teacher = $user->adminTeacher;
                 if ($request->has('name') && $request->filled('name')) $teacher->name = $request->name;
                 if ($request->has('bio')) $teacher->note = $request->bio;
-                if ($request->has('image')) $teacher->image = $request->image ?: null;
+                if ($request->has('image')) $teacher->image = $user->image;
                 $teacher->save();
             }
 
@@ -167,7 +169,8 @@ class UserMediaController extends Controller
                     'image' => MediaFormatter::formatAvatarUrl($student->image),
                     'bio' => $student->note ?: ($student->ambition ?: ($user?->bio ?: '')),
                     'skills' => $skills,
-                    'role' => 'member',
+                    'role' => 'student',
+                    'role_number' => 2,
                     'student_role' => $student->role,
                     'instagramId' => $student->instagram ?: ($user?->instagram_id),
                 ];
@@ -239,25 +242,34 @@ class UserMediaController extends Controller
 
         try {
             $file = $request->file('image');
-            $path = $file->store('profiles', 'public');
-            $url = "/storage/{$path}";
+            $folder = 'avatars/user';
+            if ($user->admin_student_id) {
+                $folder = 'avatars/student';
+            } elseif ($user->admin_teacher_id) {
+                $folder = 'avatars/teacher';
+            }
+
+            $path = $file->store($folder, 'public');
+            $fullUrl = MediaFormatter::formatAvatarUrl($path) ?: asset('storage/' . $path);
+
+            $user->image = $path;
+            $user->save();
 
             // Sync with student / teacher
             if ($user->adminStudent) {
-                $user->adminStudent->image = $url;
+                $user->adminStudent->image = $path;
                 $user->adminStudent->save();
             }
             if ($user->adminTeacher) {
-                $user->adminTeacher->image = $url;
+                $user->adminTeacher->image = $path;
                 $user->adminTeacher->save();
             }
 
-            $user->image = $url;
-            $user->save();
-
             return response()->json([
                 'success' => true,
-                'url' => $url,
+                'path' => $path,
+                'url' => $fullUrl,
+                'image' => $fullUrl,
             ]);
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);

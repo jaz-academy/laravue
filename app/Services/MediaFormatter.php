@@ -46,27 +46,25 @@ class MediaFormatter
             return $image;
         }
 
-        // If it's a local storage path (e.g. avatars/teacher/... or avatars/student/...)
+        // If it's a local storage path (e.g. avatars/teacher/... or avatars/student/... or profiles/...)
         $relativePath = ltrim(str_replace('storage/', '', $image), '/');
         if (file_exists(storage_path('app/public/' . $relativePath))) {
-            $baseUrl = config('app.url') ?: url('');
-            if (empty($baseUrl) || $baseUrl === 'http://localhost' || $baseUrl === 'https://localhost') {
-                try {
-                    $reqHost = request()->getSchemeAndHttpHost();
-                    if ($reqHost && !str_contains($reqHost, 'localhost')) {
-                        $baseUrl = $reqHost;
-                    } else {
-                        $baseUrl = 'https://jazacademy.id';
-                    }
-                } catch (\Throwable $e) {
-                    $baseUrl = 'https://jazacademy.id';
-                }
+            $baseUrl = null;
+            try {
+                $baseUrl = request()->getSchemeAndHttpHost();
+            } catch (\Throwable $e) {}
+            if (!$baseUrl) {
+                $baseUrl = config('app.url') ?: 'https://jazacademy.id';
             }
             return rtrim($baseUrl, '/') . '/storage/' . $relativePath;
         }
 
-        // Image was specified but not found on disk (like legacy avatars/teacher/1.png)
-        // Return null so frontend displays the user's initials instead of a 404 error
+        // If image was specified but file not found on local disk (e.g. database dump from production),
+        // fallback to live production storage so existing avatars load seamlessly
+        if (str_starts_with($relativePath, 'avatars/') || str_starts_with($relativePath, 'profiles/')) {
+            return 'https://jazacademy.id/storage/' . $relativePath;
+        }
+
         return null;
     }
 
@@ -77,8 +75,8 @@ class MediaFormatter
         $student = $user->adminStudent;
         $teacher = $user->adminTeacher;
 
-        // Image comes from custom user image, student, or teacher profile!
-        $avatarImage = $user->image ?: ($student?->image ?: ($teacher?->image ?: null));
+        // Image strictly prioritized: student -> teacher -> user
+        $avatarImage = $student ? $student->image : ($teacher ? $teacher->image : $user->image);
 
         // Bio comes from student note/ambition or teacher note
         $bio = $student?->note ?: ($student?->ambition ?: ($teacher?->note ?: ($user->bio ?: '')));
@@ -91,15 +89,25 @@ class MediaFormatter
             $skills = $user->skills;
         }
 
-        // Role mapping:
-        // Teacher / Manager -> mentor / admin
-        // Student -> member
-        if ($user->role >= 3 || $user->media_role === 'admin') {
+        // Role mapping based strictly on users.role 0-5:
+        // 5: programmer -> admin
+        // 4: superadmin -> admin
+        // 3: admin -> admin
+        // 2 + admin_teacher_id: mentor
+        // 2 + admin_student_id (or 2): student
+        // 1: guest
+        // 0: anonymous
+        $rawRole = (int) $user->role;
+        if ($rawRole >= 3) {
             $role = 'admin';
-        } elseif ($teacher || $user->admin_teacher_id || $user->media_role === 'mentor') {
+        } elseif ($teacher || $user->admin_teacher_id) {
             $role = 'mentor';
+        } elseif ($rawRole === 2 || $student || $user->admin_student_id) {
+            $role = 'student';
+        } elseif ($rawRole === 1) {
+            $role = 'guest';
         } else {
-            $role = 'member';
+            $role = 'anonymous';
         }
 
         return [
@@ -114,6 +122,7 @@ class MediaFormatter
             'bio' => $bio,
             'skills' => $skills,
             'role' => $role,
+            'role_number' => $rawRole,
             'student_role' => $student?->role,
             'instagramId' => $student?->instagram ?: $user->instagram_id,
         ];
@@ -343,18 +352,28 @@ class MediaFormatter
 
     public static function formatReflection($reflection, $previousReflection = null): array
     {
+        // 1. Identify student if reflection is associated with a student
+        $student = $reflection->student;
+        if (!$student && $reflection->admin_student_id) {
+            $student = \App\Models\AdminStudent::with('user')->find($reflection->admin_student_id);
+        }
+        if (!$student && $reflection->user && $reflection->user->admin_student_id) {
+            $student = $reflection->user->adminStudent;
+        }
+
         $user = $reflection->user;
-        $student = $reflection->student ?: $user?->adminStudent;
-        $teacher = $user?->adminTeacher;
+        $studentUser = $student?->user;
 
         if ($student) {
-            $resolvedAuthorId = (string) ($student->id ?: ($user?->id ?? ''));
-            $resolvedAuthorName = $student->name ?: ($user?->name ?? 'Siswa');
-            $resolvedAuthorUsername = $user?->username ?: \Illuminate\Support\Str::slug($student->name);
-            $resolvedAuthorAvatar = self::formatAvatarUrl($student->image ?: $user?->image);
-            $resolvedAuthorRole = $student->role ?: ($user?->role ? 'Mentor' : 'Siswa');
+            $resolvedAuthorId = (string) $student->id;
+            $resolvedAuthorName = $student->name;
+            $resolvedAuthorUsername = $student->instagram
+                ?: $student->nickname
+                ?: ($studentUser?->username ?: \Illuminate\Support\Str::slug($student->name));
+            $resolvedAuthorAvatar = self::formatAvatarUrl($student->image ?: $studentUser?->image);
+            $resolvedAuthorRole = $student->role ?: 'Siswa';
             $resolvedAuthorType = 'student';
-        } elseif ($teacher) {
+        } elseif ($teacher = ($user?->adminTeacher ?: null)) {
             $resolvedAuthorId = (string) ($user?->id ?? '');
             $resolvedAuthorName = $teacher->name ?: ($user?->name ?? 'Mentor');
             $resolvedAuthorUsername = $user?->username ?: ($teacher->nickname ? \Illuminate\Support\Str::slug($teacher->nickname) : 'mentor');
@@ -362,11 +381,14 @@ class MediaFormatter
             $resolvedAuthorRole = 'Mentor';
             $resolvedAuthorType = 'teacher';
         } else {
+            $rawRole = (int) ($user?->role ?? 0);
             $resolvedAuthorId = (string) ($user?->id ?? '');
             $resolvedAuthorName = $user?->name ?? 'Member';
             $resolvedAuthorUsername = $user?->username ?: 'member';
             $resolvedAuthorAvatar = self::formatAvatarUrl($user?->image);
-            $resolvedAuthorRole = $user?->media_role ?? 'member';
+            $resolvedAuthorRole = $rawRole >= 3
+                ? 'Admin'
+                : ($rawRole === 1 ? 'Guest' : 'Member');
             $resolvedAuthorType = 'user';
         }
 

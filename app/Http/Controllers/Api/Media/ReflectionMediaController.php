@@ -20,7 +20,7 @@ class ReflectionMediaController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = Reflection::with(['user.adminStudent', 'user.adminTeacher', 'student'])
+            $query = Reflection::with(['user.adminStudent', 'user.adminTeacher', 'student.user'])
                 ->orderBy('date', 'desc')
                 ->orderBy('id', 'desc');
 
@@ -108,8 +108,6 @@ class ReflectionMediaController extends Controller
             }
 
             $isAdmin = (
-                $user->media_role === 'admin' ||
-                $user->media_role === 'mentor' ||
                 $user->role >= 3 ||
                 $user->admin_teacher_id
             );
@@ -121,10 +119,12 @@ class ReflectionMediaController extends Controller
             if ($isAdmin && $request->filled('admin_student_id')) {
                 $studentId = (int) $request->input('admin_student_id');
                 $targetStudent = AdminStudent::with('user')->find($studentId);
-                // Student's user_id if they have a linked user account, or fallback to admin user_id
-                $targetUserId = $targetStudent?->user?->id ?: $user->id;
+                // Student's user_id if they have a linked user account, or null (never admin's user_id)
+                $targetUserId = $targetStudent?->user?->id;
             } elseif (!$studentId && $request->filled('admin_student_id')) {
                 $studentId = (int) $request->input('admin_student_id');
+                $targetStudent = AdminStudent::with('user')->find($studentId);
+                $targetUserId = $targetStudent?->user?->id;
             }
 
             $date = Carbon::parse($request->date)->format('Y-m-d');
@@ -147,7 +147,7 @@ class ReflectionMediaController extends Controller
                 ];
             } else {
                 $matchCriteria = [
-                    'user_id' => $targetUserId,
+                    'user_id' => $targetUserId ?: $user->id,
                     'date' => $date,
                 ];
             }
@@ -165,7 +165,7 @@ class ReflectionMediaController extends Controller
                 ]
             );
 
-            $reflection->load(['user.adminStudent', 'user.adminTeacher', 'student']);
+            $reflection->load(['user.adminStudent', 'user.adminTeacher', 'student.user']);
 
             $prevReflection = Reflection::where(function ($q) use ($reflection) {
                 if ($reflection->admin_student_id) {
@@ -197,7 +197,7 @@ class ReflectionMediaController extends Controller
     public function show($id)
     {
         try {
-            $ref = Reflection::with(['user.adminStudent', 'user.adminTeacher', 'student'])->findOrFail($id);
+            $ref = Reflection::with(['user.adminStudent', 'user.adminTeacher', 'student.user'])->findOrFail($id);
 
             $prevReflection = Reflection::where(function ($q) use ($ref) {
                 if ($ref->admin_student_id) {
@@ -233,7 +233,7 @@ class ReflectionMediaController extends Controller
                 return response()->json(['success' => false, 'error' => 'Unauthorized'], 401);
             }
 
-            $query = Reflection::with(['user.adminStudent', 'user.adminTeacher', 'student'])
+            $query = Reflection::with(['user.adminStudent', 'user.adminTeacher', 'student.user'])
                 ->where(function ($q) use ($user) {
                     $q->where('user_id', $user->id);
                     if ($user->admin_student_id) {
@@ -279,8 +279,6 @@ class ReflectionMediaController extends Controller
         try {
             $user = Auth::user();
             $isAuthorized = $user && (
-                $user->media_role === 'admin' ||
-                $user->media_role === 'mentor' ||
                 $user->role >= 3 ||
                 $user->admin_teacher_id
             );

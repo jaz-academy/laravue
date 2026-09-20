@@ -129,7 +129,7 @@ class ProjectMediaController extends Controller
     public function store(Request $request)
     {
         $user = Auth::user();
-        if (!$user || (!in_array($user->media_role, ['mentor', 'admin']) && $user->role < 2)) {
+        if (!$user || (!$user->admin_teacher_id && $user->role < 3)) {
             return response()->json(['success' => false, 'error' => 'Unauthorized'], 403);
         }
 
@@ -167,7 +167,7 @@ class ProjectMediaController extends Controller
     public function update($id, Request $request)
     {
         $user = Auth::user();
-        if (!$user || (!in_array($user->media_role, ['mentor', 'admin']) && $user->role < 2)) {
+        if (!$user || (!$user->admin_teacher_id && $user->role < 3)) {
             return response()->json(['success' => false, 'error' => 'Unauthorized'], 403);
         }
 
@@ -205,7 +205,7 @@ class ProjectMediaController extends Controller
     public function destroy($id)
     {
         $user = Auth::user();
-        if (!$user || ($user->media_role !== 'admin' && $user->role < 4)) {
+        if (!$user || $user->role < 3) {
             return response()->json(['success' => false, 'error' => 'Unauthorized: Only admins can delete projects'], 403);
         }
 

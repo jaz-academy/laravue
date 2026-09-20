@@ -123,8 +123,8 @@ class BlogMediaController extends Controller
             return response()->json(['success' => false, 'error' => 'Silakan login terlebih dahulu untuk menulis artikel.'], 401);
         }
 
-        if ($user->media_role === 'guest') {
-            return response()->json(['success' => false, 'error' => 'Tamu (guest) tidak memiliki izin untuk membuat artikel blog.'], 403);
+        if ($user->role < 2) {
+            return response()->json(['success' => false, 'error' => 'Tamu (guest) atau akun belum disetujui tidak memiliki izin untuk membuat artikel blog.'], 403);
         }
 
         $request->validate([
@@ -188,7 +188,7 @@ class BlogMediaController extends Controller
             return response()->json(['success' => false, 'error' => 'Blog tidak ditemukan.'], 404);
         }
 
-        $isAdmin = $user->media_role === 'admin' || $user->role >= 4;
+        $isAdmin = $user->role >= 3;
         if ($blog->user_id !== $user->id && !$isAdmin) {
             return response()->json(['success' => false, 'error' => 'Hanya penulis atau admin yang dapat mengedit artikel ini.'], 403);
         }
@@ -230,7 +230,7 @@ class BlogMediaController extends Controller
             return response()->json(['success' => false, 'error' => 'Blog tidak ditemukan.'], 404);
         }
 
-        $isAdmin = $user->media_role === 'admin' || $user->role >= 4;
+        $isAdmin = $user->role >= 3;
         if ($blog->user_id !== $user->id && !$isAdmin) {
             return response()->json(['success' => false, 'error' => 'Hanya penulis atau admin yang dapat menghapus artikel ini.'], 403);
         }

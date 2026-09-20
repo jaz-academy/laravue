@@ -114,10 +114,7 @@ class PublicMediaController extends Controller
         try {
             // Cache members for 15 minutes (900 seconds)
             $data = Cache::remember('public_members_list_v1', 900, function () {
-                $members = User::where(function ($q) {
-                    $q->where('media_role', 'member')
-                      ->orWhere('role', '<=', 2);
-                })->get();
+                $members = User::where('role', '<=', 2)->get();
 
                 return $members->map(function ($user) {
                     return MediaFormatter::formatUser($user);

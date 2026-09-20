@@ -29,8 +29,35 @@ Route::get('/logout', function (\Illuminate\Http\Request $request) {
     $request->session()->regenerateToken();
 
     $returnUrl = $request->query('return_url', '/login');
-    return redirect($returnUrl);
+    return redirect($returnUrl)
+        ->withoutCookie('userData')
+        ->withoutCookie('accessToken')
+        ->withoutCookie('userAbilityRules');
 })->name('web.logout');
+
+Route::get('/oauth/authorize', function (\Illuminate\Http\Request $request) {
+    if ($request->get('prompt') === 'login') {
+        \Illuminate\Support\Facades\Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        $request->session()->forget('promptedForLogin');
+
+        $cleanParams = $request->except('prompt');
+        $authorizeUrl = url('/oauth/authorize') . '?' . http_build_query($cleanParams);
+
+        return redirect('/login?return_to=' . urlencode($authorizeUrl))
+            ->withoutCookie('userData')
+            ->withoutCookie('accessToken')
+            ->withoutCookie('userAbilityRules');
+    }
+
+    return app(\Laravel\Passport\Http\Controllers\AuthorizationController::class)->authorize(
+        app(\Psr\Http\Message\ServerRequestInterface::class),
+        $request,
+        app(\Laravel\Passport\ClientRepository::class),
+        app(\Laravel\Passport\TokenRepository::class)
+    );
+})->middleware('web')->name('passport.authorizations.authorize');
 
 Route::get('/oauth/popup-callback', function () {
     return view('oauth.popup-callback');

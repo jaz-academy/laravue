@@ -465,7 +465,7 @@ class TaskMediaController extends Controller
     public function submitReview($id, Request $request)
     {
         $user = Auth::user();
-        if (!$user || (!in_array($user->media_role, ['mentor', 'admin']) && $user->role < 2)) {
+        if (!$user || (!$user->admin_teacher_id && $user->role < 3)) {
             return response()->json(['success' => false, 'error' => 'Unauthorized: Only mentors or admins can review'], 403);
         }
 
@@ -516,7 +516,7 @@ class TaskMediaController extends Controller
             return response()->json(['success' => false, 'error' => 'Task not found'], 404);
         }
 
-        $isAdmin = $user->media_role === 'admin' || $user->role >= 4;
+        $isAdmin = $user->role >= 3;
         $isPM = $task->project && (string) $task->project->project_manager_id === (string) $user->id;
 
         if (!$isAdmin && !$isPM) {
@@ -548,7 +548,7 @@ class TaskMediaController extends Controller
             return response()->json(['success' => false, 'error' => 'Task not found'], 404);
         }
 
-        $isAdmin = $user->media_role === 'admin' || $user->role >= 4;
+        $isAdmin = $user->role >= 3;
         if ($task->user_id !== $user->id && !$isAdmin) {
             return response()->json(['success' => false, 'error' => "Forbidden: You don't have permission to edit this post"], 403);
         }
@@ -569,7 +569,7 @@ class TaskMediaController extends Controller
     public function destroy($id)
     {
         $user = Auth::user();
-        if (!$user || ($user->media_role !== 'admin' && $user->role < 4)) {
+        if (!$user || $user->role < 3) {
             return response()->json(['success' => false, 'error' => 'Unauthorized: Only admins can delete posts'], 403);
         }
 

@@ -373,7 +373,6 @@ class MergeDatabasesCommand extends Command
                         'bio' => $u['bio'] ?? $existing->bio ?? null,
                         'skills' => $skillsJson ?: $existing->skills ?? null,
                         'instagram_id' => $u['instagramId'] ?? $existing->instagram_id ?? null,
-                        'media_role' => $u['role'] ?? 'member',
                         'image' => $existing->image ?: ($u['image'] ?? null),
                     ]);
                 } else {
@@ -390,7 +389,6 @@ class MergeDatabasesCommand extends Command
                         'email' => $fallbackEmail,
                         'password' => $u['password'] ?? bcrypt(Str::random(16)),
                         'role' => 0,
-                        'media_role' => $u['role'] ?? 'member',
                         'bio' => $u['bio'] ?? null,
                         'skills' => $skillsJson,
                         'instagram_id' => $u['instagramId'] ?? null,
