@@ -32,16 +32,14 @@ const logout = async () => {
   // Remove "userData" from cookie
   userData.value = null
 
-  // Redirect to login page
-  await router.push('/')
-
-  // ℹ️ We had to remove abilities in then block because if we don't nav menu items mutation is visible while redirecting user to login page
-
   // Remove "userAbilities" from cookie
   useCookie('userAbilityRules').value = null
 
   // Reset ability to initial ability
   ability.update([])
+
+  // Redirect to web logout to clear Laravel session cookie
+  window.location.href = '/logout?return_url=/login'
 }
 
 const userProfileList = [

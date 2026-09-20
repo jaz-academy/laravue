@@ -80,7 +80,11 @@ const login = async () => {
       const returnTo = route.query.return_to || route.query.to || route.query.return_url
       if (returnTo) {
         if (String(returnTo).startsWith('http://') || String(returnTo).startsWith('https://') || String(returnTo).startsWith('/oauth/')) {
-          window.location.href = String(returnTo)
+          // Remove prompt=login so Passport doesn't prompt for login again after successful authentication
+          const cleanUrl = String(returnTo)
+            .replace(/([?&])prompt=login(&|$)/, '$1')
+            .replace(/[?&]$/, '')
+          window.location.href = cleanUrl
           return
         }
         router.replace(String(returnTo))

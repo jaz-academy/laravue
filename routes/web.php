@@ -29,7 +29,10 @@ Route::get('/logout', function (\Illuminate\Http\Request $request) {
     $request->session()->regenerateToken();
 
     $returnUrl = $request->query('return_url', '/login');
-    return redirect($returnUrl);
+    return redirect($returnUrl)
+        ->withoutCookie('userData')
+        ->withoutCookie('accessToken')
+        ->withoutCookie('userAbilityRules');
 })->name('web.logout');
 
 Route::get('/oauth/popup-callback', function () {
