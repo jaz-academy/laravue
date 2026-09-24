@@ -71,6 +71,11 @@ class TaskMediaController extends Controller
                 $query->where('status', $request->status);
             }
 
+            // Optional type filter
+            if ($request->has('type') && $request->type !== 'all') {
+                $query->where('media_type', $request->type);
+            }
+
             $tasks = $query->skip($skip)->take($limit)->get();
 
             $formatted = $tasks->map(function ($task) use ($currentUserId) {

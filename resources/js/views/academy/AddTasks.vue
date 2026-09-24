@@ -30,6 +30,7 @@ const mediaTypeOptions = [
   { title: 'Gambar / Carousel (Image)', value: 'image' },
   { title: 'Video (MP4 / Stream / YouTube)', value: 'video' },
   { title: 'Dokumen PDF (Document)', value: 'document' },
+  { title: 'Game / Animasi (Scratch)', value: 'scratch' },
 ]
 
 const form = reactive({
@@ -72,6 +73,9 @@ const parseTaskMediaType = task => {
   }
   if (rawType === 'video' || rawType.includes('youtube') || rawType.includes('tiktok') || rawUrl.endsWith('.mp4')) {
     return 'video'
+  }
+  if (rawType === 'scratch' || rawType.includes('scratch') || rawUrl.includes('scratch.mit.edu')) {
+    return 'scratch'
   }
   return 'image'
 }

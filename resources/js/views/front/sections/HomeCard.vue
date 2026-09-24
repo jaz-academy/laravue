@@ -257,6 +257,14 @@ const isLoadingPdf = ref(false)
 const pdfLoadFailed = ref(false)
 const pdfDriveId = computed(() => getDriveId(props.mediaUrl))
 
+const scratchEmbedUrl = computed(() => {
+  if (props.mediaType !== 'scratch') return null
+  const url = props.mediaUrl || (parsedMediaUrls.value[0] || '')
+  if (!url) return null
+  const match = url.match(/scratch\.mit\.edu\/projects\/(\d+)/)
+  return match ? `https://scratch.mit.edu/projects/${match[1]}/embed` : null
+})
+
 watchEffect(async () => {
   if (props.mediaType === 'document' && props.mediaUrl && isIntersecting.value && !pdfBlobUrl.value && !pdfLoadFailed.value) {
     isLoadingPdf.value = true
@@ -475,6 +483,28 @@ watchEffect(async () => {
       </div>
     </div>
     
+    <div
+      v-else-if="props.mediaType === 'scratch'"
+      class="media-section w-100 d-flex align-center justify-center bg-transparent"
+      style="block-size: 402px; min-block-size: 400px;"
+    >
+      <iframe 
+        v-if="scratchEmbedUrl"
+        :src="scratchEmbedUrl" 
+        allowtransparency="true" 
+        width="485" 
+        height="402" 
+        frameborder="0" 
+        scrolling="no" 
+        allowfullscreen
+        style="max-width: 100%; max-height: 100%;"
+      ></iframe>
+      <div v-else class="text-white d-flex flex-column align-center justify-center h-100 w-100 text-center">
+        <VIcon icon="tabler-device-gamepad-2" size="48" class="mb-2" />
+        <span class="text-caption">Link Scratch Tidak Valid</span>
+      </div>
+    </div>
+
     <div
       v-else
       class="media-section w-100 bg-grey-200 d-flex align-center justify-center py-10"
