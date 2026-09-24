@@ -55,6 +55,7 @@ const getTaskType = task => {
   const u = (task?.media_url || task?.link || '').toLowerCase()
   if (m === 'document' || m.includes('pdf') || m.includes('drive') || u.endsWith('.pdf')) return 'document'
   if (m === 'video' || m.includes('youtube') || m.includes('tiktok') || u.endsWith('.mp4')) return 'video'
+  if (m === 'scratch' || m.includes('scratch') || u.includes('scratch.mit.edu')) return 'scratch'
   return 'image'
 }
 
@@ -75,6 +76,7 @@ const widgetData = computed(() => {
   const imgM = calcMetric(t => getTaskType(t) === 'image')
   const vidM = calcMetric(t => getTaskType(t) === 'video')
   const docM = calcMetric(t => getTaskType(t) === 'document')
+  const scrM = calcMetric(t => getTaskType(t) === 'scratch')
 
   return [
     {
@@ -104,6 +106,13 @@ const widgetData = computed(() => {
       icon: 'tabler-file-text',
       desc: `${docM.unapproved} unapproved`,
       change: docM.change,
+    },
+    {
+      title: 'Game Scratch',
+      value: scrM.total,
+      icon: 'tabler-device-gamepad-2',
+      desc: `${scrM.unapproved} unapproved`,
+      change: scrM.change,
     },
   ]
 })
@@ -166,6 +175,7 @@ const mediaOptions = ref([
   { title: 'Gambar / Carousel', value: 'image' },
   { title: 'Video', value: 'video' },
   { title: 'Dokumen PDF', value: 'document' },
+  { title: 'Game / Animasi', value: 'scratch' },
 ])
 
 const statusOptions = ref([
