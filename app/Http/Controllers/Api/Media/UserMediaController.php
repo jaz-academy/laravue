@@ -69,20 +69,7 @@ class UserMediaController extends Controller
 
             if ($request->has('name') && $request->filled('name')) $user->name = $request->name;
             if ($request->has('bio')) $user->bio = $request->bio;
-            if ($request->has('banner_image')) $user->banner_image = $request->banner_image;
-            if ($request->has('headline')) $user->headline = $request->headline;
-            if ($request->has('address_detail')) $user->address_detail = $request->address_detail;
-            if ($request->has('phone')) $user->phone = $request->phone;
-            if ($request->has('linkedin')) $user->linkedin = $request->linkedin;
-            if ($request->has('github')) $user->github = $request->github;
-            if ($request->has('website')) $user->website = $request->website;
-            
-            if ($request->has('education')) {
-                $user->education = is_string($request->education) ? $request->education : json_encode($request->education);
-            }
-            if ($request->has('recommendations')) {
-                $user->recommendations = is_string($request->recommendations) ? $request->recommendations : json_encode($request->recommendations);
-            }
+
             if ($request->has('image')) {
                 $img = $request->image ?: null;
                 if ($img && preg_match('#/storage/(.+)$#', $img, $m)) {
