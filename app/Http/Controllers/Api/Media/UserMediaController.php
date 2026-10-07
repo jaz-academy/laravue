@@ -69,6 +69,20 @@ class UserMediaController extends Controller
 
             if ($request->has('name') && $request->filled('name')) $user->name = $request->name;
             if ($request->has('bio')) $user->bio = $request->bio;
+            if ($request->has('banner_image')) $user->banner_image = $request->banner_image;
+            if ($request->has('headline')) $user->headline = $request->headline;
+            if ($request->has('address_detail')) $user->address_detail = $request->address_detail;
+            if ($request->has('phone')) $user->phone = $request->phone;
+            if ($request->has('linkedin')) $user->linkedin = $request->linkedin;
+            if ($request->has('github')) $user->github = $request->github;
+            if ($request->has('website')) $user->website = $request->website;
+            
+            if ($request->has('education')) {
+                $user->education = is_string($request->education) ? $request->education : json_encode($request->education);
+            }
+            if ($request->has('recommendations')) {
+                $user->recommendations = is_string($request->recommendations) ? $request->recommendations : json_encode($request->recommendations);
+            }
             if ($request->has('image')) {
                 $img = $request->image ?: null;
                 if ($img && preg_match('#/storage/(.+)$#', $img, $m)) {
@@ -128,107 +142,134 @@ class UserMediaController extends Controller
     /**
      * Get public profile by user or student ID with their tasks
      */
-    public function publicProfile($userId)
+    public function publicProfile(\Illuminate\Http\Request $request, $userId)
     {
         try {
-            $student = null;
+            $type = $request->query('type');
             $user = null;
-            $currentUserId = Auth::guard('sanctum')->id();
+            $student = null;
+            $teacher = null;
+            $currentUserId = \Illuminate\Support\Facades\Auth::guard('sanctum')->id();
 
-            // First check if $userId is a direct student ID
-            if (is_numeric($userId)) {
-                $student = AdminStudent::find((int)$userId);
+            if ($type === 'student') {
+                $student = \App\Models\AdminStudent::find((int)$userId);
+                if ($student) {
+                    $user = \App\Models\User::where('admin_student_id', $student->id)->first();
+                }
+            } elseif ($type === 'teacher') {
+                $teacher = \App\Models\AdminTeacher::find((int)$userId);
+                if ($teacher) {
+                    $user = \App\Models\User::where('admin_teacher_id', $teacher->id)->first();
+                }
+            } else {
+                // Legacy fallback or standard user
+                if (is_numeric($userId)) {
+                    $student = \App\Models\AdminStudent::find((int)$userId);
+                    if ($student) {
+                        $user = \App\Models\User::where('admin_student_id', $student->id)->first();
+                    }
+                }
+                if (!$user) {
+                    $user = $this->resolveUser($userId);
+                }
             }
 
-            if ($student) {
-                $user = User::where('admin_student_id', $student->id)->first();
-                $sId = $student->id;
+            if ($user) {
+                $profileData = \App\Services\MediaFormatter::formatUser($user);
+            } elseif ($student) {
+                // Fallback for legacy student without a user record
+                $skills = [];
+                if (!empty($student->skills)) {
+                    $skills = is_array($student->skills) ? $student->skills : (json_decode($student->skills, true) ?: []);
+                }
+                $profileData = [
+                    'id' => (string) $student->id,
+                    '_id' => (string) $student->id,
+                    'student_id' => $student->id,
+                    'name' => $student->name,
+                    'username' => $student->nickname ?: '',
+                    'email' => $student->email ?: '',
+                    'image' => \App\Services\MediaFormatter::formatAvatarUrl($student->image),
+                    'bio' => $student->note ?: ($student->ambition ?: ''),
+                    'skills' => $skills,
+                    'role' => 'student',
+                    'role_number' => 2,
+                    'student_role' => $student->role,
+                    'instagramId' => $student->instagram,
+                    'banner_image' => null,
+                    'headline' => null,
+                    'address_detail' => null,
+                    'education' => [],
+                    'recommendations' => [],
+                ];
+            } elseif ($teacher) {
+                // Fallback for legacy teacher without a user record
+                $profileData = [
+                    'id' => (string) $teacher->id,
+                    '_id' => (string) $teacher->id,
+                    'teacher_id' => $teacher->id,
+                    'name' => $teacher->name,
+                    'username' => '',
+                    'email' => $teacher->email ?: '',
+                    'image' => '/no-photo.png',
+                    'bio' => '',
+                    'skills' => [],
+                    'role' => 'mentor',
+                    'role_number' => 3,
+                    'banner_image' => null,
+                    'headline' => null,
+                    'address_detail' => null,
+                    'education' => [],
+                    'recommendations' => [],
+                ];
+            } else {
+                return response()->json(['success' => false, 'error' => 'Profil tidak ditemukan'], 404);
+            }
 
-                $tasks = MediaTask::with(['student', 'mentorTeacher', 'studentCollaborators', 'project', 'likes', 'comments.user'])
+            // Fetch tasks
+            $tasks = collect([]);
+            if (($user && $user->admin_student_id) || $student) {
+                $sId = $user ? $user->admin_student_id : $student->id;
+                $tasks = \App\Models\MediaTask::with(['student', 'mentorTeacher', 'studentCollaborators', 'project', 'likes', 'comments.user'])
                     ->where('admin_student_id', $sId)
                     ->orWhereHas('studentCollaborators', function ($q) use ($sId) {
                         $q->where('admin_student_id', $sId);
                     })
                     ->orderByDesc('created_at')
                     ->get();
-
-                $skills = [];
-                if (!empty($student->skills)) {
-                    $skills = is_array($student->skills) ? $student->skills : (json_decode($student->skills, true) ?: []);
-                } elseif ($user && is_array($user->skills)) {
-                    $skills = $user->skills;
-                }
-
-                $profileData = [
-                    'id' => (string) ($user ? $user->id : $student->id),
-                    '_id' => (string) ($user ? ($user->mongodb_id ?: $user->id) : $student->id),
-                    'student_id' => $student->id,
-                    'name' => $student->name,
-                    'username' => $user ? ($user->username ?: $student->nickname) : ($student->nickname ?: ''),
-                    'email' => $user ? $user->email : ($student->email ?: ''),
-                    'image' => MediaFormatter::formatAvatarUrl($student->image),
-                    'bio' => $student->note ?: ($student->ambition ?: ($user?->bio ?: '')),
-                    'skills' => $skills,
-                    'role' => 'student',
-                    'role_number' => 2,
-                    'student_role' => $student->role,
-                    'instagramId' => $student->instagram ?: ($user?->instagram_id),
-                ];
-            } else {
-                // Resolve as User
-                $user = $this->resolveUser($userId);
-                if (!$user) {
-                    return response()->json(['success' => false, 'error' => 'User tidak ditemukan'], 404);
-                }
-
-                $profileData = MediaFormatter::formatUser($user);
-
-                if ($user->admin_student_id) {
-                    $sId = $user->admin_student_id;
-                    $tasks = MediaTask::with(['student', 'mentorTeacher', 'studentCollaborators', 'project', 'likes', 'comments.user'])
-                        ->where('admin_student_id', $sId)
-                        ->orWhereHas('studentCollaborators', function ($q) use ($sId) {
-                            $q->where('admin_student_id', $sId);
-                        })
-                        ->orderByDesc('created_at')
-                        ->get();
-                } elseif ($user->admin_teacher_id) {
-                    $tId = $user->admin_teacher_id;
-                    $tasks = MediaTask::with(['student', 'mentorTeacher', 'studentCollaborators', 'project', 'likes', 'comments.user'])
-                        ->where('admin_teacher_id', $tId)
-                        ->orderByDesc('created_at')
-                        ->get();
-                } else {
-                    $uId = $user->id;
-                    $tasks = MediaTask::with(['student', 'mentorTeacher', 'studentCollaborators', 'project', 'likes', 'comments.user'])
-                        ->where('user_id', $uId)
-                        ->orWhereHas('collaborators', function ($q) use ($uId) {
-                            $q->where('user_id', $uId);
-                        })
-                        ->orderByDesc('created_at')
-                        ->get();
-                }
+            } elseif (($user && $user->admin_teacher_id) || $teacher) {
+                $tId = $user ? $user->admin_teacher_id : $teacher->id;
+                $tasks = \App\Models\MediaTask::with(['student', 'mentorTeacher', 'studentCollaborators', 'project', 'likes', 'comments.user'])
+                    ->where('admin_teacher_id', $tId)
+                    ->orderByDesc('created_at')
+                    ->get();
+            } elseif ($user) {
+                $uId = $user->id;
+                $tasks = \App\Models\MediaTask::with(['student', 'mentorTeacher', 'studentCollaborators', 'project', 'likes', 'comments.user'])
+                    ->where('user_id', $uId)
+                    ->orWhereHas('collaborators', function ($q) use ($uId) {
+                        $q->where('user_id', $uId);
+                    })
+                    ->orderByDesc('created_at')
+                    ->get();
             }
 
             $formattedTasks = $tasks->map(function ($task) use ($currentUserId) {
-                return MediaFormatter::formatTask($task, $currentUserId);
+                return \App\Services\MediaFormatter::formatTask($task, $currentUserId);
             });
 
             return response()->json([
                 'success' => true,
                 'data' => [
                     'user' => $profileData,
-                    'tasks' => $formattedTasks,
-                ],
+                    'tasks' => $formattedTasks
+                ]
             ]);
-        } catch (\Throwable $e) {
+        } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
 
-    /**
-     * Upload profile picture
-     */
     public function uploadPicture(Request $request)
     {
         $user = Auth::user();
