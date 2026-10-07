@@ -75,11 +75,11 @@ class MediaFormatter
         $student = $user->adminStudent;
         $teacher = $user->adminTeacher;
 
-        // Image strictly prioritized: student -> teacher -> user
-        $avatarImage = $student ? $student->image : ($teacher ? $teacher->image : $user->image);
-
-        // Bio comes from student note/ambition or teacher note
-        $bio = $student?->note ?: ($student?->ambition ?: ($teacher?->note ?: ($user->bio ?: '')));
+        // User table as primary source of truth, fallback to legacy models
+        $avatarImage = $user->image ?: ($student ? $student->image : ($teacher ? $teacher->image : null));
+        $bio = $user->bio ?: ($student?->note ?: ($student?->ambition ?: ($teacher?->note ?: '')));
+        $name = $user->name ?: ($student?->name ?: ($teacher?->name ?: ''));
+        $username = $user->username ?: ($student?->nickname ?: '');
 
         // Skills from student or user
         $skills = [];
@@ -89,14 +89,7 @@ class MediaFormatter
             $skills = $user->skills;
         }
 
-        // Role mapping based strictly on users.role 0-5:
-        // 5: programmer -> admin
-        // 4: superadmin -> admin
-        // 3: admin -> admin
-        // 2 + admin_teacher_id: mentor
-        // 2 + admin_student_id (or 2): student
-        // 1: guest
-        // 0: anonymous
+        // Role mapping
         $rawRole = (int) $user->role;
         if ($rawRole >= 3) {
             $role = 'admin';
@@ -114,17 +107,28 @@ class MediaFormatter
             'id' => (string) $user->id,
             '_id' => (string) ($user->mongodb_id ?: $user->id),
             'student_id' => $student?->id,
+            'admin_student_id' => $student?->id,
             'teacher_id' => $teacher?->id,
-            'name' => $student?->name ?: ($teacher?->name ?: $user->name),
-            'username' => $user->username ?: ($student?->nickname ?: ''),
+            'admin_teacher_id' => $teacher?->id,
+            'name' => $name,
+            'username' => $username,
             'email' => $user->email,
             'image' => self::formatAvatarUrl($avatarImage),
+            'banner_image' => $user->banner_image ? self::formatAvatarUrl($user->banner_image) : null,
+            'headline' => $user->headline,
+            'address_detail' => $user->address_detail,
             'bio' => $bio,
             'skills' => $skills,
+            'education' => is_array($user->education) ? $user->education : (json_decode($user->education, true) ?: []),
+            'recommendations' => is_array($user->recommendations) ? $user->recommendations : (json_decode($user->recommendations, true) ?: []),
             'role' => $role,
             'role_number' => $rawRole,
             'student_role' => $student?->role,
             'instagramId' => $student?->instagram ?: $user->instagram_id,
+            'phone' => $user->phone,
+            'linkedin' => $user->linkedin,
+            'github' => $user->github,
+            'website' => $user->website,
         ];
     }
 
